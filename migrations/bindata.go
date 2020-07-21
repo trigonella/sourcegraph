@@ -84,6 +84,8 @@
 // 1528395690_lsif_upload_size.up.sql (703B)
 // 1528395691_encrypt_tokens.down.sql (128B)
 // 1528395691_encrypt_tokens.up.sql (496B)
+// 1528395692_add_user_id_org_id_to_external_service_table.down.sql (198B)
+// 1528395692_add_user_id_org_id_to_external_service_table.up.sql (388B)
 
 package migrations
 
@@ -1832,6 +1834,46 @@ func _1528395691_encrypt_tokensUpSql() (*asset, error) {
 	return a, nil
 }
 
+var __1528395692_add_user_id_org_id_to_external_service_tableDownSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x72\x72\x75\xf7\xf4\xb3\xe6\xe2\xd2\xd5\x55\x70\xf4\x09\x71\x0d\x52\x08\x71\x74\xf2\x71\x55\x48\xad\x28\x49\x2d\xca\x4b\xcc\x89\x2f\x4e\x2d\x2a\xcb\x4c\x4e\x2d\x56\x70\x09\xf2\x0f\x50\x70\xf6\xf7\x0b\x0e\x09\x72\xf4\xf4\x0b\xc1\x54\x11\x9f\x91\x58\x1c\x6f\x18\x9f\x5f\x9e\x97\x5a\x64\xcd\x45\x94\x61\x3e\xa1\xbe\x7e\x0a\xa5\xc5\xa9\x45\xf1\x99\x29\xa4\x68\xc9\x2f\x4a\x07\xeb\xe0\x72\xf6\xf7\xf5\xf5\x0c\xb1\xe6\x02\x04\x00\x00\xff\xff\x09\xc7\x2e\x29\xc6\x00\x00\x00")
+
+func _1528395692_add_user_id_org_id_to_external_service_tableDownSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1528395692_add_user_id_org_id_to_external_service_tableDownSql,
+		"1528395692_add_user_id_org_id_to_external_service_table.down.sql",
+	)
+}
+
+func _1528395692_add_user_id_org_id_to_external_service_tableDownSql() (*asset, error) {
+	bytes, err := _1528395692_add_user_id_org_id_to_external_service_tableDownSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1528395692_add_user_id_org_id_to_external_service_table.down.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x6e, 0x94, 0x44, 0x6d, 0x23, 0x85, 0x16, 0xdc, 0x38, 0xca, 0x91, 0x41, 0xfc, 0xea, 0x3, 0x5c, 0x86, 0x25, 0x27, 0xba, 0x72, 0x12, 0x88, 0x75, 0x5a, 0xc6, 0x8f, 0xc0, 0x50, 0x9b, 0x45, 0x36}}
+	return a, nil
+}
+
+var __1528395692_add_user_id_org_id_to_external_service_tableUpSql = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x9c\x90\x4d\x4b\xc4\x30\x10\x86\xef\xf9\x15\xef\xb1\x3d\xec\xc1\x73\x55\xe8\xa6\xb3\xbb\xc1\x24\x95\x64\x8a\xde\x42\xb1\x41\x03\xda\x85\x64\xfd\xf8\xf9\x52\x3f\x16\x44\xf1\xb0\x73\x9c\x79\x79\xe6\x99\x59\xd3\x56\xd9\x46\x88\x56\x33\x39\x70\xbb\xd6\x84\xf8\x76\x88\x79\x1e\x1f\x43\x89\xf9\x25\xdd\xc5\x82\xb6\xeb\x20\x7b\x3d\x18\x0b\xb5\x81\xed\x19\x74\xab\x3c\x7b\x3c\x97\x98\x43\x9a\xa0\x2c\xd3\x96\x5c\x73\x2a\x07\xfb\x7c\xff\x83\x23\x86\xeb\xae\xe5\xbf\x18\x9e\xf8\xb8\xf6\x02\x95\x27\x4d\x92\x61\x94\xad\xd2\x54\x63\xe3\x7a\xf3\x31\x2e\xb8\xd9\x91\x23\x94\x74\x88\x61\x9c\x9e\xd2\x0c\xe5\xc1\x6e\xa0\xba\x11\x62\xb5\xc2\xbf\xa6\x4b\x60\xa9\x4f\x61\xeb\xd9\xb5\xca\xf2\xef\x5c\x78\x18\x4b\x38\x0b\xfb\xd7\x39\x66\xc8\x1d\xc9\x2b\x54\xd5\xf1\x29\x1e\x76\xd0\xba\xc6\xf9\x25\xaa\xef\x03\xbf\x7a\x8b\x84\xec\x8d\x51\xdc\x88\xf7\x00\x00\x00\xff\xff\x47\x9b\x3e\xec\x84\x01\x00\x00")
+
+func _1528395692_add_user_id_org_id_to_external_service_tableUpSqlBytes() ([]byte, error) {
+	return bindataRead(
+		__1528395692_add_user_id_org_id_to_external_service_tableUpSql,
+		"1528395692_add_user_id_org_id_to_external_service_table.up.sql",
+	)
+}
+
+func _1528395692_add_user_id_org_id_to_external_service_tableUpSql() (*asset, error) {
+	bytes, err := _1528395692_add_user_id_org_id_to_external_service_tableUpSqlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "1528395692_add_user_id_org_id_to_external_service_table.up.sql", size: 0, mode: os.FileMode(0), modTime: time.Unix(0, 0)}
+	a := &asset{bytes: bytes, info: info, digest: [32]uint8{0x40, 0xfe, 0xef, 0x1, 0x91, 0x1, 0x4e, 0xc0, 0xde, 0xce, 0xe2, 0x40, 0x3d, 0x62, 0xe6, 0xcf, 0x4c, 0x92, 0x29, 0xd4, 0x9f, 0x88, 0x2d, 0x48, 0xb4, 0xae, 0x93, 0x17, 0xf1, 0xf8, 0x55, 0xfb}}
+	return a, nil
+}
+
 // Asset loads and returns the asset for the given name.
 // It returns an error if the asset could not be found or
 // could not be loaded.
@@ -2007,6 +2049,8 @@ var _bindata = map[string]func() (*asset, error){
 	"1528395690_lsif_upload_size.up.sql":                                      _1528395690_lsif_upload_sizeUpSql,
 	"1528395691_encrypt_tokens.down.sql":                                      _1528395691_encrypt_tokensDownSql,
 	"1528395691_encrypt_tokens.up.sql":                                        _1528395691_encrypt_tokensUpSql,
+	"1528395692_add_user_id_org_id_to_external_service_table.down.sql":        _1528395692_add_user_id_org_id_to_external_service_tableDownSql,
+	"1528395692_add_user_id_org_id_to_external_service_table.up.sql":          _1528395692_add_user_id_org_id_to_external_service_tableUpSql,
 }
 
 // AssetDebug is true if the assets were built with the debug flag enabled.
@@ -2137,6 +2181,8 @@ var _bintree = &bintree{nil, map[string]*bintree{
 	"1528395690_lsif_upload_size.up.sql":                                      {_1528395690_lsif_upload_sizeUpSql, map[string]*bintree{}},
 	"1528395691_encrypt_tokens.down.sql":                                      {_1528395691_encrypt_tokensDownSql, map[string]*bintree{}},
 	"1528395691_encrypt_tokens.up.sql":                                        {_1528395691_encrypt_tokensUpSql, map[string]*bintree{}},
+	"1528395692_add_user_id_org_id_to_external_service_table.down.sql":        {_1528395692_add_user_id_org_id_to_external_service_tableDownSql, map[string]*bintree{}},
+	"1528395692_add_user_id_org_id_to_external_service_table.up.sql":          {_1528395692_add_user_id_org_id_to_external_service_tableUpSql, map[string]*bintree{}},
 }}
 
 // RestoreAsset restores an asset under the given directory.

@@ -65,6 +65,8 @@ func (rs Repos) Swap(i, j int)      { rs[i], rs[j] = rs[j], rs[i] }
 // ExternalService is a connection to an external service.
 type ExternalService struct {
 	ID          int64
+	UserID      int32
+	OrgID       int32
 	Kind        string
 	DisplayName string
 	Config      string

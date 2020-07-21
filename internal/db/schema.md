@@ -311,6 +311,8 @@ Check constraints:
  created_at   | timestamp with time zone | not null default now()
  updated_at   | timestamp with time zone | not null default now()
  deleted_at   | timestamp with time zone | 
+ user_id      | integer                  | 
+ org_id       | integer                  | 
 Indexes:
     "external_services_pkey" PRIMARY KEY, btree (id)
 Check constraints:
