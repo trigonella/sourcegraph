@@ -2,6 +2,7 @@ import React from 'react'
 import { SiteAdminAlert } from '../../site-admin/SiteAdminAlert'
 import { lazyComponent } from '../../util/lazyComponent'
 import { UserSettingsAreaRoute } from './UserSettingsArea'
+import { eventLogger } from '../../tracking/eventLogger'
 
 const SettingsArea = lazyComponent(() => import('../../settings/SettingsArea'), 'SettingsArea')
 
@@ -59,10 +60,17 @@ export const userSettingsAreaRoutes: readonly UserSettingsAreaRoute[] = [
     },
     {
         path: '/external-services',
-        render: lazyComponent(
-            () => import('../../site-admin/SiteAdminExternalServicesPage'),
-            'SiteAdminExternalServicesPage'
-        ),
+        render: lazyComponent(() => import('./ExternalServicesPage'), 'SiteAdminExternalServicesPage'),
+        exact: true,
+    },
+    {
+        path: '/external-services/new',
+        render: props => <SiteAdminAddExternalServicesPage {...props} eventLogger={eventLogger} />,
         exact: true,
     },
 ]
+
+const SiteAdminAddExternalServicesPage = lazyComponent(
+    () => import('./AddExternalServicesPage'),
+    'SiteAdminAddExternalServicesPage'
+)
