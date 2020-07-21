@@ -14,6 +14,7 @@ import (
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/backend"
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/graphqlbackend/graphqlutil"
 	"github.com/sourcegraph/sourcegraph/cmd/frontend/types"
+	"github.com/sourcegraph/sourcegraph/internal/actor"
 	"github.com/sourcegraph/sourcegraph/internal/api"
 	"github.com/sourcegraph/sourcegraph/internal/conf"
 	"github.com/sourcegraph/sourcegraph/internal/db"
@@ -31,14 +32,16 @@ func (r *schemaResolver) AddExternalService(ctx context.Context, args *struct {
 	}
 }) (*externalServiceResolver, error) {
 	// 🚨 SECURITY: Only site admins may add external services.
-	if err := backend.CheckCurrentUserIsSiteAdmin(ctx); err != nil {
-		return nil, err
-	}
+	// if err := backend.CheckCurrentUserIsSiteAdmin(ctx); err != nil {
+	// 	return nil, err
+	// }
 	if os.Getenv("EXTSVC_CONFIG_FILE") != "" && !extsvcConfigAllowEdits {
 		return nil, errors.New("adding external service not allowed when using EXTSVC_CONFIG_FILE")
 	}
 
+	actor := actor.FromContext(ctx)
 	externalService := &types.ExternalService{
+		UserID:      actor.UID,
 		Kind:        args.Input.Kind,
 		DisplayName: args.Input.DisplayName,
 		Config:      args.Input.Config,
@@ -167,11 +170,13 @@ func (*schemaResolver) DeleteExternalService(ctx context.Context, args *struct {
 func (r *schemaResolver) ExternalServices(ctx context.Context, args *struct {
 	graphqlutil.ConnectionArgs
 }) (*externalServiceConnectionResolver, error) {
-	// 🚨 SECURITY: Only site admins may read external services (they have secrets).
-	if err := backend.CheckCurrentUserIsSiteAdmin(ctx); err != nil {
-		return nil, err
+	// // 🚨 SECURITY: Only site admins may read external services (they have secrets).
+	// if err := backend.CheckCurrentUserIsSiteAdmin(ctx); err != nil {
+	// 	return nil, err
+	// }
+	opt := db.ExternalServicesListOptions{
+		UserID: actor.FromContext(ctx).UID,
 	}
-	var opt db.ExternalServicesListOptions
 	args.ConnectionArgs.Set(&opt.LimitOffset)
 	return &externalServiceConnectionResolver{opt: opt}, nil
 }

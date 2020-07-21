@@ -57,4 +57,12 @@ export const userSettingsAreaRoutes: readonly UserSettingsAreaRoute[] = [
         ),
         condition: () => window.context.accessTokensAllow !== 'none',
     },
+    {
+        path: '/external-services',
+        render: lazyComponent(
+            () => import('../../site-admin/SiteAdminExternalServicesPage'),
+            'SiteAdminExternalServicesPage'
+        ),
+        exact: true,
+    },
 ]

@@ -57,12 +57,16 @@ type ExternalServiceKind struct {
 
 // ExternalServicesListOptions contains options for listing external services.
 type ExternalServicesListOptions struct {
-	Kinds []string
+	UserID int32
+	Kinds  []string
 	*LimitOffset
 }
 
 func (o ExternalServicesListOptions) sqlConditions() []*sqlf.Query {
 	conds := []*sqlf.Query{sqlf.Sprintf("deleted_at IS NULL")}
+	if o.UserID > 0 {
+		conds = append(conds, sqlf.Sprintf("user_id = %s", o.UserID))
+	}
 	if len(o.Kinds) > 0 {
 		kinds := make([]*sqlf.Query, 0, len(o.Kinds))
 		for _, kind := range o.Kinds {
@@ -283,8 +287,8 @@ func (e *ExternalServicesStore) Create(ctx context.Context, confGet func() *conf
 
 	return dbconn.Global.QueryRowContext(
 		ctx,
-		"INSERT INTO external_services(kind, display_name, config, created_at, updated_at) VALUES($1, $2, $3, $4, $5) RETURNING id",
-		externalService.Kind, externalService.DisplayName, externalService.Config, externalService.CreatedAt, externalService.UpdatedAt,
+		"INSERT INTO external_services(kind, display_name, config, user_id, created_at, updated_at) VALUES($1, $2, $3, $4, $5, $6) RETURNING id",
+		externalService.Kind, externalService.DisplayName, externalService.Config, externalService.UserID, externalService.CreatedAt, externalService.UpdatedAt,
 	).Scan(&externalService.ID)
 }
 

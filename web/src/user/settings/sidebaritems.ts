@@ -29,5 +29,10 @@ export const userSettingsSideBarItems: UserSettingsSidebarItems = {
             to: '/tokens',
             condition: () => window.context.accessTokensAllow !== 'none',
         },
+        {
+            label: 'Manage repositories',
+            to: '/external-services',
+            exact: true,
+        },
     ],
 }
