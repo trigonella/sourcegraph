@@ -17,12 +17,18 @@ export interface CampaignNodeProps {
     /** Used for testing purposes. Sets the current date */
     now?: Date
     history: H.History
+    displayNamespace: boolean
 }
 
 /**
  * An item in the list of campaigns.
  */
-export const CampaignNode: React.FunctionComponent<CampaignNodeProps> = ({ node, history, now = new Date() }) => {
+export const CampaignNode: React.FunctionComponent<CampaignNodeProps> = ({
+    node,
+    history,
+    now = new Date(),
+    displayNamespace,
+}) => {
     const campaignIconClass = node.closedAt ? 'text-danger' : 'text-success'
     const OpenChangesetIcon = changesetExternalStateIcons[GQL.ChangesetExternalState.OPEN]
     const ClosedChangesetIcon = changesetExternalStateIcons[GQL.ChangesetExternalState.CLOSED]
@@ -37,14 +43,21 @@ export const CampaignNode: React.FunctionComponent<CampaignNodeProps> = ({ node,
                 <div className="flex-grow-1 campaign-node__content">
                     <div className="m-0 d-flex align-items-baseline">
                         <h3 className="m-0 d-inline-block">
+                            {displayNamespace && (
+                                <>
+                                    <Link className="text-muted" to={`/campaigns/${node.id}`}>
+                                        {node.namespace.namespaceName}
+                                    </Link>
+                                    <span className="text-muted d-inline-block mx-1">/</span>
+                                </>
+                            )}
                             <Link to={`/campaigns/${node.id}`}>{node.name}</Link>
                         </h3>
                         <small className="ml-2 text-muted">
                             created{' '}
                             <span data-tooltip={<Timestamp date={node.createdAt} />}>
                                 {formatDistance(parseISO(node.createdAt), now)} ago
-                            </span>{' '}
-                            by <strong>{node.author.username}</strong>
+                            </span>
                         </small>
                     </div>
                     <Markdown

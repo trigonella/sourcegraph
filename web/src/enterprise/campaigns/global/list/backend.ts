@@ -7,6 +7,9 @@ const ListCampaignFragment = gql`
     fragment ListCampaign on Campaign {
         id
         name
+        namespace {
+            namespaceName
+        }
         description
         createdAt
         closedAt
