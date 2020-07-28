@@ -6,7 +6,7 @@ import { of } from 'rxjs'
 import { NOOP_TELEMETRY_SERVICE } from '../../../../../shared/src/telemetry/telemetryService'
 import { PageTitle } from '../../../components/PageTitle'
 import { registerHighlightContributions } from '../../../../../shared/src/highlight/contributions'
-import { shallow, mount } from 'enzyme'
+import { mount } from 'enzyme'
 
 // This is idempotent, so calling it in multiple tests is not a problem.
 registerHighlightContributions()
@@ -21,36 +21,6 @@ describe('CampaignDetails', () => {
         PageTitle.titleSet = false
     })
 
-    test('creation form for empty manual campaign', () =>
-        expect(
-            shallow(
-                <CampaignDetails
-                    campaignID={undefined}
-                    history={history}
-                    location={history.location}
-                    isLightTheme={true}
-                    extensionsController={undefined as any}
-                    platformContext={undefined as any}
-                    telemetryService={NOOP_TELEMETRY_SERVICE}
-                />
-            )
-        ).toMatchSnapshot())
-
-    test('creation form given existing patch set', () => {
-        const component = mount(
-            <CampaignDetails
-                campaignID={undefined}
-                history={history}
-                location={{ ...history.location, search: 'patchSet=p' }}
-                isLightTheme={true}
-                extensionsController={undefined as any}
-                platformContext={undefined as any}
-                telemetryService={NOOP_TELEMETRY_SERVICE}
-            />
-        )
-        expect(component).toMatchSnapshot()
-    })
-
     const renderCampaignDetails = ({ viewerCanAdminister }: { viewerCanAdminister: boolean }) => (
         <CampaignDetails
             campaignID="c"
@@ -61,7 +31,7 @@ describe('CampaignDetails', () => {
             platformContext={undefined as any}
             telemetryService={NOOP_TELEMETRY_SERVICE}
             _fetchCampaignById={() =>
-                of(({
+                of({
                     __typename: 'Campaign' as const,
                     id: 'c',
                     name: 'n',
@@ -82,7 +52,10 @@ describe('CampaignDetails', () => {
                         changed: 3,
                         deleted: 2,
                     },
-                } as any) as GQL.ICampaign)
+                    namespace: {
+                        namespaceName: 'alice',
+                    },
+                })
             }
         />
     )
