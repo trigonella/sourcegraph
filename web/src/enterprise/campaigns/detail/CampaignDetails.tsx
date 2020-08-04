@@ -5,7 +5,7 @@ import * as GQL from '../../../../../shared/src/graphql/schema'
 import { HeroPage } from '../../../components/HeroPage'
 import { PageTitle } from '../../../components/PageTitle'
 import { isEqual } from 'lodash'
-import { fetchCampaignById } from './backend'
+import { fetchCampaignById, queryChangesets } from './backend'
 import { useError } from '../../../../../shared/src/util/useObservable'
 import * as H from 'history'
 import { CampaignBurndownChart } from './BurndownChart'
@@ -35,6 +35,8 @@ interface Props extends ThemeProps, ExtensionsControllerProps, PlatformContextPr
 
     /** For testing only. */
     _fetchCampaignById?: typeof fetchCampaignById
+    /** For testing only. */
+    _queryChangesets?: typeof queryChangesets
 }
 
 /**
@@ -49,6 +51,7 @@ export const CampaignDetails: React.FunctionComponent<Props> = ({
     platformContext,
     telemetryService,
     _fetchCampaignById = fetchCampaignById,
+    _queryChangesets,
 }) => {
     // For errors during fetching
     const triggerError = useError()
@@ -149,6 +152,7 @@ export const CampaignDetails: React.FunctionComponent<Props> = ({
                     extensionsController={extensionsController}
                     platformContext={platformContext}
                     telemetryService={telemetryService}
+                    queryChangesets={_queryChangesets}
                     key="changesets"
                 />
                 <CampaignBurndownChart

@@ -6,6 +6,9 @@ exports[`CampaignNode campaign without description 1`] = `
   history="[History]"
   node={
     Object {
+      "author": Object {
+        "username": "alice",
+      },
       "changesets": Object {
         "stats": Object {
           "closed": 3,
@@ -19,7 +22,7 @@ exports[`CampaignNode campaign without description 1`] = `
       "id": "123",
       "name": "Upgrade lodash to v4",
       "namespace": Object {
-        "displayName": "alice",
+        "namespaceName": "alice",
       },
     }
   }
@@ -51,7 +54,9 @@ exports[`CampaignNode campaign without description 1`] = `
               <a
                 className="text-muted"
                 href="/campaigns/123"
-              />
+              >
+                alice
+              </a>
             </AnchorLink>
             <span
               className="text-muted d-inline-block mx-1"
@@ -178,6 +183,9 @@ exports[`CampaignNode closed campaign 1`] = `
   history="[History]"
   node={
     Object {
+      "author": Object {
+        "username": "alice",
+      },
       "changesets": Object {
         "stats": Object {
           "closed": 3,
@@ -195,7 +203,7 @@ exports[`CampaignNode closed campaign 1`] = `
       "id": "123",
       "name": "Upgrade lodash to v4",
       "namespace": Object {
-        "displayName": "alice",
+        "namespaceName": "alice",
       },
     }
   }
@@ -227,7 +235,9 @@ exports[`CampaignNode closed campaign 1`] = `
               <a
                 className="text-muted"
                 href="/campaigns/123"
-              />
+              >
+                alice
+              </a>
             </AnchorLink>
             <span
               className="text-muted d-inline-block mx-1"
@@ -362,6 +372,9 @@ exports[`CampaignNode open campaign 1`] = `
   history="[History]"
   node={
     Object {
+      "author": Object {
+        "username": "alice",
+      },
       "changesets": Object {
         "stats": Object {
           "closed": 3,
@@ -379,7 +392,7 @@ exports[`CampaignNode open campaign 1`] = `
       "id": "123",
       "name": "Upgrade lodash to v4",
       "namespace": Object {
-        "displayName": "alice",
+        "namespaceName": "alice",
       },
     }
   }
@@ -411,7 +424,9 @@ exports[`CampaignNode open campaign 1`] = `
               <a
                 className="text-muted"
                 href="/campaigns/123"
-              />
+              >
+                alice
+              </a>
             </AnchorLink>
             <span
               className="text-muted d-inline-block mx-1"
@@ -546,6 +561,9 @@ exports[`CampaignNode open campaign on user page 1`] = `
   history="[History]"
   node={
     Object {
+      "author": Object {
+        "username": "alice",
+      },
       "changesets": Object {
         "stats": Object {
           "closed": 3,
@@ -563,7 +581,7 @@ exports[`CampaignNode open campaign on user page 1`] = `
       "id": "123",
       "name": "Upgrade lodash to v4",
       "namespace": Object {
-        "displayName": "alice",
+        "namespaceName": "alice",
       },
     }
   }

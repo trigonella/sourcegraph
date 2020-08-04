@@ -13,6 +13,7 @@ import { CampaignActionsBar } from '../detail/CampaignActionsBar'
 import { ChangesetFields } from '../../../graphql-operations'
 import { addHours } from 'date-fns'
 import { queryChangesets } from '../detail/backend'
+import PlusIcon from 'mdi-react/PlusIcon'
 
 interface Props extends ThemeProps, TelemetryProps, PlatformContextProps, ExtensionsControllerProps {
     campaignID: GQL.ID
@@ -75,9 +76,9 @@ const queryFn: typeof queryChangesets = () =>
     })
 
 /**
- * Page that displays the actions to be taken when closing the campaign.
+ * Page that displays the actions to be taken when creating the campaign from the spec.
  */
-export const CampaignClosePreview: React.FunctionComponent<Props> = ({
+export const CampaignPreview: React.FunctionComponent<Props> = ({
     campaignID,
     className,
     extensionsController,
@@ -88,19 +89,10 @@ export const CampaignClosePreview: React.FunctionComponent<Props> = ({
     location,
 }) => (
     <div className={classNames(className)}>
-        <CampaignActionsBar
-            campaign={{
-                name: 'awesome-campaign',
-                closedAt: null,
-                viewerCanAdminister: false,
-                changesets: { totalCount: 10, stats: { closed: 0, merged: 8, total: 10 } },
-                namespace: {
-                    namespaceName: 'alice',
-                },
-            }}
-        />
-        <div className="alert alert-warning">
-            By closing this campaign, it will be read-only and no new campaign specs can be applied to this campaign.
+        <h1>awesome-campaign</h1>
+        <div className="alert alert-info">
+            By applying this campaign spec, a corresponding campaign will be created and all the below actions will be
+            performed.
         </div>
         <CampaignChangesets
             campaignID={campaignID}
@@ -118,17 +110,8 @@ export const CampaignClosePreview: React.FunctionComponent<Props> = ({
             queryChangesets={queryFn}
         />
         <div>
-            <div className="alert alert-warning">
-                <p>By default, all changesets remain untouched.</p>
-                <div className="form-group mb-0">
-                    <input id="checkbox-1" type="checkbox" />
-                    <label htmlFor="checkbox-1" className="ml-2">
-                        Also close open changesets on code hosts.
-                    </label>
-                </div>
-            </div>
-            <button type="button" className="btn btn-danger">
-                <CloseIcon className="icon-inline" /> Close campaign
+            <button type="button" className="btn btn-primary">
+                <PlusIcon className="icon-inline" /> Create campaign
             </button>
         </div>
     </div>

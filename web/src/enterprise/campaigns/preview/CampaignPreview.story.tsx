@@ -4,12 +4,12 @@ import { radios } from '@storybook/addon-knobs'
 import React from 'react'
 import webStyles from '../../../enterprise.scss'
 import { Tooltip } from '../../../components/tooltip/Tooltip'
-import { CampaignClosePreview } from './CampaignClosePreview'
+import { CampaignPreview } from './CampaignPreview'
 import { NOOP_TELEMETRY_SERVICE } from '../../../../../shared/src/telemetry/telemetryService'
 
 let isLightTheme = true
 
-const { add } = storiesOf('web/campaigns/CampaignClosePreview', module).addDecorator(story => {
+const { add } = storiesOf('web/campaigns/CampaignPreview', module).addDecorator(story => {
     const theme = radios('Theme', { Light: 'light', Dark: 'dark' }, 'light')
     document.body.classList.toggle('theme-light', theme === 'light')
     document.body.classList.toggle('theme-dark', theme === 'dark')
@@ -26,7 +26,7 @@ const { add } = storiesOf('web/campaigns/CampaignClosePreview', module).addDecor
 add('Header', () => {
     const history = H.createMemoryHistory()
     return (
-        <CampaignClosePreview
+        <CampaignPreview
             campaignID="123"
             history={history}
             location={history.location}

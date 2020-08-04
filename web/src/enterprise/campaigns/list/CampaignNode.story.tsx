@@ -25,7 +25,10 @@ This is my thorough explanation. And it can also get very long, in that case the
             },
         },
         namespace: {
-            displayName: 'alice',
+            namespaceName: 'alice',
+        },
+        author: {
+            username: 'alice',
         },
     },
     'No description': {
@@ -42,7 +45,10 @@ This is my thorough explanation. And it can also get very long, in that case the
             },
         },
         namespace: {
-            displayName: 'alice',
+            namespaceName: 'alice',
+        },
+        author: {
+            username: 'alice',
         },
     },
     'Closed campaign': {
@@ -61,7 +67,10 @@ This is my thorough explanation. And it can also get very long, in that case the
             },
         },
         namespace: {
-            displayName: 'alice',
+            namespaceName: 'alice',
+        },
+        author: {
+            username: 'alice',
         },
     },
 }

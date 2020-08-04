@@ -22,7 +22,10 @@ describe('CampaignNode', () => {
         createdAt: '2019-12-04T23:15:01Z',
         closedAt: null,
         namespace: {
-            displayName: 'alice',
+            namespaceName: 'alice',
+        },
+        author: {
+            username: 'alice',
         },
     }
 
