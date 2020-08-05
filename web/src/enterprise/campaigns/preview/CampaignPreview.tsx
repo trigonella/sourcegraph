@@ -8,8 +8,6 @@ import { TelemetryProps } from '../../../../../shared/src/telemetry/telemetrySer
 import { PlatformContextProps } from '../../../../../shared/src/platform/context'
 import { ExtensionsControllerProps } from '../../../../../shared/src/extensions/controller'
 import { Subject, of } from 'rxjs'
-import CloseIcon from 'mdi-react/CloseIcon'
-import { CampaignActionsBar } from '../detail/CampaignActionsBar'
 import { ChangesetFields } from '../../../graphql-operations'
 import { addHours } from 'date-fns'
 import { queryChangesets } from '../detail/backend'

@@ -32,22 +32,19 @@ describe('CampaignDetails', () => {
             telemetryService={NOOP_TELEMETRY_SERVICE}
             _fetchCampaignById={() =>
                 of({
-                    __typename: 'Campaign' as const,
+                    __typename: 'Campaign',
                     id: 'c',
                     name: 'n',
                     description: 'd',
-                    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-                    author: { username: 'alice' } as GQL.IUser,
-                    changesets: { totalCount: 2, stats: { total: 10, closed: 0, merged: 0 } },
-                    changesetCountsOverTime: [] as GQL.IChangesetCounts[],
+                    author: { username: 'alice', avatarURL: 'http://test.test/avatar' },
+                    changesets: { totalCount: 2, stats: { total: 10, closed: 0, merged: 0, open: 10, unpublished: 4 } },
+                    changesetCountsOverTime: [],
                     viewerCanAdminister,
-                    hasUnpublishedPatches: false,
                     branch: 'awesome-branch',
                     createdAt: '2020-01-01',
                     updatedAt: '2020-01-01',
                     closedAt: null,
                     diffStat: {
-                        __typename: 'IDiffStat' as const,
                         added: 5,
                         changed: 3,
                         deleted: 2,
