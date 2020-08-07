@@ -1,4 +1,4 @@
-FROM golang:1.13-alpine@sha256:ed003971a4809c9ae45afe2d318c24b9e3f6b30864a322877c69a46c504d852c AS builder
+FROM golang:1.14-alpine@sha256:7c4be05906589fd27f1df8ffedf0feb92eff77d0f22f1ab13603125db72ef498 AS builder
 
 RUN apk add --no-cache bash=5.0.11-r1 git=2.24.3-r0 openssh=8.1_p1-r0 build-base=0.5-r1
 
