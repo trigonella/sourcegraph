@@ -41,7 +41,13 @@ func (r *campaignsConnectionResolver) Nodes(ctx context.Context) ([]graphqlbacke
 }
 
 func (r *campaignsConnectionResolver) TotalCount(ctx context.Context) (int32, error) {
-	opts := ee.CountCampaignsOpts{ChangesetID: r.opts.ChangesetID, State: r.opts.State, OnlyForAuthor: r.opts.OnlyForAuthor}
+	opts := ee.CountCampaignsOpts{
+		ChangesetID:     r.opts.ChangesetID,
+		State:           r.opts.State,
+		OnlyForAuthor:   r.opts.OnlyForAuthor,
+		NamespaceUserID: r.opts.NamespaceUserID,
+		NamespaceOrgID:  r.opts.NamespaceOrgID,
+	}
 	count, err := r.store.CountCampaigns(ctx, opts)
 	return int32(count), err
 }
@@ -122,7 +128,7 @@ func (r *campaignResolver) UpdatedAt() graphqlbackend.DateTime {
 }
 
 func (r *campaignResolver) ClosedAt() *graphqlbackend.DateTime {
-	if r.Campaign.ClosedAt.IsZero() {
+	if !r.Campaign.Closed() {
 		return nil
 	}
 	return &graphqlbackend.DateTime{Time: r.Campaign.ClosedAt}

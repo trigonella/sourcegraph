@@ -1236,8 +1236,12 @@ type Query {
         # Will not actually check the code host to see if the repository actually exists.
         cloneURL: String
     ): RepositoryRedirect
-    # Lists all external services.
+    # Lists external services under given namespace.
+    # If no namespace is given, it returns all external services.
     externalServices(
+        # The namespace to scope returned external services.
+        # Currently, this can only be used for a user.
+        namespace: ID
         # Returns the first n external services from the list.
         first: Int
     ): ExternalServiceConnection!
@@ -3331,7 +3335,7 @@ type User implements Node & SettingsSubject & Namespace {
     # It is null when there is no permissions data stored for the user.
     permissionsInfo: PermissionsInfo
 
-    # A list of campaigns initially applied by this user.
+    # A list of campaigns applied under this user's namespace.
     campaigns(
         # Returns the first n campaigns from the list.
         first: Int

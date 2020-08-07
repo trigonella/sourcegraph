@@ -1,11 +1,10 @@
 import { LoadingSpinner } from '@sourcegraph/react-loading-spinner'
 import AlertCircleIcon from 'mdi-react/AlertCircleIcon'
 import React, { useState, useEffect, useMemo } from 'react'
-import * as GQL from '../../../../../shared/src/graphql/schema'
 import { HeroPage } from '../../../components/HeroPage'
 import { PageTitle } from '../../../components/PageTitle'
 import { isEqual } from 'lodash'
-import { fetchCampaignById, queryChangesets } from './backend'
+import { fetchCampaignById } from './backend'
 import { useError } from '../../../../../shared/src/util/useObservable'
 import * as H from 'history'
 import { CampaignBurndownChart } from './BurndownChart'
@@ -17,19 +16,18 @@ import { CampaignChangesets } from './changesets/CampaignChangesets'
 import { ExtensionsControllerProps } from '../../../../../shared/src/extensions/controller'
 import { PlatformContextProps } from '../../../../../shared/src/platform/context'
 import { TelemetryProps } from '../../../../../shared/src/telemetry/telemetryService'
+import { CampaignFields, Scalars } from '../../../graphql-operations'
 import { CampaignInfoCard } from './CampaignInfoCard'
 import { CampaignStatsCard } from './CampaignStatsCard'
 import { TabsWithURLViewStatePersistence } from '../../../../../shared/src/components/Tabs'
 import SourceBranchIcon from 'mdi-react/SourceBranchIcon'
 import ChartPpfIcon from 'mdi-react/ChartPpfIcon'
-import { CampaignFields } from '../../../graphql-operations'
 
 interface Props extends ThemeProps, ExtensionsControllerProps, PlatformContextProps, TelemetryProps {
     /**
      * The campaign ID.
-     * If not given, will display a creation form.
      */
-    campaignID: GQL.ID
+    campaignID: Scalars['ID']
     history: H.History
     location: H.Location
 

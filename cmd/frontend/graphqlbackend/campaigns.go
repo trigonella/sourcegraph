@@ -29,6 +29,8 @@ type ListCampaignArgs struct {
 	First               *int32
 	State               *string
 	ViewerCanAdminister *bool
+
+	Namespace *graphql.ID
 }
 
 type CloseCampaignArgs struct {
@@ -256,12 +258,12 @@ type ExternalChangesetResolver interface {
 	ChangesetResolver
 
 	ExternalID() *string
-	Title() (string, error)
-	Body() (string, error)
+	Title(context.Context) (string, error)
+	Body(context.Context) (string, error)
 	ExternalURL() (*externallink.Resolver, error)
 	ReviewState(context.Context) *campaigns.ChangesetReviewState
 	CheckState() *campaigns.ChangesetCheckState
-	Repository(ctx context.Context) (*RepositoryResolver, error)
+	Repository(ctx context.Context) *RepositoryResolver
 
 	Events(ctx context.Context, args *struct{ graphqlutil.ConnectionArgs }) (ChangesetEventsConnectionResolver, error)
 	Diff(ctx context.Context) (RepositoryComparisonInterface, error)
