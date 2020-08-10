@@ -86,7 +86,9 @@ type Campaign struct {
 	Name                    string
 	Description             string
 	Branch                  string
-	Author                  User
+	InitialApplier          User
+	LastApplier             User
+	LastAppliedAt           string
 	ViewerCanAdminister     bool
 	Namespace               UserOrg
 	CreatedAt               string

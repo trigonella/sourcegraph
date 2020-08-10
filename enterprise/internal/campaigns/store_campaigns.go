@@ -15,7 +15,9 @@ var campaignColumns = []*sqlf.Query{
 	sqlf.Sprintf("campaigns.name"),
 	sqlf.Sprintf("campaigns.description"),
 	sqlf.Sprintf("campaigns.branch"),
-	sqlf.Sprintf("campaigns.author_id"),
+	sqlf.Sprintf("campaigns.initial_applier_id"),
+	sqlf.Sprintf("campaigns.last_applier_id"),
+	sqlf.Sprintf("campaigns.last_applied_at"),
 	sqlf.Sprintf("campaigns.namespace_user_id"),
 	sqlf.Sprintf("campaigns.namespace_org_id"),
 	sqlf.Sprintf("campaigns.created_at"),
@@ -32,7 +34,9 @@ var campaignInsertColumns = []*sqlf.Query{
 	sqlf.Sprintf("name"),
 	sqlf.Sprintf("description"),
 	sqlf.Sprintf("branch"),
-	sqlf.Sprintf("author_id"),
+	sqlf.Sprintf("initial_applier_id"),
+	sqlf.Sprintf("last_applier_id"),
+	sqlf.Sprintf("last_applied_at"),
 	sqlf.Sprintf("namespace_user_id"),
 	sqlf.Sprintf("namespace_org_id"),
 	sqlf.Sprintf("created_at"),
@@ -57,7 +61,7 @@ func (s *Store) CreateCampaign(ctx context.Context, c *campaigns.Campaign) error
 var createCampaignQueryFmtstr = `
 -- source: enterprise/internal/campaigns/store.go:CreateCampaign
 INSERT INTO campaigns (%s)
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 RETURNING %s
 `
 
@@ -81,7 +85,9 @@ func (s *Store) createCampaignQuery(c *campaigns.Campaign) (*sqlf.Query, error) 
 		c.Name,
 		c.Description,
 		c.Branch,
-		c.AuthorID,
+		c.InitialApplierID,
+		nullInt32Column(c.LastApplierID),
+		nullTimeColumn(c.LastAppliedAt),
 		nullInt32Column(c.NamespaceUserID),
 		nullInt32Column(c.NamespaceOrgID),
 		c.CreatedAt,
@@ -106,7 +112,7 @@ func (s *Store) UpdateCampaign(ctx context.Context, c *campaigns.Campaign) error
 var updateCampaignQueryFmtstr = `
 -- source: enterprise/internal/campaigns/store.go:UpdateCampaign
 UPDATE campaigns
-SET (%s) = (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+SET (%s) = (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 WHERE id = %s
 RETURNING %s
 `
@@ -125,7 +131,9 @@ func (s *Store) updateCampaignQuery(c *campaigns.Campaign) (*sqlf.Query, error) 
 		c.Name,
 		c.Description,
 		c.Branch,
-		c.AuthorID,
+		c.InitialApplierID,
+		nullInt32Column(c.LastApplierID),
+		nullTimeColumn(c.LastAppliedAt),
 		nullInt32Column(c.NamespaceUserID),
 		nullInt32Column(c.NamespaceOrgID),
 		c.CreatedAt,
@@ -153,8 +161,8 @@ DELETE FROM campaigns WHERE id = %s
 type CountCampaignsOpts struct {
 	ChangesetID int64
 	State       campaigns.CampaignState
-	// Only return campaigns where author_id is the given.
-	OnlyForAuthor int32
+
+	InitialApplierID int32
 
 	NamespaceUserID int32
 	NamespaceOrgID  int32
@@ -185,8 +193,8 @@ func countCampaignsQuery(opts *CountCampaignsOpts) *sqlf.Query {
 		preds = append(preds, sqlf.Sprintf("closed_at IS NOT NULL"))
 	}
 
-	if opts.OnlyForAuthor != 0 {
-		preds = append(preds, sqlf.Sprintf("author_id = %d", opts.OnlyForAuthor))
+	if opts.InitialApplierID != 0 {
+		preds = append(preds, sqlf.Sprintf("initial_applier_id = %d", opts.InitialApplierID))
 	}
 
 	if opts.NamespaceUserID != 0 {
@@ -282,8 +290,8 @@ type ListCampaignsOpts struct {
 	Cursor      int64
 	Limit       int
 	State       campaigns.CampaignState
-	// Only return campaigns where author_id is the given.
-	OnlyForAuthor int32
+
+	InitialApplierID int32
 
 	NamespaceUserID int32
 	NamespaceOrgID  int32
@@ -340,8 +348,8 @@ func listCampaignsQuery(opts *ListCampaignsOpts) *sqlf.Query {
 		preds = append(preds, sqlf.Sprintf("closed_at IS NOT NULL"))
 	}
 
-	if opts.OnlyForAuthor != 0 {
-		preds = append(preds, sqlf.Sprintf("author_id = %d", opts.OnlyForAuthor))
+	if opts.InitialApplierID != 0 {
+		preds = append(preds, sqlf.Sprintf("initial_applier_id = %d", opts.InitialApplierID))
 	}
 
 	if opts.NamespaceUserID != 0 {
@@ -366,7 +374,9 @@ func scanCampaign(c *campaigns.Campaign, s scanner) error {
 		&c.Name,
 		&dbutil.NullString{S: &c.Description},
 		&dbutil.NullString{S: &c.Branch},
-		&c.AuthorID,
+		&c.InitialApplierID,
+		&dbutil.NullInt32{N: &c.LastApplierID},
+		&dbutil.NullTime{Time: &c.LastAppliedAt},
 		&dbutil.NullInt32{N: &c.NamespaceUserID},
 		&dbutil.NullInt32{N: &c.NamespaceOrgID},
 		&c.CreatedAt,

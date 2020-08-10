@@ -314,10 +314,16 @@ func (s *Service) ApplyCampaign(ctx context.Context, opts ApplyCampaignOpts) (ca
 	}
 
 	campaign.CampaignSpecID = campaignSpec.ID
-	campaign.AuthorID = campaignSpec.UserID
 	campaign.NamespaceOrgID = campaignSpec.NamespaceOrgID
 	campaign.NamespaceUserID = campaignSpec.NamespaceUserID
 	campaign.Name = campaignSpec.Spec.Name
+
+	actor := actor.FromContext(ctx)
+	if campaign.InitialApplierID == 0 {
+		campaign.InitialApplierID = actor.UID
+	}
+	campaign.LastApplierID = actor.UID
+	campaign.LastAppliedAt = s.clock()
 
 	campaign.Description = campaignSpec.Spec.Description
 	// TODO(mrnugget): This doesn't need to be populated, since the branch is
@@ -680,7 +686,7 @@ func (s *Service) MoveCampaign(ctx context.Context, opts MoveCampaignOpts) (camp
 	}
 
 	// 🚨 SECURITY: Only the Author of the campaign can move it.
-	if err := backend.CheckSiteAdminOrSameUser(ctx, campaign.AuthorID); err != nil {
+	if err := backend.CheckSiteAdminOrSameUser(ctx, campaign.InitialApplierID); err != nil {
 		return nil, err
 	}
 	// Check if current user has access to target namespace if set.
@@ -741,7 +747,7 @@ func (s *Service) CloseCampaign(ctx context.Context, id int64, closeChangesets b
 			return nil
 		}
 
-		if err := backend.CheckSiteAdminOrSameUser(ctx, campaign.AuthorID); err != nil {
+		if err := backend.CheckSiteAdminOrSameUser(ctx, campaign.InitialApplierID); err != nil {
 			return err
 		}
 
@@ -812,7 +818,7 @@ func (s *Service) DeleteCampaign(ctx context.Context, id int64) (err error) {
 		return err
 	}
 
-	if err := backend.CheckSiteAdminOrSameUser(ctx, campaign.AuthorID); err != nil {
+	if err := backend.CheckSiteAdminOrSameUser(ctx, campaign.InitialApplierID); err != nil {
 		return err
 	}
 
@@ -903,7 +909,7 @@ func (s *Service) EnqueueChangesetSync(ctx context.Context, id int64) (err error
 	)
 
 	for _, c := range campaigns {
-		err := backend.CheckSiteAdminOrSameUser(ctx, c.AuthorID)
+		err := backend.CheckSiteAdminOrSameUser(ctx, c.InitialApplierID)
 		if err != nil {
 			authErr = err
 		} else {
