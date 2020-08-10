@@ -49,7 +49,7 @@ func TestChangesetResolver(t *testing.T) {
 		return api.CommitID(spec), nil
 	}
 	defer func() { git.Mocks.ResolveRevision = nil }()
-	mockRepoComparison(t, baseRev, headRev, testDiff)
+	mockRepoComparison(t, baseRev, headRev)
 
 	unpublishedSpec := createChangesetSpec(t, ctx, store, testSpecOpts{
 		user:          userID,
