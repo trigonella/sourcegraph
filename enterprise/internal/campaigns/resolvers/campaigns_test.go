@@ -43,19 +43,19 @@ func TestCampaignResolver(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	campaignApiID := string(campaigns.MarshalCampaignID(campaign.ID))
+	campaignAPIID := string(campaigns.MarshalCampaignID(campaign.ID))
 
-	input := map[string]interface{}{"campaign": campaignApiID}
+	input := map[string]interface{}{"campaign": campaignAPIID}
 	var response struct{ Node apitest.Campaign }
 	apitest.MustExec(ctx, t, s, input, &response, queryCampaign)
 
 	wantCampaign := apitest.Campaign{
-		ID:          campaignApiID,
+		ID:          campaignAPIID,
 		Name:        campaign.Name,
 		Description: campaign.Description,
 		Namespace:   apitest.UserOrg{DatabaseID: userID, SiteAdmin: true},
 		Author:      apitest.User{DatabaseID: userID, SiteAdmin: true},
-		URL:         fmt.Sprintf("/users/%s/campaigns/%s", username, campaignApiID),
+		URL:         fmt.Sprintf("/users/%s/campaigns/%s", username, campaignAPIID),
 	}
 	if diff := cmp.Diff(wantCampaign, response.Node); diff != "" {
 		t.Fatalf("wrong campaign response (-want +got):\n%s", diff)

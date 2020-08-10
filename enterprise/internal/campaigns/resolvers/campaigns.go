@@ -139,12 +139,9 @@ func (r *campaignResolver) computeNamespace(ctx context.Context) (graphqlbackend
 		if errcode.IsNotFound(r.namespaceErr) {
 			r.namespaceErr = nil
 		}
-
-		return
 	})
 
 	return r.namespace, r.namespaceErr
-
 }
 
 func (r *campaignResolver) CreatedAt() graphqlbackend.DateTime {
