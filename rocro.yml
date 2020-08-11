@@ -16,7 +16,7 @@ inspecode:
       thresholds: {num-issues: 999}
 
     errcheck:
-      ignore: '**/*.s'
+      ignore: 'cmd/searcher/search/'
       thresholds: {num-issues: 999}
 
     # fortify:
@@ -70,7 +70,7 @@ inspecode:
       thresholds: {num-issues: 999}
 
     prettier:
-      auto-fix: true
+      #auto-fix: true
       thresholds: {num-issues: 999}
 
     staticcheck:
