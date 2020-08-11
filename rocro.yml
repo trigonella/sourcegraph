@@ -2,6 +2,9 @@
 inspecode:
 
   global:
+    runtime:
+      go: 1.14
+      nodejs: 10
 
   tools:
 
@@ -13,6 +16,7 @@ inspecode:
       thresholds: {num-issues: 999}
 
     errcheck:
+      ignore: '**/*.s'
       thresholds: {num-issues: 999}
 
     # fortify:
@@ -36,6 +40,13 @@ inspecode:
       thresholds: {num-issues: 999}
 
     golint:
+    - input: 'cmd/'
+      auto-fix: true
+      thresholds: {num-issues: 999}
+    - input: 'internal/'
+      auto-fix: true
+      thresholds: {num-issues: 999}
+    - ignore: ['cmd/', 'internal/']
       auto-fix: true
       thresholds: {num-issues: 999}
 
@@ -49,6 +60,9 @@ inspecode:
       thresholds: {num-issues: 999}
 
     jscpd:
+      ignore:
+        - '**/*_test.go'
+        - '**/*.test.ts*'
       thresholds: {num-issues: 999}
 
     misspell:
@@ -67,4 +81,7 @@ inspecode:
       thresholds: {num-issues: 999}
 
     unused:
+      ignore:
+        - '**/*_test.go'
+        - '**/*.test.ts*'
       thresholds: {num-issues: 999}
