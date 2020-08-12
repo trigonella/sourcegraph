@@ -9,9 +9,9 @@ inspecode:
   tools:
 
     prettier:
-      -   # auto-fix: true
+      - options: []       # config-file: './prettier.config.js' (auto-detected)
+        auto-fix: false   # failed ... turn-off to avoid skip pipeline
         thresholds: {num-issues: 999}
-      - options: [--no-config]
-        thresholds: {num-issues: 999}
-      - options: [--no-config, --no-editorconfig]
+      - options: [--no-config]  # avoid error in './prettier.config.js'
+        auto-fix: true
         thresholds: {num-issues: 999}
