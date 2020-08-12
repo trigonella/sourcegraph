@@ -12,7 +12,7 @@ $media-md: 768px;
 $media-lg: 992px;
 $media-xl: 1200px;
 
-@import '../../shared/src/global-styles/colors.scss';
+@import "../../shared/src/global-styles/colors.scss";
 
 // Bootstrap configuration before Bootstrap is imported
 $border-radius: 2px;
@@ -27,7 +27,7 @@ $grid-gutter-width: 1.5rem;
 
 // No max width except for xl.
 $container-max-widths: (
-    xl: 1140px,
+  xl: 1140px
 );
 
 $body-color: var(--body-color);
@@ -38,10 +38,10 @@ $text-muted: var(--text-muted);
 // Borders
 $border-color: var(--border-color);
 .theme-dark {
-    --border-color: #{$color-border};
+  --border-color: #{$color-border};
 }
 .theme-light {
-    --border-color: #{$color-light-border};
+  --border-color: #{$color-light-border};
 }
 
 // Links
@@ -127,46 +127,46 @@ $hr-margin-y: 0.25rem;
 
 $code-bg: var(--body-bg);
 
-@import 'bootstrap/scss/functions';
-@import 'bootstrap/scss/variables';
-@import 'bootstrap/scss/mixins';
-@import 'bootstrap/scss/reboot';
-@import 'bootstrap/scss/utilities';
-@import 'bootstrap/scss/grid';
-@import 'bootstrap/scss/progress';
-@import 'bootstrap/scss/tooltip';
-@import 'bootstrap/scss/transitions';
-@import './global-styles/badge';
-@import './global-styles/breadcrumb';
-@import './global-styles/card';
-@import './global-styles/dropdown';
-@import './global-styles/modal';
-@import './global-styles/nav';
-@import './global-styles/type';
-@import '../../shared/src/global-styles/icons';
-@import './global-styles/list-group';
-@import './global-styles/tables';
-@import './global-styles/code';
-@import './global-styles/buttons';
-@import './global-styles/alert';
-@import './global-styles/forms';
-@import './global-styles/highlight';
-@import './global-styles/web-content';
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/reboot";
+@import "bootstrap/scss/utilities";
+@import "bootstrap/scss/grid";
+@import "bootstrap/scss/progress";
+@import "bootstrap/scss/tooltip";
+@import "bootstrap/scss/transitions";
+@import "./global-styles/badge";
+@import "./global-styles/breadcrumb";
+@import "./global-styles/card";
+@import "./global-styles/dropdown";
+@import "./global-styles/modal";
+@import "./global-styles/nav";
+@import "./global-styles/type";
+@import "../../shared/src/global-styles/icons";
+@import "./global-styles/list-group";
+@import "./global-styles/tables";
+@import "./global-styles/code";
+@import "./global-styles/buttons";
+@import "./global-styles/alert";
+@import "./global-styles/forms";
+@import "./global-styles/highlight";
+@import "./global-styles/web-content";
 
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 html {
-    // Base for layout rem values
-    font-size: 16px;
+  // Base for layout rem values
+  font-size: 16px;
 }
 
 // stylelint-disable-next-line selector-max-id
 html,
 body,
 #root {
-    height: 100%;
+  height: 100%;
 }
 
 // Document highlight is the background color for tokens which are matched with
@@ -176,7 +176,7 @@ body,
 // Note that we define this before selection highlights so that it will override
 // the styles of symbol that has both classes applied.
 .sourcegraph-document-highlight {
-    background-color: var(--secondary);
+  background-color: var(--secondary);
 }
 
 // Selection highlight is the background color for matched/highlighted tokens,
@@ -184,128 +184,128 @@ body,
 // or identifying the token the references panel is toggled for
 .selection-highlight,
 .selection-highlight-sticky {
-    background-color: rgba(217, 72, 15, 0.5);
+  background-color: rgba(217, 72, 15, 0.5);
 }
 
 .theme-light {
-    .selection-highlight,
-    .selection-highlight-sticky {
-        background-color: rgba(255, 192, 120, 0.5);
-    }
+  .selection-highlight,
+  .selection-highlight-sticky {
+    background-color: rgba(255, 192, 120, 0.5);
+  }
 }
 
 .app {
-    &__error {
-        > hr {
-            margin-top: 1rem;
-            margin-bottom: 1rem;
-            border-color: #93a9c8;
-        }
-
-        &-text {
-            margin-top: 1rem;
-            background-color: #233043;
-            padding: 1rem;
-        }
+  &__error {
+    > hr {
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+      border-color: #93a9c8;
     }
+
+    &-text {
+      margin-top: 1rem;
+      background-color: #233043;
+      padding: 1rem;
+    }
+  }
 }
 
 .spacer {
-    flex: 1;
+  flex: 1;
 }
 
 .flex-1 {
-    flex: 1;
+  flex: 1;
 }
 
 .flex-shrink-past-contents {
-    flex-shrink: 1;
-    min-width: 0;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .cursor-pointer {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 // Our simple popovers only need these styles. We don't want the caret or special font sizes from
 // Bootstrap's popover CSS.
 .popover-inner {
-    background-color: var(--body-bg);
-    border: solid 1px var(--border-color);
-    border-radius: $border-radius;
+  background-color: var(--body-bg);
+  border: solid 1px var(--border-color);
+  border-radius: $border-radius;
 }
 
 // Show a focus ring when performing keyboard navigation. Uses the polyfill at
 // https://github.com/WICG/focus-visible because few browsers support :focus-visible.
 :focus:not(:focus-visible) {
-    outline: none;
+  outline: none;
 }
 :focus-visible {
-    outline: 0;
-    box-shadow: $btn-focus-box-shadow;
+  outline: 0;
+  box-shadow: $btn-focus-box-shadow;
 }
 
 // Hide the given element from Percy.
 .percy-hide {
-    @media only percy {
-        visibility: hidden;
-        display: none;
-    }
+  @media only percy {
+    visibility: hidden;
+    display: none;
+  }
 }
 
 // Pages
-@import './Layout';
-@import './api/ApiConsole';
-@import './extensions/ExtensionsArea';
-@import './extensions/extension/ExtensionArea';
-@import './global/GlobalAlerts';
-@import './global/GlobalDebug';
-@import './global/Notices';
-@import './savedSearches/index';
-@import './search/input/SearchPage';
-@import './repogroups/RepogroupPage';
-@import './search/queryBuilder/index';
-@import './search/results/SearchResults';
-@import './settings/SettingsFile';
-@import './site-admin/init/SiteInitPage';
-@import './site-admin/SiteAdmin';
-@import './tree/Tree';
-@import './nav/GlobalNavbar';
-@import './nav/NavLinks';
-@import './auth/ResetPasswordPage';
-@import './auth/SignInPage';
-@import './auth/SignUpPage';
-@import './repo/GitReferenceTag';
-@import './repo/RepoContainer';
-@import './repo/settings/RepoSettingsArea';
-@import './components/completion/CompletionWidgetDropdown';
-@import './components/CopyableText';
-@import './components/FilteredConnection';
-@import './components/SaveToolbar';
-@import './components/DecoratedTextLines';
-@import './components/HeroPage';
-@import './components/ModalPage';
-@import './components/RadioButtons';
-@import './components/tooltip/Tooltip';
-@import './user/settings/UserSettingsArea';
-@import './site-admin/SiteAdminAlert';
-@import './site/DockerForMacAlert';
-@import './user/UserAvatar';
-@import './user/area/UserArea';
-@import './org/OrgsArea';
-@import './components/Collapsible';
-@import './components/DismissibleAlert';
-@import './marketing/SurveyPage';
-@import './components/SingleValueCard';
-@import './components/SearchResult';
-@import './components/SearchResultMatch';
-@import './components/diff/FileDiffNode';
-@import '~@sourcegraph/react-loading-spinner/lib/LoadingSpinner.css';
+@import "./Layout";
+@import "./api/ApiConsole";
+@import "./extensions/ExtensionsArea";
+@import "./extensions/extension/ExtensionArea";
+@import "./global/GlobalAlerts";
+@import "./global/GlobalDebug";
+@import "./global/Notices";
+@import "./savedSearches/index";
+@import "./search/input/SearchPage";
+@import "./repogroups/RepogroupPage";
+@import "./search/queryBuilder/index";
+@import "./search/results/SearchResults";
+@import "./settings/SettingsFile";
+@import "./site-admin/init/SiteInitPage";
+@import "./site-admin/SiteAdmin";
+@import "./tree/Tree";
+@import "./nav/GlobalNavbar";
+@import "./nav/NavLinks";
+@import "./auth/ResetPasswordPage";
+@import "./auth/SignInPage";
+@import "./auth/SignUpPage";
+@import "./repo/GitReferenceTag";
+@import "./repo/RepoContainer";
+@import "./repo/settings/RepoSettingsArea";
+@import "./components/completion/CompletionWidgetDropdown";
+@import "./components/CopyableText";
+@import "./components/FilteredConnection";
+@import "./components/SaveToolbar";
+@import "./components/DecoratedTextLines";
+@import "./components/HeroPage";
+@import "./components/ModalPage";
+@import "./components/RadioButtons";
+@import "./components/tooltip/Tooltip";
+@import "./user/settings/UserSettingsArea";
+@import "./site-admin/SiteAdminAlert";
+@import "./site/DockerForMacAlert";
+@import "./user/UserAvatar";
+@import "./user/area/UserArea";
+@import "./org/OrgsArea";
+@import "./components/Collapsible";
+@import "./components/DismissibleAlert";
+@import "./marketing/SurveyPage";
+@import "./components/SingleValueCard";
+@import "./components/SearchResult";
+@import "./components/SearchResultMatch";
+@import "./components/diff/FileDiffNode";
+@import "~@sourcegraph/react-loading-spinner/lib/LoadingSpinner.css";
 
-@import '../../shared/src/index';
+@import "../../shared/src/index";
 
 :root {
-    // Skip Reach UI styles. See https://reacttraining.com/reach-ui/styling/.
-    --reach-menu-button: 1;
-    --reach-accordion: 1;
+  // Skip Reach UI styles. See https://reacttraining.com/reach-ui/styling/.
+  --reach-menu-button: 1;
+  --reach-accordion: 1;
 }

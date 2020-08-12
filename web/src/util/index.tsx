@@ -6,14 +6,18 @@
  * @param number the number of characters to limit the string to
  * @param ellipsis whether or not to add an ellipsis (…) when string is cut off.
  */
-export function limitString(string: string, number: number, ellipsis: boolean): string {
-    if (string.length > number) {
-        if (ellipsis) {
-            return string.slice(0, number - 1) + '…'
-        }
-        return string.slice(0, number)
+export function limitString(
+  string: string,
+  number: number,
+  ellipsis: boolean
+): string {
+  if (string.length > number) {
+    if (ellipsis) {
+      return string.slice(0, number - 1) + "…";
     }
-    return string
+    return string.slice(0, number);
+  }
+  return string;
 }
 
 /**
@@ -23,18 +27,21 @@ export function limitString(string: string, number: number, ellipsis: boolean): 
  * @param listElement the list element.
  * @param selectedElement the selected element.
  */
-export function scrollIntoView(listElement?: HTMLElement, selectedElement?: HTMLElement): void {
-    if (!listElement || !selectedElement) {
-        return
-    }
-    const listRectangle = listElement.getBoundingClientRect()
-    const selectedRectangle = selectedElement.getBoundingClientRect()
+export function scrollIntoView(
+  listElement?: HTMLElement,
+  selectedElement?: HTMLElement
+): void {
+  if (!listElement || !selectedElement) {
+    return;
+  }
+  const listRectangle = listElement.getBoundingClientRect();
+  const selectedRectangle = selectedElement.getBoundingClientRect();
 
-    if (selectedRectangle.top <= listRectangle.top) {
-        // Selected item is out of view at the top of the list.
-        listElement.scrollTop -= listRectangle.top - selectedRectangle.top
-    } else if (selectedRectangle.bottom >= listRectangle.bottom) {
-        // Selected item is out of view at the bottom of the list.
-        listElement.scrollTop += selectedRectangle.bottom - listRectangle.bottom
-    }
+  if (selectedRectangle.top <= listRectangle.top) {
+    // Selected item is out of view at the top of the list.
+    listElement.scrollTop -= listRectangle.top - selectedRectangle.top;
+  } else if (selectedRectangle.bottom >= listRectangle.bottom) {
+    // Selected item is out of view at the bottom of the list.
+    listElement.scrollTop += selectedRectangle.bottom - listRectangle.bottom;
+  }
 }

@@ -1,24 +1,24 @@
 import {
-    createSharedIntegrationTestContext,
-    IntegrationTestContext,
-    IntegrationTestOptions,
-} from '../../../shared/src/testing/integration/context'
-import { createJsContext } from './jscontext'
-import { SourcegraphContext } from '../jscontext'
-import { WebGraphQlOperations } from '../graphql-operations'
-import { SharedGraphQlOperations } from '../../../shared/src/graphql-operations'
-import html from 'tagged-template-noop'
-import { commonWebGraphQlResults } from './graphQlResults'
+  createSharedIntegrationTestContext,
+  IntegrationTestContext,
+  IntegrationTestOptions
+} from "../../../shared/src/testing/integration/context";
+import { createJsContext } from "./jscontext";
+import { SourcegraphContext } from "../jscontext";
+import { WebGraphQlOperations } from "../graphql-operations";
+import { SharedGraphQlOperations } from "../../../shared/src/graphql-operations";
+import html from "tagged-template-noop";
+import { commonWebGraphQlResults } from "./graphQlResults";
 
 export interface WebIntegrationTestContext
-    extends IntegrationTestContext<
-        WebGraphQlOperations & SharedGraphQlOperations,
-        string & keyof (WebGraphQlOperations & SharedGraphQlOperations)
-    > {
-    /**
-     * Overrides `window.context` from the default created by `createJsContext()`.
-     */
-    overrideJsContext: (jsContext: SourcegraphContext) => void
+  extends IntegrationTestContext<
+    WebGraphQlOperations & SharedGraphQlOperations,
+    string & keyof (WebGraphQlOperations & SharedGraphQlOperations)
+  > {
+  /**
+   * Overrides `window.context` from the default created by `createJsContext()`.
+   */
+  overrideJsContext: (jsContext: SourcegraphContext) => void;
 }
 
 /**
@@ -26,39 +26,43 @@ export interface WebIntegrationTestContext
  * This should be called in a `beforeEach()` hook and assigned to a variable `testContext` in the test scope.
  */
 export const createWebIntegrationTestContext = async ({
-    driver,
-    currentTest,
-    directory,
+  driver,
+  currentTest,
+  directory
 }: IntegrationTestOptions): Promise<WebIntegrationTestContext> => {
-    const sharedTestContext = await createSharedIntegrationTestContext<
-        WebGraphQlOperations & SharedGraphQlOperations,
-        string & keyof (WebGraphQlOperations & SharedGraphQlOperations)
-    >({ driver, currentTest, directory })
-    sharedTestContext.overrideGraphQL(commonWebGraphQlResults)
+  const sharedTestContext = await createSharedIntegrationTestContext<
+    WebGraphQlOperations & SharedGraphQlOperations,
+    string & keyof (WebGraphQlOperations & SharedGraphQlOperations)
+  >({ driver, currentTest, directory });
+  sharedTestContext.overrideGraphQL(commonWebGraphQlResults);
 
-    // Serve all requests for index.html (everything that does not match the handlers above) the same index.html
-    let jsContext = createJsContext({ sourcegraphBaseUrl: sharedTestContext.driver.sourcegraphBaseUrl })
-    sharedTestContext.server.get(new URL('/*path', driver.sourcegraphBaseUrl).href).intercept((request, response) => {
-        response.type('text/html').send(html`
-            <html>
-                <head>
-                    <title>Sourcegraph Test</title>
-                </head>
-                <body>
-                    <div id="root"></div>
-                    <script>
-                        window.context = ${JSON.stringify(jsContext)}
-                    </script>
-                    <script src="/.assets/scripts/app.bundle.js"></script>
-                </body>
-            </html>
-        `)
-    })
+  // Serve all requests for index.html (everything that does not match the handlers above) the same index.html
+  let jsContext = createJsContext({
+    sourcegraphBaseUrl: sharedTestContext.driver.sourcegraphBaseUrl
+  });
+  sharedTestContext.server
+    .get(new URL("/*path", driver.sourcegraphBaseUrl).href)
+    .intercept((request, response) => {
+      response.type("text/html").send(html`
+        <html>
+          <head>
+            <title>Sourcegraph Test</title>
+          </head>
+          <body>
+            <div id="root"></div>
+            <script>
+              window.context = ${JSON.stringify(jsContext)};
+            </script>
+            <script src="/.assets/scripts/app.bundle.js"></script>
+          </body>
+        </html>
+      `);
+    });
 
-    return {
-        ...sharedTestContext,
-        overrideJsContext: overrides => {
-            jsContext = overrides
-        },
+  return {
+    ...sharedTestContext,
+    overrideJsContext: overrides => {
+      jsContext = overrides;
     }
-}
+  };
+};

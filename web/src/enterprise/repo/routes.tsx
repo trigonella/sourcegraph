@@ -1,7 +1,10 @@
-import { RepoContainerRoute } from '../../repo/RepoContainer'
-import { RepoRevisionContainerRoute } from '../../repo/RepoRevisionContainer'
-import { repoContainerRoutes, repoRevisionContainerRoutes } from '../../repo/routes'
+import { RepoContainerRoute } from "../../repo/RepoContainer";
+import { RepoRevisionContainerRoute } from "../../repo/RepoRevisionContainer";
+import {
+  repoContainerRoutes,
+  repoRevisionContainerRoutes
+} from "../../repo/routes";
 
-export const enterpriseRepoContainerRoutes: readonly RepoContainerRoute[] = repoContainerRoutes
+export const enterpriseRepoContainerRoutes: readonly RepoContainerRoute[] = repoContainerRoutes;
 
-export const enterpriseRepoRevisionContainerRoutes: readonly RepoRevisionContainerRoute[] = repoRevisionContainerRoutes
+export const enterpriseRepoRevisionContainerRoutes: readonly RepoRevisionContainerRoute[] = repoRevisionContainerRoutes;

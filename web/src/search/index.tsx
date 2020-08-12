@@ -1,10 +1,13 @@
-import { escapeRegExp } from 'lodash'
-import { SearchPatternType } from '../../../shared/src/graphql/schema'
-import { FiltersToTypeAndValue } from '../../../shared/src/search/interactive/util'
-import { parseCaseSensitivityFromQuery, parsePatternTypeFromQuery } from '../../../shared/src/util/url'
-import { replaceRange } from '../../../shared/src/util/strings'
-import { discreteValueAliases } from '../../../shared/src/search/parser/filters'
-import { VersionContext } from '../schema/site.schema'
+import { escapeRegExp } from "lodash";
+import { SearchPatternType } from "../../../shared/src/graphql/schema";
+import { FiltersToTypeAndValue } from "../../../shared/src/search/interactive/util";
+import {
+  parseCaseSensitivityFromQuery,
+  parsePatternTypeFromQuery
+} from "../../../shared/src/util/url";
+import { replaceRange } from "../../../shared/src/util/strings";
+import { discreteValueAliases } from "../../../shared/src/search/parser/filters";
+import { VersionContext } from "../schema/site.schema";
 
 /**
  * Parses the query out of the URL search params (the 'q' parameter). In non-interactive mode, if the 'q' parameter is not present, it
@@ -18,46 +21,50 @@ import { VersionContext } from '../schema/site.schema'
  *
  */
 export function parseSearchURLQuery(query: string): string | undefined {
-    const searchParameters = new URLSearchParams(query)
-    return searchParameters.get('q') || undefined
+  const searchParameters = new URLSearchParams(query);
+  return searchParameters.get("q") || undefined;
 }
 
 /**
  * Parses the pattern type out of the URL search params (the 'patternType' parameter). If the 'pattern' parameter
  * is not present, or it is an invalid value, it returns undefined.
  */
-export function parseSearchURLPatternType(query: string): SearchPatternType | undefined {
-    const searchParameters = new URLSearchParams(query)
-    const patternType = searchParameters.get('patternType')
-    if (
-        patternType !== SearchPatternType.literal &&
-        patternType !== SearchPatternType.regexp &&
-        patternType !== SearchPatternType.structural
-    ) {
-        return undefined
-    }
-    return patternType
+export function parseSearchURLPatternType(
+  query: string
+): SearchPatternType | undefined {
+  const searchParameters = new URLSearchParams(query);
+  const patternType = searchParameters.get("patternType");
+  if (
+    patternType !== SearchPatternType.literal &&
+    patternType !== SearchPatternType.regexp &&
+    patternType !== SearchPatternType.structural
+  ) {
+    return undefined;
+  }
+  return patternType;
 }
 
 /**
  * Parses the version context out of the URL search params (the 'c' parameter). If the version context
  * is not present, return undefined.
  */
-export function parseSearchURLVersionContext(query: string): string | undefined {
-    const searchParameters = new URLSearchParams(query)
-    const context = searchParameters.get('c')
-    return context ?? undefined
+export function parseSearchURLVersionContext(
+  query: string
+): string | undefined {
+  const searchParameters = new URLSearchParams(query);
+  const context = searchParameters.get("c");
+  return context ?? undefined;
 }
 
 export function searchURLIsCaseSensitive(query: string): boolean {
-    const queryCaseSensitivity = parseCaseSensitivityFromQuery(query)
-    if (queryCaseSensitivity) {
-        // if `case:` filter exists in the query, override the existing case: query param
-        return discreteValueAliases.yes.includes(queryCaseSensitivity.value)
-    }
-    const searchParameters = new URLSearchParams(query)
-    const caseSensitive = searchParameters.get('case')
-    return discreteValueAliases.yes.includes(caseSensitive || '')
+  const queryCaseSensitivity = parseCaseSensitivityFromQuery(query);
+  if (queryCaseSensitivity) {
+    // if `case:` filter exists in the query, override the existing case: query param
+    return discreteValueAliases.yes.includes(queryCaseSensitivity.value);
+  }
+  const searchParameters = new URLSearchParams(query);
+  const caseSensitive = searchParameters.get("case");
+  return discreteValueAliases.yes.includes(caseSensitive || "");
 }
 
 /**
@@ -70,97 +77,111 @@ export function searchURLIsCaseSensitive(query: string): boolean {
  * @param urlSearchQuery a URL's query string.
  */
 export function parseSearchURL(
-    urlSearchQuery: string
+  urlSearchQuery: string
 ): {
-    query: string | undefined
-    patternType: SearchPatternType | undefined
-    caseSensitive: boolean
-    versionContext: string | undefined
+  query: string | undefined;
+  patternType: SearchPatternType | undefined;
+  caseSensitive: boolean;
+  versionContext: string | undefined;
 } {
-    let finalQuery = parseSearchURLQuery(urlSearchQuery) || ''
-    let patternType = parseSearchURLPatternType(urlSearchQuery)
-    let caseSensitive = searchURLIsCaseSensitive(urlSearchQuery)
+  let finalQuery = parseSearchURLQuery(urlSearchQuery) || "";
+  let patternType = parseSearchURLPatternType(urlSearchQuery);
+  let caseSensitive = searchURLIsCaseSensitive(urlSearchQuery);
 
-    const patternTypeInQuery = parsePatternTypeFromQuery(finalQuery)
-    if (patternTypeInQuery) {
-        // Any `patterntype:` filter in the query should override the patternType= URL query parameter if it exists.
-        finalQuery = replaceRange(finalQuery, patternTypeInQuery.range)
-        patternType = patternTypeInQuery.value as SearchPatternType
+  const patternTypeInQuery = parsePatternTypeFromQuery(finalQuery);
+  if (patternTypeInQuery) {
+    // Any `patterntype:` filter in the query should override the patternType= URL query parameter if it exists.
+    finalQuery = replaceRange(finalQuery, patternTypeInQuery.range);
+    patternType = patternTypeInQuery.value as SearchPatternType;
+  }
+
+  const caseInQuery = parseCaseSensitivityFromQuery(finalQuery);
+  if (caseInQuery) {
+    // Any `case:` filter in the query should override the case= URL query parameter if it exists.
+    finalQuery = replaceRange(finalQuery, caseInQuery.range);
+
+    if (discreteValueAliases.yes.includes(caseInQuery.value)) {
+      caseSensitive = true;
+    } else if (discreteValueAliases.no.includes(caseInQuery.value)) {
+      caseSensitive = false;
     }
+  }
 
-    const caseInQuery = parseCaseSensitivityFromQuery(finalQuery)
-    if (caseInQuery) {
-        // Any `case:` filter in the query should override the case= URL query parameter if it exists.
-        finalQuery = replaceRange(finalQuery, caseInQuery.range)
-
-        if (discreteValueAliases.yes.includes(caseInQuery.value)) {
-            caseSensitive = true
-        } else if (discreteValueAliases.no.includes(caseInQuery.value)) {
-            caseSensitive = false
-        }
-    }
-
-    return {
-        query: finalQuery,
-        patternType,
-        caseSensitive,
-        versionContext: parseSearchURLVersionContext(urlSearchQuery),
-    }
+  return {
+    query: finalQuery,
+    patternType,
+    caseSensitive,
+    versionContext: parseSearchURLVersionContext(urlSearchQuery)
+  };
 }
 
-export function repoFilterForRepoRevision(repoName: string, globbing: boolean, revision?: string): string {
-    if (globbing) {
-        return `${quoteIfNeeded(`${repoName}${revision ? `@${abbreviateOID(revision)}` : ''}`)}`
-    }
-    return `${quoteIfNeeded(`^${escapeRegExp(repoName)}$${revision ? `@${abbreviateOID(revision)}` : ''}`)}`
+export function repoFilterForRepoRevision(
+  repoName: string,
+  globbing: boolean,
+  revision?: string
+): string {
+  if (globbing) {
+    return `${quoteIfNeeded(
+      `${repoName}${revision ? `@${abbreviateOID(revision)}` : ""}`
+    )}`;
+  }
+  return `${quoteIfNeeded(
+    `^${escapeRegExp(repoName)}$${
+      revision ? `@${abbreviateOID(revision)}` : ""
+    }`
+  )}`;
 }
 
-export function searchQueryForRepoRevision(repoName: string, globbing: boolean, revision?: string): string {
-    return `repo:${repoFilterForRepoRevision(repoName, globbing, revision)} `
+export function searchQueryForRepoRevision(
+  repoName: string,
+  globbing: boolean,
+  revision?: string
+): string {
+  return `repo:${repoFilterForRepoRevision(repoName, globbing, revision)} `;
 }
 
 function abbreviateOID(oid: string): string {
-    if (oid.length === 40) {
-        return oid.slice(0, 7)
-    }
-    return oid
+  if (oid.length === 40) {
+    return oid.slice(0, 7);
+  }
+  return oid;
 }
 
 export function quoteIfNeeded(string: string): string {
-    if (/[ "']/.test(string)) {
-        return JSON.stringify(string)
-    }
-    return string
+  if (/[ "']/.test(string)) {
+    return JSON.stringify(string);
+  }
+  return string;
 }
 
 export interface PatternTypeProps {
-    patternType: SearchPatternType
-    setPatternType: (patternType: SearchPatternType) => void
+  patternType: SearchPatternType;
+  setPatternType: (patternType: SearchPatternType) => void;
 }
 
 export interface CaseSensitivityProps {
-    caseSensitive: boolean
-    setCaseSensitivity: (caseSensitive: boolean) => void
+  caseSensitive: boolean;
+  setCaseSensitivity: (caseSensitive: boolean) => void;
 }
 
 export interface InteractiveSearchProps {
-    filtersInQuery: FiltersToTypeAndValue
-    onFiltersInQueryChange: (filtersInQuery: FiltersToTypeAndValue) => void
-    splitSearchModes: boolean
-    interactiveSearchMode: boolean
-    toggleSearchMode: (event: React.MouseEvent<HTMLAnchorElement>) => void
+  filtersInQuery: FiltersToTypeAndValue;
+  onFiltersInQueryChange: (filtersInQuery: FiltersToTypeAndValue) => void;
+  splitSearchModes: boolean;
+  interactiveSearchMode: boolean;
+  toggleSearchMode: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 }
 
 export interface SmartSearchFieldProps {
-    smartSearchField: boolean
+  smartSearchField: boolean;
 }
 
 export interface CopyQueryButtonProps {
-    copyQueryButton: boolean
+  copyQueryButton: boolean;
 }
 
 export interface RepogroupHomepageProps {
-    showRepogroupHomepage: boolean
+  showRepogroupHomepage: boolean;
 }
 
 /**
@@ -176,17 +197,19 @@ export interface RepogroupHomepageProps {
  * @param availableVersionContexts A list of all version contexts defined in site configuration.
  */
 export function resolveVersionContext(
-    versionContext: string | undefined,
-    availableVersionContexts: VersionContext[] | undefined
+  versionContext: string | undefined,
+  availableVersionContexts: VersionContext[] | undefined
 ): string | undefined {
-    if (
-        !versionContext ||
-        !availableVersionContexts ||
-        !availableVersionContexts.map(versionContext => versionContext.name).includes(versionContext) ||
-        versionContext === 'default'
-    ) {
-        return undefined
-    }
+  if (
+    !versionContext ||
+    !availableVersionContexts ||
+    !availableVersionContexts
+      .map(versionContext => versionContext.name)
+      .includes(versionContext) ||
+    versionContext === "default"
+  ) {
+    return undefined;
+  }
 
-    return versionContext
+  return versionContext;
 }

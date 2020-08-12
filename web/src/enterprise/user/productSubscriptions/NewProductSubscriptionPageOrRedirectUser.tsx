@@ -1,11 +1,11 @@
-import React from 'react'
-import { Redirect, RouteComponentProps } from 'react-router'
-import * as GQL from '../../../../../shared/src/graphql/schema'
-import { UserSubscriptionsNewProductSubscriptionPage } from './UserSubscriptionsNewProductSubscriptionPage'
-import { ThemeProps } from '../../../../../shared/src/theme'
+import React from "react";
+import { Redirect, RouteComponentProps } from "react-router";
+import * as GQL from "../../../../../shared/src/graphql/schema";
+import { UserSubscriptionsNewProductSubscriptionPage } from "./UserSubscriptionsNewProductSubscriptionPage";
+import { ThemeProps } from "../../../../../shared/src/theme";
 
 interface Props extends RouteComponentProps<{}>, ThemeProps {
-    authenticatedUser: GQL.IUser | null
+  authenticatedUser: GQL.IUser | null;
 }
 
 /**
@@ -18,10 +18,12 @@ interface Props extends RouteComponentProps<{}>, ThemeProps {
  * sign-in page) is the reason why this component exists.
  */
 export const NewProductSubscriptionPageOrRedirectUser: React.FunctionComponent<Props> = props =>
-    props.authenticatedUser ? (
-        <Redirect to={`${props.authenticatedUser.settingsURL!}/subscriptions/new`} />
-    ) : (
-        <div className="container w-75 mt-4">
-            <UserSubscriptionsNewProductSubscriptionPage {...props} user={null} />
-        </div>
-    )
+  props.authenticatedUser ? (
+    <Redirect
+      to={`${props.authenticatedUser.settingsURL!}/subscriptions/new`}
+    />
+  ) : (
+    <div className="container w-75 mt-4">
+      <UserSubscriptionsNewProductSubscriptionPage {...props} user={null} />
+    </div>
+  );

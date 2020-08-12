@@ -1,24 +1,24 @@
-@import '../FilterChip';
+@import "../FilterChip";
 
 .search-scopes {
-    &__edit {
-        display: inline-block;
-        vertical-align: middle;
-    }
+  &__edit {
+    display: inline-block;
+    vertical-align: middle;
+  }
 
-    &__add-scopes {
-        display: inline-block;
-    }
+  &__add-scopes {
+    display: inline-block;
+  }
 
-    &__add-edit {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
+  &__add-edit {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
 
-    &__center {
-        display: flex;
-        align-items: center;
-        margin-right: 0.5rem;
-    }
+  &__center {
+    display: flex;
+    align-items: center;
+    margin-right: 0.5rem;
+  }
 }

@@ -1,48 +1,51 @@
-import * as GQL from '../../../shared/src/graphql/schema'
+import * as GQL from "../../../shared/src/graphql/schema";
 
 /** TreeEntryInfo is the information we need to render an entry in the file tree */
 export interface TreeEntryInfo {
-    path: string
-    name: string
-    isDirectory: boolean
-    commit: GQL.IGitCommit
-    repository: GQL.IRepository
-    url: string
-    submodule: GQL.ISubmodule | null
-    isSingleChild: boolean
+  path: string;
+  name: string;
+  isDirectory: boolean;
+  commit: GQL.IGitCommit;
+  repository: GQL.IRepository;
+  url: string;
+  submodule: GQL.ISubmodule | null;
+  isSingleChild: boolean;
 }
 
 export interface SingleChildGitTree extends TreeEntryInfo {
-    children: SingleChildGitTree[]
+  children: SingleChildGitTree[];
 }
 
 export function scrollIntoView(element: Element, scrollRoot: Element): void {
-    if (!scrollRoot.getBoundingClientRect) {
-        return element.scrollIntoView()
-    }
+  if (!scrollRoot.getBoundingClientRect) {
+    return element.scrollIntoView();
+  }
 
-    const rootRectangle = scrollRoot.getBoundingClientRect()
-    const elementRectangle = element.getBoundingClientRect()
+  const rootRectangle = scrollRoot.getBoundingClientRect();
+  const elementRectangle = element.getBoundingClientRect();
 
-    const elementAbove = elementRectangle.top <= rootRectangle.top + 30
-    const elementBelow = elementRectangle.bottom >= rootRectangle.bottom
+  const elementAbove = elementRectangle.top <= rootRectangle.top + 30;
+  const elementBelow = elementRectangle.bottom >= rootRectangle.bottom;
 
-    if (elementAbove) {
-        element.scrollIntoView(true)
-    } else if (elementBelow) {
-        element.scrollIntoView(false)
-    }
+  if (elementAbove) {
+    element.scrollIntoView(true);
+  } else if (elementBelow) {
+    element.scrollIntoView(false);
+  }
 }
 
 export const getDomElement = (path: string): Element | null =>
-    document.querySelector(`[data-tree-path='${path.replace(/'/g, "\\'")}']`)
+  document.querySelector(`[data-tree-path='${path.replace(/'/g, "\\'")}']`);
 
-export const treePadding = (depth: number, isTree: boolean): React.CSSProperties => ({
-    marginLeft: `${depth * 12 + (isTree ? 0 : 12) + 12}px`,
-    paddingRight: '16px',
-})
+export const treePadding = (
+  depth: number,
+  isTree: boolean
+): React.CSSProperties => ({
+  marginLeft: `${depth * 12 + (isTree ? 0 : 12) + 12}px`,
+  paddingRight: "16px"
+});
 
-export const maxEntries = 2500
+export const maxEntries = 2500;
 
 // Utility functions to handle single-child directories:
 
@@ -61,26 +64,34 @@ export const maxEntries = 2500
  *
  * It uses the number of '/' separators to determine depth, and recursively adds entries to the `children` field.
  */
-export function singleChildEntriesToGitTree(entries: TreeEntryInfo[]): SingleChildGitTree {
-    const parentTree = gitTreeToTreeObject(entries[0])
-    for (const [index, entry] of entries.entries()) {
-        if (entry.path.split('/').length === parentTree.path.split('/').length + 1) {
-            parentTree.children.push({ ...entry, children: singleChildEntriesToGitTree(entries.slice(index)).children })
-        }
+export function singleChildEntriesToGitTree(
+  entries: TreeEntryInfo[]
+): SingleChildGitTree {
+  const parentTree = gitTreeToTreeObject(entries[0]);
+  for (const [index, entry] of entries.entries()) {
+    if (
+      entry.path.split("/").length ===
+      parentTree.path.split("/").length + 1
+    ) {
+      parentTree.children.push({
+        ...entry,
+        children: singleChildEntriesToGitTree(entries.slice(index)).children
+      });
     }
+  }
 
-    return parentTree
+  return parentTree;
 }
 
 function gitTreeToTreeObject(entry: TreeEntryInfo): SingleChildGitTree {
-    const object: SingleChildGitTree = {
-        ...entry,
-        children: [],
-    }
-    return object
+  const object: SingleChildGitTree = {
+    ...entry,
+    children: []
+  };
+  return object;
 }
 
 /** Determines whether a Tree has single-child directories as children, in order to determine whether to render a SingleChildTreeLayer or TreeLayer */
 export function hasSingleChild(tree: TreeEntryInfo[]): boolean {
-    return tree[0]?.isSingleChild
+  return tree[0]?.isSingleChild;
 }

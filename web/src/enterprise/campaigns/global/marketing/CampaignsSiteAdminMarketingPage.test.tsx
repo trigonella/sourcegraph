@@ -1,9 +1,9 @@
-import React from 'react'
-import { CampaignsSiteAdminMarketingPage } from './CampaignsSiteAdminMarketingPage'
-import { mount } from 'enzyme'
+import React from "react";
+import { CampaignsSiteAdminMarketingPage } from "./CampaignsSiteAdminMarketingPage";
+import { mount } from "enzyme";
 
-describe('CampaignsSiteAdminMarketingPage', () => {
-    test('renders', () => {
-        expect(mount(<CampaignsSiteAdminMarketingPage />)).toMatchSnapshot()
-    })
-})
+describe("CampaignsSiteAdminMarketingPage", () => {
+  test("renders", () => {
+    expect(mount(<CampaignsSiteAdminMarketingPage />)).toMatchSnapshot();
+  });
+});

@@ -1,13 +1,17 @@
-import { Observable } from 'rxjs'
-import { GraphQLResult, requestGraphQL as requestGraphQLCommon } from '../../../shared/src/graphql/graphql'
-import * as GQL from '../../../shared/src/graphql/schema'
+import { Observable } from "rxjs";
+import {
+  GraphQLResult,
+  requestGraphQL as requestGraphQLCommon
+} from "../../../shared/src/graphql/graphql";
+import * as GQL from "../../../shared/src/graphql/schema";
 
 const getHeaders = (): { [header: string]: string } => ({
-    ...window.context.xhrHeaders,
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-    'X-Sourcegraph-Should-Trace': new URLSearchParams(window.location.search).get('trace') || 'false',
-})
+  ...window.context.xhrHeaders,
+  Accept: "application/json",
+  "Content-Type": "application/json",
+  "X-Sourcegraph-Should-Trace":
+    new URLSearchParams(window.location.search).get("trace") || "false"
+});
 
 /**
  * Does a GraphQL request to the Sourcegraph GraphQL API running under `/.api/graphql`
@@ -19,14 +23,14 @@ const getHeaders = (): { [header: string]: string } => ({
  * @template TVariables The type of the query input variables (import from our auto-generated types).
  */
 export const requestGraphQL = <TResult, TVariables = object>(
-    request: string,
-    variables?: TVariables
+  request: string,
+  variables?: TVariables
 ): Observable<GraphQLResult<TResult>> =>
-    requestGraphQLCommon({
-        request,
-        variables,
-        headers: getHeaders(),
-    })
+  requestGraphQLCommon({
+    request,
+    variables,
+    headers: getHeaders()
+  });
 
 /**
  * Does a GraphQL query to the Sourcegraph GraphQL API running under `/.api/graphql`
@@ -37,12 +41,15 @@ export const requestGraphQL = <TResult, TVariables = object>(
  *
  * @deprecated Prefer using `requestGraphQL()` and passing auto-generated query types as type parameters.
  */
-export const queryGraphQL = (request: string, variables?: {}): Observable<GraphQLResult<GQL.IQuery>> =>
-    requestGraphQLCommon<GQL.IQuery>({
-        request,
-        variables,
-        headers: getHeaders(),
-    })
+export const queryGraphQL = (
+  request: string,
+  variables?: {}
+): Observable<GraphQLResult<GQL.IQuery>> =>
+  requestGraphQLCommon<GQL.IQuery>({
+    request,
+    variables,
+    headers: getHeaders()
+  });
 
 /**
  * Does a GraphQL mutation to the Sourcegraph GraphQL API running under `/.api/graphql`
@@ -53,9 +60,12 @@ export const queryGraphQL = (request: string, variables?: {}): Observable<GraphQ
  *
  * @deprecated Prefer using `requestGraphQL()` and passing auto-generated query types as type parameters.
  */
-export const mutateGraphQL = (request: string, variables?: {}): Observable<GraphQLResult<GQL.IMutation>> =>
-    requestGraphQLCommon<GQL.IMutation>({
-        request,
-        variables,
-        headers: getHeaders(),
-    })
+export const mutateGraphQL = (
+  request: string,
+  variables?: {}
+): Observable<GraphQLResult<GQL.IMutation>> =>
+  requestGraphQLCommon<GQL.IMutation>({
+    request,
+    variables,
+    headers: getHeaders()
+  });
