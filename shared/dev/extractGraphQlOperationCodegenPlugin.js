@@ -1,10 +1,10 @@
 // @ts-check
 
-const { visit } = require('graphql')
-const path = require('path')
-const logger = require('gulplog')
+const { visit } = require("graphql");
+const path = require("path");
+const logger = require("gulplog");
 
-const ROOT_FOLDER = path.resolve(__dirname, '../../')
+const ROOT_FOLDER = path.resolve(__dirname, "../../");
 /**
  *
  * @param {import('graphql').GraphQLSchema} schema
@@ -12,10 +12,10 @@ const ROOT_FOLDER = path.resolve(__dirname, '../../')
  * @param {{interfaceNameForOperations?: string}} config
  */
 const plugin = (schema, documents, config) => {
-  const { interfaceNameForOperations = 'AllOperations' } = config
+  const { interfaceNameForOperations = "AllOperations" } = config;
 
   /** @type {{name: string, location?: string}[]} */
-  const allOperations = []
+  const allOperations = [];
 
   for (const item of documents) {
     if (item.document) {
@@ -25,30 +25,33 @@ const plugin = (schema, documents, config) => {
             if (node.name && node.name.value) {
               allOperations.push({
                 name: node.name.value,
-                location: item.location && path.relative(ROOT_FOLDER, item.location),
-              })
+                location:
+                  item.location && path.relative(ROOT_FOLDER, item.location)
+              });
             }
-          },
-        },
-      })
+          }
+        }
+      });
     }
   }
 
   const interfaceFields = allOperations.map(
     ({ name, location }) =>
-      '\n' +
-      `/** ${location || 'location not found'} */\n` +
+      "\n" +
+      `/** ${location || "location not found"} */\n` +
       `${name}: (variables: ${name}Variables) => ${name}Result\n`
-  )
+  );
   if (interfaceFields.length === 0) {
-    logger.warn('No operations found to generate interface ' + interfaceNameForOperations)
+    logger.warn(
+      "No operations found to generate interface " + interfaceNameForOperations
+    );
   }
   return (
-    '\n' + //
+    "\n" + //
     `export interface ${interfaceNameForOperations} {\n` +
-    `    ${interfaceFields.join('\n    ')}\n` +
-    '}\n'
-  )
-}
+    `    ${interfaceFields.join("\n    ")}\n` +
+    "}\n"
+  );
+};
 
-module.exports = { plugin }
+module.exports = { plugin };

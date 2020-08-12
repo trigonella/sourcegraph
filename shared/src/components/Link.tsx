@@ -1,10 +1,10 @@
-import * as H from 'history'
-import React from 'react'
+import * as H from "history";
+import React from "react";
 
 export type LinkProps = { to: string | H.LocationDescriptor<any> } & Pick<
-    React.AnchorHTMLAttributes<HTMLAnchorElement>,
-    Exclude<keyof React.AnchorHTMLAttributes<HTMLAnchorElement>, 'href'>
->
+  React.AnchorHTMLAttributes<HTMLAnchorElement>,
+  Exclude<keyof React.AnchorHTMLAttributes<HTMLAnchorElement>, "href">
+>;
 
 /**
  * The component used to render a link. All shared code must use this component for links—not <a>, <Link>, etc.
@@ -25,13 +25,15 @@ export type LinkProps = { to: string | H.LocationDescriptor<any> } & Pick<
  *
  * @see setLinkComponent
  */
-export let Link: React.ComponentType<LinkProps>
+export let Link: React.ComponentType<LinkProps>;
 
-if (process.env.NODE_ENV !== 'production') {
-    // Fail with helpful message if setLinkComponent has not been called when the <Link> component is used.
-    Link = () => {
-        throw new Error('No Link component set. You must call setLinkComponent to set the Link component to use.')
-    }
+if (process.env.NODE_ENV !== "production") {
+  // Fail with helpful message if setLinkComponent has not been called when the <Link> component is used.
+  Link = () => {
+    throw new Error(
+      "No Link component set. You must call setLinkComponent to set the Link component to use."
+    );
+  };
 }
 
 /**
@@ -41,7 +43,7 @@ if (process.env.NODE_ENV !== 'production') {
  * @see AnchorLink
  */
 export function setLinkComponent(component: typeof Link): void {
-    Link = component
+  Link = component;
 }
 
 /**
@@ -50,8 +52,12 @@ export function setLinkComponent(component: typeof Link): void {
  *
  * @see setLinkComponent
  */
-export const AnchorLink: React.FunctionComponent<LinkProps> = ({ to, children, ...props }) => (
-    <a href={to && typeof to !== 'string' ? H.createPath(to) : to} {...props}>
-        {children}
-    </a>
-)
+export const AnchorLink: React.FunctionComponent<LinkProps> = ({
+  to,
+  children,
+  ...props
+}) => (
+  <a href={to && typeof to !== "string" ? H.createPath(to) : to} {...props}>
+    {children}
+  </a>
+);

@@ -1,2 +1,2 @@
-declare function isChromatic(): boolean
-export = isChromatic
+declare function isChromatic(): boolean;
+export = isChromatic;

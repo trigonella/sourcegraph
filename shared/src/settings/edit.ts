@@ -1,10 +1,10 @@
-import { from } from 'rxjs'
-import { first, map, switchMap } from 'rxjs/operators'
-import { SettingsEdit } from '../api/client/services/settings'
-import { dataOrThrowErrors, gql } from '../graphql/graphql'
-import * as GQL from '../graphql/schema'
-import { PlatformContext } from '../platform/context'
-import { isErrorLike } from '../util/errors'
+import { from } from "rxjs";
+import { first, map, switchMap } from "rxjs/operators";
+import { SettingsEdit } from "../api/client/services/settings";
+import { dataOrThrowErrors, gql } from "../graphql/graphql";
+import * as GQL from "../graphql/schema";
+import { PlatformContext } from "../platform/context";
+import { isErrorLike } from "../util/errors";
 
 /**
  * A helper function for performing an update to settings.
@@ -12,53 +12,64 @@ import { isErrorLike } from '../util/errors'
  * @param applySettingsEdit A function that is called to actually apply and persist the update.
  */
 export function updateSettings(
-    { settings, requestGraphQL }: Pick<PlatformContext, 'settings' | 'requestGraphQL'>,
-    subjectToUpdate: GQL.ID,
-    args: SettingsEdit | string,
-    applySettingsEdit: (
-        { requestGraphQL }: Pick<PlatformContext, 'requestGraphQL'>,
-        subject: GQL.ID,
-        lastID: number | null,
-        edit: GQL.ISettingsEdit | string
-    ) => Promise<void>
+  {
+    settings,
+    requestGraphQL
+  }: Pick<PlatformContext, "settings" | "requestGraphQL">,
+  subjectToUpdate: GQL.ID,
+  args: SettingsEdit | string,
+  applySettingsEdit: (
+    { requestGraphQL }: Pick<PlatformContext, "requestGraphQL">,
+    subject: GQL.ID,
+    lastID: number | null,
+    edit: GQL.ISettingsEdit | string
+  ) => Promise<void>
 ): Promise<void> {
-    return from(settings)
-        .pipe(
-            first(),
-            switchMap(settingsCascade => {
-                if (!settingsCascade.subjects) {
-                    throw new Error('settings not available')
-                }
-                if (isErrorLike(settingsCascade.subjects)) {
-                    throw new Error(`settings not available due to error: ${settingsCascade.subjects.message}`)
-                }
-                const subjectSettings = settingsCascade.subjects.find(subject => subject.subject.id === subjectToUpdate)
-                if (!subjectSettings) {
-                    throw new Error(`no settings subject: ${subjectToUpdate}`)
-                }
-                if (isErrorLike(subjectSettings.settings)) {
-                    throw new Error(`settings subject error: ${subjectSettings.settings.message}`)
-                }
-                const lastID = subjectSettings.settings ? subjectSettings.lastID : null
+  return from(settings)
+    .pipe(
+      first(),
+      switchMap(settingsCascade => {
+        if (!settingsCascade.subjects) {
+          throw new Error("settings not available");
+        }
+        if (isErrorLike(settingsCascade.subjects)) {
+          throw new Error(
+            `settings not available due to error: ${settingsCascade.subjects.message}`
+          );
+        }
+        const subjectSettings = settingsCascade.subjects.find(
+          subject => subject.subject.id === subjectToUpdate
+        );
+        if (!subjectSettings) {
+          throw new Error(`no settings subject: ${subjectToUpdate}`);
+        }
+        if (isErrorLike(subjectSettings.settings)) {
+          throw new Error(
+            `settings subject error: ${subjectSettings.settings.message}`
+          );
+        }
+        const lastID = subjectSettings.settings ? subjectSettings.lastID : null;
 
-                return applySettingsEdit(
-                    { requestGraphQL },
-                    subjectToUpdate,
-                    lastID,
-                    typeof args === 'string'
-                        ? args
-                        : {
-                              keyPath: toGQLKeyPath(args.path),
-                              value: args.value,
-                          }
-                )
-            })
-        )
-        .toPromise()
+        return applySettingsEdit(
+          { requestGraphQL },
+          subjectToUpdate,
+          lastID,
+          typeof args === "string"
+            ? args
+            : {
+                keyPath: toGQLKeyPath(args.path),
+                value: args.value
+              }
+        );
+      })
+    )
+    .toPromise();
 }
 
 function toGQLKeyPath(keyPath: (string | number)[]): GQL.IKeyPathSegment[] {
-    return keyPath.map(member => (typeof member === 'string' ? { property: member } : { index: member }))
+  return keyPath.map(member =>
+    typeof member === "string" ? { property: member } : { index: member }
+  );
 }
 
 /**
@@ -68,14 +79,14 @@ function toGQLKeyPath(keyPath: (string | number)[]): GQL.IKeyPathSegment[] {
  * settings.
  */
 export function mutateSettings(
-    { requestGraphQL }: Pick<PlatformContext, 'requestGraphQL'>,
-    subject: GQL.ID,
-    lastID: number | null,
-    edit: GQL.IConfigurationEdit | string
+  { requestGraphQL }: Pick<PlatformContext, "requestGraphQL">,
+  subject: GQL.ID,
+  lastID: number | null,
+  edit: GQL.IConfigurationEdit | string
 ): Promise<void> {
-    return typeof edit === 'string'
-        ? overwriteSettings({ requestGraphQL }, subject, lastID, edit)
-        : editSettings({ requestGraphQL }, subject, lastID, edit)
+  return typeof edit === "string"
+    ? overwriteSettings({ requestGraphQL }, subject, lastID, edit)
+    : editSettings({ requestGraphQL }, subject, lastID, edit);
 }
 
 /**
@@ -87,33 +98,37 @@ export function mutateSettings(
  * @param edit An edit to a specific value in the settings.
  */
 function editSettings(
-    { requestGraphQL }: Pick<PlatformContext, 'requestGraphQL'>,
-    subject: GQL.ID,
-    lastID: number | null,
-    edit: GQL.IConfigurationEdit
+  { requestGraphQL }: Pick<PlatformContext, "requestGraphQL">,
+  subject: GQL.ID,
+  lastID: number | null,
+  edit: GQL.IConfigurationEdit
 ): Promise<void> {
-    return from(
-        requestGraphQL({
-            request: gql`
-                mutation EditSettings($subject: ID!, $lastID: Int, $edit: ConfigurationEdit!) {
-                    configurationMutation(input: { subject: $subject, lastID: $lastID }) {
-                        editConfiguration(edit: $edit) {
-                            empty {
-                                alwaysNil
-                            }
-                        }
-                    }
-                }
-            `,
-            variables: { subject, lastID, edit },
-            mightContainPrivateInfo: false,
-        })
+  return from(
+    requestGraphQL({
+      request: gql`
+        mutation EditSettings(
+          $subject: ID!
+          $lastID: Int
+          $edit: ConfigurationEdit!
+        ) {
+          configurationMutation(input: { subject: $subject, lastID: $lastID }) {
+            editConfiguration(edit: $edit) {
+              empty {
+                alwaysNil
+              }
+            }
+          }
+        }
+      `,
+      variables: { subject, lastID, edit },
+      mightContainPrivateInfo: false
+    })
+  )
+    .pipe(
+      map(dataOrThrowErrors),
+      map(() => undefined)
     )
-        .pipe(
-            map(dataOrThrowErrors),
-            map(() => undefined)
-        )
-        .toPromise()
+    .toPromise();
 }
 
 /**
@@ -125,31 +140,35 @@ function editSettings(
  * @param contents A stringified JSON value to overwrite the entire settings with.
  */
 export function overwriteSettings(
-    { requestGraphQL }: Pick<PlatformContext, 'requestGraphQL'>,
-    subject: GQL.ID,
-    lastID: number | null,
-    contents: string
+  { requestGraphQL }: Pick<PlatformContext, "requestGraphQL">,
+  subject: GQL.ID,
+  lastID: number | null,
+  contents: string
 ): Promise<void> {
-    return from(
-        requestGraphQL({
-            request: gql`
-                mutation OverwriteSettings($subject: ID!, $lastID: Int, $contents: String!) {
-                    settingsMutation(input: { subject: $subject, lastID: $lastID }) {
-                        overwriteSettings(contents: $contents) {
-                            empty {
-                                alwaysNil
-                            }
-                        }
-                    }
-                }
-            `,
-            variables: { subject, lastID, contents },
-            mightContainPrivateInfo: false,
-        })
+  return from(
+    requestGraphQL({
+      request: gql`
+        mutation OverwriteSettings(
+          $subject: ID!
+          $lastID: Int
+          $contents: String!
+        ) {
+          settingsMutation(input: { subject: $subject, lastID: $lastID }) {
+            overwriteSettings(contents: $contents) {
+              empty {
+                alwaysNil
+              }
+            }
+          }
+        }
+      `,
+      variables: { subject, lastID, contents },
+      mightContainPrivateInfo: false
+    })
+  )
+    .pipe(
+      map(dataOrThrowErrors),
+      map(() => undefined)
     )
-        .pipe(
-            map(dataOrThrowErrors),
-            map(() => undefined)
-        )
-        .toPromise()
+    .toPromise();
 }

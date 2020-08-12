@@ -1,7 +1,7 @@
-import { Observable } from 'rxjs'
-import { publishReplay, refCount, tap } from 'rxjs/operators'
+import { Observable } from "rxjs";
+import { publishReplay, refCount, tap } from "rxjs/operators";
 
-let allCachesResetSeq = 0
+let allCachesResetSeq = 0;
 
 /**
  * Clears all memoized data for memoizeObservable calls. All calls made to those functions after
@@ -11,7 +11,7 @@ let allCachesResetSeq = 0
  * the UI may have a stale view of the resource.
  */
 export function resetAllMemoizationCaches(): void {
-    allCachesResetSeq++
+  allCachesResetSeq++;
 }
 
 /**
@@ -22,33 +22,33 @@ export function resetAllMemoizationCaches(): void {
  * the first argument provided to the memoized function.
  */
 export function memoizeObservable<P, T>(
-    func: (params: P) => Observable<T>,
-    resolver: (params: P) => string
+  func: (params: P) => Observable<T>,
+  resolver: (params: P) => string
 ): (params: P, force?: boolean) => Observable<T> {
-    const cache = new Map<string, Observable<T>>()
-    let cacheResetSeq = allCachesResetSeq
-    return (parameters: P, force = false) => {
-        // Reset cache if resetAllMemoizationCaches was called.
-        if (cacheResetSeq < allCachesResetSeq) {
-            cache.clear()
-            cacheResetSeq = allCachesResetSeq
-        }
-
-        const key = resolver(parameters)
-        const hit = cache.get(key)
-        if (!force && hit) {
-            return hit
-        }
-        const observable = func(parameters).pipe(
-            publishReplay(),
-            refCount(),
-            tap({
-                error: () => {
-                    cache.delete(key)
-                },
-            })
-        )
-        cache.set(key, observable)
-        return observable
+  const cache = new Map<string, Observable<T>>();
+  let cacheResetSeq = allCachesResetSeq;
+  return (parameters: P, force = false) => {
+    // Reset cache if resetAllMemoizationCaches was called.
+    if (cacheResetSeq < allCachesResetSeq) {
+      cache.clear();
+      cacheResetSeq = allCachesResetSeq;
     }
+
+    const key = resolver(parameters);
+    const hit = cache.get(key);
+    if (!force && hit) {
+      return hit;
+    }
+    const observable = func(parameters).pipe(
+      publishReplay(),
+      refCount(),
+      tap({
+        error: () => {
+          cache.delete(key);
+        }
+      })
+    );
+    cache.set(key, observable);
+    return observable;
+  };
 }

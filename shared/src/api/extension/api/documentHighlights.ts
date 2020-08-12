@@ -1,4 +1,4 @@
-import * as sourcegraph from 'sourcegraph'
+import * as sourcegraph from "sourcegraph";
 
 /**
  * The type of a document highlight.
@@ -6,7 +6,7 @@ import * as sourcegraph from 'sourcegraph'
  * the `sourcegraph` module import at the top of the file is emitted in the generated code.
  */
 export const DocumentHighlightKind: typeof sourcegraph.DocumentHighlightKind = {
-    Text: 'text' as sourcegraph.DocumentHighlightKind.Text,
-    Read: 'read' as sourcegraph.DocumentHighlightKind.Read,
-    Write: 'write' as sourcegraph.DocumentHighlightKind.Write,
-}
+  Text: "text" as sourcegraph.DocumentHighlightKind.Text,
+  Read: "read" as sourcegraph.DocumentHighlightKind.Read,
+  Write: "write" as sourcegraph.DocumentHighlightKind.Write
+};

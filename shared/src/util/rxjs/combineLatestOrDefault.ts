@@ -1,10 +1,19 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 /* eslint rxjs/no-internal: warn */
-import { Observable, ObservableInput, of, Operator, PartialObserver, Subscriber, TeardownLogic, zip } from 'rxjs'
-import { fromArray } from 'rxjs/internal/observable/fromArray'
-import { OuterSubscriber } from 'rxjs/internal/OuterSubscriber'
-import { asap } from 'rxjs/internal/scheduler/asap'
-import { subscribeToResult } from 'rxjs/internal/util/subscribeToResult'
+import {
+  Observable,
+  ObservableInput,
+  of,
+  Operator,
+  PartialObserver,
+  Subscriber,
+  TeardownLogic,
+  zip
+} from "rxjs";
+import { fromArray } from "rxjs/internal/observable/fromArray";
+import { OuterSubscriber } from "rxjs/internal/OuterSubscriber";
+import { asap } from "rxjs/internal/scheduler/asap";
+import { subscribeToResult } from "rxjs/internal/util/subscribeToResult";
 
 /**
  * Like {@link combineLatest}, except that it does not wait for all Observables to emit before emitting an initial
@@ -32,83 +41,97 @@ import { subscribeToResult } from 'rxjs/internal/util/subscribeToResult'
  * @returns An Observable of an array of the most recent values from each input Observable (or
  * {@link defaultValue}).
  */
-export function combineLatestOrDefault<T>(observables: ObservableInput<T>[], defaultValue?: T): Observable<T[]> {
-    switch (observables.length) {
-        case 0:
-            // No source observables: emit an empty array and complete
-            return of([])
-        case 1:
-            // Only one source observable: no need to handle emission accumulation or default values
-            return zip(...observables)
-        default:
-            return fromArray(observables).lift(new CombineLatestOperator(defaultValue))
-    }
+export function combineLatestOrDefault<T>(
+  observables: ObservableInput<T>[],
+  defaultValue?: T
+): Observable<T[]> {
+  switch (observables.length) {
+    case 0:
+      // No source observables: emit an empty array and complete
+      return of([]);
+    case 1:
+      // Only one source observable: no need to handle emission accumulation or default values
+      return zip(...observables);
+    default:
+      return fromArray(observables).lift(
+        new CombineLatestOperator(defaultValue)
+      );
+  }
 }
 
 class CombineLatestOperator<T> implements Operator<T, T[]> {
-    constructor(private defaultValue?: T) {}
+  constructor(private defaultValue?: T) {}
 
-    public call(subscriber: Subscriber<T[]>, source: any): TeardownLogic {
-        return source.subscribe(new CombineLatestSubscriber(subscriber, this.defaultValue))
-    }
+  public call(subscriber: Subscriber<T[]>, source: any): TeardownLogic {
+    return source.subscribe(
+      new CombineLatestSubscriber(subscriber, this.defaultValue)
+    );
+  }
 }
 
 class CombineLatestSubscriber<T> extends OuterSubscriber<T, T[]> {
-    private activeObservables = 0
-    private values: any[] = []
-    private observables: Observable<any>[] = []
-    private scheduled = false
+  private activeObservables = 0;
+  private values: any[] = [];
+  private observables: Observable<any>[] = [];
+  private scheduled = false;
 
-    constructor(observer: PartialObserver<T[]>, private defaultValue?: T) {
-        super(observer)
+  constructor(observer: PartialObserver<T[]>, private defaultValue?: T) {
+    super(observer);
+  }
+
+  protected _next(observable: any): void {
+    if (this.defaultValue !== undefined) {
+      this.values.push(this.defaultValue);
+    }
+    this.observables.push(observable);
+  }
+
+  protected _complete(): void {
+    this.activeObservables = this.observables.length;
+    for (let index = 0; index < this.observables.length; index++) {
+      this.add(
+        subscribeToResult(
+          this,
+          this.observables[index],
+          this.observables[index],
+          index
+        )
+      );
+    }
+  }
+
+  public notifyComplete(): void {
+    this.activeObservables--;
+    if (this.activeObservables === 0 && this.destination.complete) {
+      this.destination.complete();
+    }
+  }
+
+  public notifyNext(_outerValue: T, innerValue: T[], outerIndex: number): void {
+    const values = this.values;
+    values[outerIndex] = innerValue;
+
+    if (this.activeObservables === 1) {
+      // Only 1 observable is active, so no need to buffer.
+      //
+      // This makes it possible to use RxJS's `of` in tests without specifying an explicit scheduler.
+      if (this.destination.next) {
+        this.destination.next(this.values.slice());
+      }
+      return;
     }
 
-    protected _next(observable: any): void {
-        if (this.defaultValue !== undefined) {
-            this.values.push(this.defaultValue)
+    // Buffer all next values that are emitted at the same time into one emission.
+    //
+    // This makes tests (using expectObservable) easier to write.
+    if (!this.scheduled) {
+      this.scheduled = true;
+      asap.schedule(() => {
+        if (this.scheduled && this.destination.next) {
+          this.destination.next(this.values.slice());
         }
-        this.observables.push(observable)
+        this.scheduled = false;
+      });
     }
-
-    protected _complete(): void {
-        this.activeObservables = this.observables.length
-        for (let index = 0; index < this.observables.length; index++) {
-            this.add(subscribeToResult(this, this.observables[index], this.observables[index], index))
-        }
-    }
-
-    public notifyComplete(): void {
-        this.activeObservables--
-        if (this.activeObservables === 0 && this.destination.complete) {
-            this.destination.complete()
-        }
-    }
-
-    public notifyNext(_outerValue: T, innerValue: T[], outerIndex: number): void {
-        const values = this.values
-        values[outerIndex] = innerValue
-
-        if (this.activeObservables === 1) {
-            // Only 1 observable is active, so no need to buffer.
-            //
-            // This makes it possible to use RxJS's `of` in tests without specifying an explicit scheduler.
-            if (this.destination.next) {
-                this.destination.next(this.values.slice())
-            }
-            return
-        }
-
-        // Buffer all next values that are emitted at the same time into one emission.
-        //
-        // This makes tests (using expectObservable) easier to write.
-        if (!this.scheduled) {
-            this.scheduled = true
-            asap.schedule(() => {
-                if (this.scheduled && this.destination.next) {
-                    this.destination.next(this.values.slice())
-                }
-                this.scheduled = false
-            })
-        }
-    }
+  }
 }

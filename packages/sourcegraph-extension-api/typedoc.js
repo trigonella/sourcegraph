@@ -1,10 +1,10 @@
 module.exports = {
-  name: 'Sourcegraph extension API',
-  out: 'dist/docs/',
-  readme: 'none',
-  includes: './',
+  name: "Sourcegraph extension API",
+  out: "dist/docs/",
+  readme: "none",
+  includes: "./",
   includeDeclarations: true,
-  mode: 'file',
+  mode: "file",
   excludeExternals: true,
-  entryPoint: '"sourcegraph"',
-}
+  entryPoint: '"sourcegraph"'
+};

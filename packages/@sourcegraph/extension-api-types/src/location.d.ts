@@ -4,11 +4,11 @@
  * @see module:sourcegraph.Position
  */
 export interface Position {
-    /** Zero-based line number. */
-    readonly line: number
+  /** Zero-based line number. */
+  readonly line: number;
 
-    /** Zero-based character on a line. */
-    readonly character: number
+  /** Zero-based character on a line. */
+  readonly character: number;
 }
 
 /**
@@ -18,15 +18,15 @@ export interface Position {
  * @see module:sourcegraph.Range
  */
 export interface Range {
-    /**
-     * The start position. It is before or equal to [end](#Range.end).
-     */
-    readonly start: Position
+  /**
+   * The start position. It is before or equal to [end](#Range.end).
+   */
+  readonly start: Position;
 
-    /**
-     * The end position. It is after or equal to [start](#Range.start).
-     */
-    readonly end: Position
+  /**
+   * The end position. It is after or equal to [start](#Range.start).
+   */
+  readonly end: Position;
 }
 
 /**
@@ -35,21 +35,21 @@ export interface Range {
  * @see module:sourcegraph.Selection
  */
 export interface Selection extends Range {
-    /**
-     * The position at which the selection starts. This position might be before or after {@link Selection#active}.
-     */
-    readonly anchor: Position
+  /**
+   * The position at which the selection starts. This position might be before or after {@link Selection#active}.
+   */
+  readonly anchor: Position;
 
-    /**
-     * The position of the cursor. This position might be before or after {@link Selection#anchor}.
-     */
-    readonly active: Position
+  /**
+   * The position of the cursor. This position might be before or after {@link Selection#anchor}.
+   */
+  readonly active: Position;
 
-    /**
-     * Whether the selection is reversed. The selection is reversed if {@link Selection#active} is before
-     * {@link Selection#anchor}.
-     */
-    readonly isReversed: boolean
+  /**
+   * Whether the selection is reversed. The selection is reversed if {@link Selection#active} is before
+   * {@link Selection#anchor}.
+   */
+  readonly isReversed: boolean;
 }
 
 /**
@@ -58,9 +58,9 @@ export interface Selection extends Range {
  * @see module:sourcegraph.Location
  */
 export interface Location {
-    /** The URI of the document. */
-    readonly uri: string
+  /** The URI of the document. */
+  readonly uri: string;
 
-    /** An optional range within the document. */
-    readonly range?: Range
+  /** An optional range within the document. */
+  readonly range?: Range;
 }

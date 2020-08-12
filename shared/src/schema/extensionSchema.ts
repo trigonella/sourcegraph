@@ -1,4 +1,4 @@
-import { Contributions, Raw } from '../api/protocol/contribution'
+import { Contributions, Raw } from "../api/protocol/contribution";
 
 /**
  * See the extensions.schema.json JSON Schema for canonical documentation on these types.
@@ -19,42 +19,42 @@ import { Contributions, Raw } from '../api/protocol/contribution'
  * string constant (e.g., `ProgrammingLanguages = 'Programming languages'`).
  */
 export const EXTENSION_CATEGORIES = array([
-    'Programming languages',
-    'Linters',
-    'Code analysis',
-    'External services',
-    'Reports and stats',
-    'Other',
-    'Demos',
-])
+  "Programming languages",
+  "Linters",
+  "Code analysis",
+  "External services",
+  "Reports and stats",
+  "Other",
+  "Demos"
+]);
 
 /**
  * The set of known categories in the extension registry.
  */
-export type ExtensionCategory = typeof EXTENSION_CATEGORIES[number]
+export type ExtensionCategory = typeof EXTENSION_CATEGORIES[number];
 
 export interface ExtensionManifest {
-    description?: string
-    readme?: string
-    url: string
-    repository?: {
-        type?: string
-        url: string
-    }
+  description?: string;
+  readme?: string;
+  url: string;
+  repository?: {
+    type?: string;
+    url: string;
+  };
 
-    /**
-     * The element type includes `string` because this value has not been validated. Use {@link knownCategories} to
-     * filter to only known {@link ExtensionCategory} values.
-     */
-    categories?: (ExtensionCategory | string)[]
+  /**
+   * The element type includes `string` because this value has not been validated. Use {@link knownCategories} to
+   * filter to only known {@link ExtensionCategory} values.
+   */
+  categories?: (ExtensionCategory | string)[];
 
-    tags?: string[]
-    icon?: string
-    activationEvents: string[]
-    contributes?: Raw<Contributions> & { configuration?: { [key: string]: any } }
+  tags?: string[];
+  icon?: string;
+  activationEvents: string[];
+  contributes?: Raw<Contributions> & { configuration?: { [key: string]: any } };
 }
 
 /** TypeScript helper for making an array type with constant string union elements, not just string[]. */
 function array<T extends string>(a: T[]): T[] {
-    return a
+  return a;
 }

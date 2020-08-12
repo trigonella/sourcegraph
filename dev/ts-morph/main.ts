@@ -9,52 +9,63 @@
 // The code committed here is just as an example that can be modified locally.
 // Code mods don't have to be committed to the repo (unless they could be useful as a reference too).
 
-import { Project, QuoteKind } from 'ts-morph'
-import { formatSourceFile } from './prettier-ts-morph'
-import { addMissingHistoryProp } from './add-history-prop'
-import * as path from 'path'
+import { Project, QuoteKind } from "ts-morph";
+import { formatSourceFile } from "./prettier-ts-morph";
+import { addMissingHistoryProp } from "./add-history-prop";
+import * as path from "path";
 
 async function main(): Promise<void> {
-    const repoRoot = path.resolve(__dirname, '..', '..')
+  const repoRoot = path.resolve(__dirname, "..", "..");
 
-    const project = new Project({
-        tsConfigFilePath: path.resolve(repoRoot, 'tsconfig.json'),
-        manipulationSettings: {
-            quoteKind: QuoteKind.Single,
-            useTrailingCommas: true,
-        },
-    })
-    // project.enableLogging(true)
-    project.addSourceFilesFromTsConfig(path.resolve(repoRoot, 'web/tsconfig.json'))
-    project.addSourceFilesFromTsConfig(path.resolve(repoRoot, 'shared/tsconfig.json'))
-    project.addSourceFilesAtPaths([
-        path.resolve(repoRoot, 'web/src/**/*.d.ts'),
-        path.resolve(repoRoot, 'shared/src/**/*.d.ts'),
-        path.resolve(repoRoot, 'browser/src/**/*.d.ts'),
-    ])
-
-    console.log('Getting diagnostics')
-    const diagnostics = project
-        .getPreEmitDiagnostics()
-        // Some declaration files are not found by ts-morph for some reason, ignore
-        .filter(d => !/(declaration|type definition) file/i.test(project.formatDiagnosticsWithColorAndContext([d])))
-
-    for (const diagnostic of diagnostics.filter(d =>
-        /property 'history' is missing/i.test(project.formatDiagnosticsWithColorAndContext([d]))
-    )) {
-        try {
-            let sourceFile = diagnostic.getSourceFile()
-            if (!sourceFile) {
-                continue
-            }
-            addMissingHistoryProp(diagnostic, sourceFile)
-            sourceFile = await formatSourceFile(sourceFile)
-            await sourceFile.save()
-        } catch (err) {
-            console.error(err)
-        }
+  const project = new Project({
+    tsConfigFilePath: path.resolve(repoRoot, "tsconfig.json"),
+    manipulationSettings: {
+      quoteKind: QuoteKind.Single,
+      useTrailingCommas: true
     }
+  });
+  // project.enableLogging(true)
+  project.addSourceFilesFromTsConfig(
+    path.resolve(repoRoot, "web/tsconfig.json")
+  );
+  project.addSourceFilesFromTsConfig(
+    path.resolve(repoRoot, "shared/tsconfig.json")
+  );
+  project.addSourceFilesAtPaths([
+    path.resolve(repoRoot, "web/src/**/*.d.ts"),
+    path.resolve(repoRoot, "shared/src/**/*.d.ts"),
+    path.resolve(repoRoot, "browser/src/**/*.d.ts")
+  ]);
+
+  console.log("Getting diagnostics");
+  const diagnostics = project
+    .getPreEmitDiagnostics()
+    // Some declaration files are not found by ts-morph for some reason, ignore
+    .filter(
+      d =>
+        !/(declaration|type definition) file/i.test(
+          project.formatDiagnosticsWithColorAndContext([d])
+        )
+    );
+
+  for (const diagnostic of diagnostics.filter(d =>
+    /property 'history' is missing/i.test(
+      project.formatDiagnosticsWithColorAndContext([d])
+    )
+  )) {
+    try {
+      let sourceFile = diagnostic.getSourceFile();
+      if (!sourceFile) {
+        continue;
+      }
+      addMissingHistoryProp(diagnostic, sourceFile);
+      sourceFile = await formatSourceFile(sourceFile);
+      await sourceFile.save();
+    } catch (err) {
+      console.error(err);
+    }
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
-main()
+main();

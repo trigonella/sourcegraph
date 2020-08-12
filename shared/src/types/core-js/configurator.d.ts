@@ -1,1 +1,1 @@
-export default function configure(config: { usePolyfill?: string[] }): void
+export default function configure(config: { usePolyfill?: string[] }): void;

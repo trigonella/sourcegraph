@@ -1,4 +1,4 @@
-import { createSerializer } from 'enzyme-to-json'
-import { replaceVerboseObjects } from '../src/util/enzymeSnapshotModifiers'
+import { createSerializer } from "enzyme-to-json";
+import { replaceVerboseObjects } from "../src/util/enzymeSnapshotModifiers";
 
-module.exports = createSerializer({ map: replaceVerboseObjects })
+module.exports = createSerializer({ map: replaceVerboseObjects });

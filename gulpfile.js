@@ -1,35 +1,44 @@
 // @ts-check
 
-const gulp = require('gulp')
+const gulp = require("gulp");
 const {
   graphQlSchema,
   graphQlOperations,
   schema,
   watchGraphQlSchema,
   watchGraphQlOperations,
-  watchSchema,
-} = require('./shared/gulpfile')
-const { webpack: webWebpack, webpackDevServer: webWebpackDevServer } = require('./web/gulpfile')
+  watchSchema
+} = require("./shared/gulpfile");
+const {
+  webpack: webWebpack,
+  webpackDevServer: webWebpackDevServer
+} = require("./web/gulpfile");
 
 /**
  * Generates files needed for builds.
  */
-const generate = gulp.parallel(schema, graphQlSchema, graphQlOperations)
+const generate = gulp.parallel(schema, graphQlSchema, graphQlOperations);
 
 /**
  * Generates files needed for builds whenever files change.
  */
-const watchGenerate = gulp.series(generate, gulp.parallel(watchSchema, watchGraphQlSchema, watchGraphQlOperations))
+const watchGenerate = gulp.series(
+  generate,
+  gulp.parallel(watchSchema, watchGraphQlSchema, watchGraphQlOperations)
+);
 
 /**
  * Builds everything.
  */
-const build = gulp.series(generate, webWebpack)
+const build = gulp.series(generate, webWebpack);
 
 /**
  * Watches everything and rebuilds on file changes.
  */
-const watch = gulp.series(generate, gulp.parallel(watchGenerate, webWebpackDevServer))
+const watch = gulp.series(
+  generate,
+  gulp.parallel(watchGenerate, webWebpackDevServer)
+);
 
 module.exports = {
   generate,
@@ -40,5 +49,5 @@ module.exports = {
   graphQlSchema,
   watchGraphQlSchema,
   graphQlOperations,
-  watchGraphQlOperations,
-}
+  watchGraphQlOperations
+};

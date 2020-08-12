@@ -1,15 +1,17 @@
-import { isErrorLike } from '../util/errors'
+import { isErrorLike } from "../util/errors";
 
-const EHTTPSTATUS = 'HTTPStatusError'
+const EHTTPSTATUS = "HTTPStatusError";
 
 export class HTTPStatusError extends Error {
-    public readonly name = EHTTPSTATUS
-    public readonly status: number
+  public readonly name = EHTTPSTATUS;
+  public readonly status: number;
 
-    constructor(response: Response) {
-        super(`Request to ${response.url} failed with ${response.status} ${response.statusText}`)
-        this.status = response.status
-    }
+  constructor(response: Response) {
+    super(
+      `Request to ${response.url} failed with ${response.status} ${response.statusText}`
+    );
+    this.status = response.status;
+  }
 }
 
 /**
@@ -20,21 +22,21 @@ export class HTTPStatusError extends Error {
  * @param status The status code to check
  */
 export const failedWithHTTPStatus = (error: unknown, status: number): boolean =>
-    isErrorLike(error) && error.message.includes(` failed with ${status} `)
+  isErrorLike(error) && error.message.includes(` failed with ${status} `);
 
 /**
  * Checks if the given error is an HTTP status error that failed with an HTTP status code commonly returned by auth
  * proxies or our API to indicate the user is unauthenticated.
  */
 export const isHTTPAuthError = (error: unknown): boolean =>
-    failedWithHTTPStatus(error, 401) || failedWithHTTPStatus(error, 403)
+  failedWithHTTPStatus(error, 401) || failedWithHTTPStatus(error, 403);
 
 /**
  * Checks if a given fetch Response has a HTTP 2xx status code and throws an HTTPStatusError otherwise.
  */
 export function checkOk(response: Response): Response {
-    if (!response.ok) {
-        throw new HTTPStatusError(response)
-    }
-    return response
+  if (!response.ok) {
+    throw new HTTPStatusError(response);
+  }
+  return response;
 }

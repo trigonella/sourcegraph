@@ -1,16 +1,16 @@
-import { useEffect, useState, useMemo } from 'react'
-import { Observable, Observer, Subject } from 'rxjs'
+import { useEffect, useState, useMemo } from "react";
+import { Observable, Observer, Subject } from "rxjs";
 
 /**
  * Returns a function that will trigger an error on the next render,
  * which can be caught by an ErrorBoundary higher up in the component tree.
  */
 export function useError(): (error: any) => void {
-    const [error, setError] = useState<any>()
-    if (error) {
-        throw error
-    }
-    return setError
+  const [error, setError] = useState<any>();
+  if (error) {
+    throw error;
+  }
+  return setError;
 }
 
 /**
@@ -23,20 +23,23 @@ export function useError(): (error: any) => void {
  * @throws If the Observable pipeline errors.
  */
 export function useObservable<T>(observable: Observable<T>): T | undefined {
-    const [error, setError] = useState<any>()
-    const [currentValue, setCurrentValue] = useState<T>()
+  const [error, setError] = useState<any>();
+  const [currentValue, setCurrentValue] = useState<T>();
 
-    useEffect(() => {
-        setCurrentValue(undefined)
-        const subscription = observable.subscribe({ next: setCurrentValue, error: setError })
-        return () => subscription.unsubscribe()
-    }, [observable])
+  useEffect(() => {
+    setCurrentValue(undefined);
+    const subscription = observable.subscribe({
+      next: setCurrentValue,
+      error: setError
+    });
+    return () => subscription.unsubscribe();
+  }, [observable]);
 
-    if (error) {
-        throw error
-    }
+  if (error) {
+    throw error;
+  }
 
-    return currentValue
+  return currentValue;
 }
 
 /**
@@ -51,17 +54,17 @@ export function useObservable<T>(observable: Observable<T>): T | undefined {
  * @throws If the Observable pipeline errors.
  */
 export function useEventObservable<T, R>(
-    transform: (events: Observable<T>) => Observable<R>
-): [Observer<T>['next'], R | undefined]
+  transform: (events: Observable<T>) => Observable<R>
+): [Observer<T>["next"], R | undefined];
 export function useEventObservable<R>(
-    transform: (events: Observable<void>) => Observable<R>
-): [() => void, R | undefined]
+  transform: (events: Observable<void>) => Observable<R>
+): [() => void, R | undefined];
 export function useEventObservable<T, R>(
-    transform: (events: Observable<T>) => Observable<R>
-): [Observer<T>['next'], R | undefined] {
-    const events = useMemo(() => new Subject<T>(), [])
-    const observable = useMemo(() => events.pipe(transform), [events, transform])
-    const nextEvent = useMemo(() => events.next.bind(events), [events])
-    const value = useObservable(observable)
-    return [nextEvent, value]
+  transform: (events: Observable<T>) => Observable<R>
+): [Observer<T>["next"], R | undefined] {
+  const events = useMemo(() => new Subject<T>(), []);
+  const observable = useMemo(() => events.pipe(transform), [events, transform]);
+  const nextEvent = useMemo(() => events.next.bind(events), [events]);
+  const value = useObservable(observable);
+  return [nextEvent, value];
 }

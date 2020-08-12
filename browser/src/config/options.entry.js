@@ -1,1 +1,1 @@
-window.EXTENSION_ENV = 'OPTIONS'
+window.EXTENSION_ENV = "OPTIONS";

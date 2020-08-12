@@ -1,12 +1,12 @@
-import { first } from 'lodash'
-import { Observable } from 'rxjs'
-import { fromFetch } from 'rxjs/fetch'
-import { filter, map } from 'rxjs/operators'
-import { memoizeObservable } from '../../../../../shared/src/util/memoizeObservable'
-import { isDefined } from '../../../../../shared/src/util/types'
-import { DiffResolvedRevSpec } from '../../repo'
-import { BitbucketRepoInfo } from './scrape'
-import { checkOk } from '../../../../../shared/src/backend/fetch'
+import { first } from "lodash";
+import { Observable } from "rxjs";
+import { fromFetch } from "rxjs/fetch";
+import { filter, map } from "rxjs/operators";
+import { memoizeObservable } from "../../../../../shared/src/util/memoizeObservable";
+import { isDefined } from "../../../../../shared/src/util/types";
+import { DiffResolvedRevSpec } from "../../repo";
+import { BitbucketRepoInfo } from "./scrape";
+import { checkOk } from "../../../../../shared/src/backend/fetch";
 
 //
 // PR API /rest/api/1.0/projects/SG/repos/go-langserver/pull-requests/1
@@ -18,72 +18,83 @@ import { checkOk } from '../../../../../shared/src/backend/fetch'
  * `project` and `repoSlug` should have neither a leading nor a traling slash.
  */
 const buildURL = (project: string, repoSlug: string, path: string): string =>
-    // If possible, use the global `AJS.contextPath()` to reliably construct an absolute URL.
-    // This is possible in the native integration only - browser extension content scripts cannot
-    // access the page's global scope.
-    `${window.AJS ? window.AJS.contextPath() : window.location.origin}/rest/api/1.0/projects/${encodeURIComponent(
-        project
-    )}/repos/${repoSlug}${path}`
+  // If possible, use the global `AJS.contextPath()` to reliably construct an absolute URL.
+  // This is possible in the native integration only - browser extension content scripts cannot
+  // access the page's global scope.
+  `${
+    window.AJS ? window.AJS.contextPath() : window.location.origin
+  }/rest/api/1.0/projects/${encodeURIComponent(
+    project
+  )}/repos/${repoSlug}${path}`;
 
 const get = <T>(url: string): Observable<T> =>
-    fromFetch(url, { selector: response => checkOk(response).json() as Promise<T> })
+  fromFetch(url, {
+    selector: response => checkOk(response).json() as Promise<T>
+  });
 
 interface Repo {
-    project: { key: string }
-    name: string
-    public: boolean
+  project: { key: string };
+  name: string;
+  public: boolean;
 }
 
 interface Ref {
-    /**
-     * The branch name.
-     */
-    displayId: string
-    /**
-     * The commit ID.
-     */
-    latestCommit: string
+  /**
+   * The branch name.
+   */
+  displayId: string;
+  /**
+   * The commit ID.
+   */
+  latestCommit: string;
 
-    repository: Repo
+  repository: Repo;
 }
 
 interface PRResponse {
-    fromRef: Ref
-    toRef: Ref
+  fromRef: Ref;
+  toRef: Ref;
 }
 
 /**
  * Get the base commit ID for a merge request.
  */
 export const getCommitsForPR: (
-    info: BitbucketRepoInfo & { prID: number }
+  info: BitbucketRepoInfo & { prID: number }
 ) => Observable<DiffResolvedRevSpec> = memoizeObservable(
-    ({ project, repoSlug, prID }) =>
-        get<PRResponse>(buildURL(project, repoSlug, `/pull-requests/${prID}`)).pipe(
-            map(({ fromRef, toRef }) => ({ baseCommitID: toRef.latestCommit, headCommitID: fromRef.latestCommit }))
-        ),
-    ({ prID }) => prID.toString()
-)
+  ({ project, repoSlug, prID }) =>
+    get<PRResponse>(buildURL(project, repoSlug, `/pull-requests/${prID}`)).pipe(
+      map(({ fromRef, toRef }) => ({
+        baseCommitID: toRef.latestCommit,
+        headCommitID: fromRef.latestCommit
+      }))
+    ),
+  ({ prID }) => prID.toString()
+);
 
 interface GetBaseCommitInput extends BitbucketRepoInfo {
-    commitID: string
+  commitID: string;
 }
 
 interface Commit {
-    id: string
+  id: string;
 }
 
 interface CommitResponse {
-    parents: Commit[]
+  parents: Commit[];
 }
 
 // Commit API /rest/api/1.0/projects/SG/repos/go-langserver/commits/b8a948dc75cc9d0c01ece01d0ba9d1eeace573aa
-export const getBaseCommit: (info: GetBaseCommitInput) => Observable<string> = memoizeObservable(
-    ({ project, repoSlug, commitID }) =>
-        get<CommitResponse>(buildURL(project, repoSlug, `/commits/${commitID}`)).pipe(
-            map(({ parents }) => first(parents)),
-            filter(isDefined),
-            map(({ id }) => id)
-        ),
-    ({ project, repoSlug, commitID }) => `${project}:${repoSlug}:${commitID}`
-)
+export const getBaseCommit: (
+  info: GetBaseCommitInput
+) => Observable<string> = memoizeObservable(
+  ({ project, repoSlug, commitID }) =>
+    get<CommitResponse>(
+      buildURL(project, repoSlug, `/commits/${commitID}`)
+    ).pipe(
+      map(({ parents }) => first(parents)),
+      filter(isDefined),
+      map(({ id }) => id)
+    ),
+  ({ project, repoSlug, commitID }) => `${project}:${repoSlug}:${commitID}`
+);

@@ -1,167 +1,167 @@
-import * as React from 'react'
-import { cleanup, fireEvent, render } from '@testing-library/react'
-import { EMPTY, merge, noop, of, Subject } from 'rxjs'
-import { switchMap, tap } from 'rxjs/operators'
-import { TestScheduler } from 'rxjs/testing'
-import sinon from 'sinon'
+import * as React from "react";
+import { cleanup, fireEvent, render } from "@testing-library/react";
+import { EMPTY, merge, noop, of, Subject } from "rxjs";
+import { switchMap, tap } from "rxjs/operators";
+import { TestScheduler } from "rxjs/testing";
+import sinon from "sinon";
 
-import { ServerUrlForm, ServerUrlFormProps } from './ServerUrlForm'
+import { ServerUrlForm, ServerUrlFormProps } from "./ServerUrlForm";
 
-describe('ServerUrlForm', () => {
-    afterAll(cleanup)
+describe("ServerUrlForm", () => {
+  afterAll(cleanup);
 
-    test('fires the onChange prop handler', () => {
-        const onChange = sinon.spy()
-        const onSubmit = sinon.spy()
+  test("fires the onChange prop handler", () => {
+    const onChange = sinon.spy();
+    const onSubmit = sinon.spy();
 
-        const { container } = render(
-            <ServerUrlForm
-                value="https://sourcegraph.com"
-                status="connected"
-                onChange={onChange}
-                onSubmit={onSubmit}
-                urlHasPermissions={false}
-                requestPermissions={noop}
-            />
-        )
+    const { container } = render(
+      <ServerUrlForm
+        value="https://sourcegraph.com"
+        status="connected"
+        onChange={onChange}
+        onSubmit={onSubmit}
+        urlHasPermissions={false}
+        requestPermissions={noop}
+      />
+    );
 
-        const urlInput = container.querySelector('input')!
+    const urlInput = container.querySelector("input")!;
 
-        fireEvent.change(urlInput, { target: { value: 'https://different.com' } })
+    fireEvent.change(urlInput, { target: { value: "https://different.com" } });
 
-        expect(onChange.calledOnce).toBe(true)
-        expect(onChange.calledWith('https://different.com')).toBe(true)
+    expect(onChange.calledOnce).toBe(true);
+    expect(onChange.calledWith("https://different.com")).toBe(true);
 
-        expect(onSubmit.notCalled).toBe(true)
-    })
+    expect(onSubmit.notCalled).toBe(true);
+  });
 
-    test('updates the input value when the url changes', () => {
-        const props: ServerUrlFormProps = {
-            value: 'https://sourcegraph.com',
-            status: 'connected',
-            onChange: noop,
-            onSubmit: noop,
-            urlHasPermissions: false,
-            requestPermissions: noop,
-        }
+  test("updates the input value when the url changes", () => {
+    const props: ServerUrlFormProps = {
+      value: "https://sourcegraph.com",
+      status: "connected",
+      onChange: noop,
+      onSubmit: noop,
+      urlHasPermissions: false,
+      requestPermissions: noop
+    };
 
-        const { container, rerender } = render(<ServerUrlForm {...props} />)
+    const { container, rerender } = render(<ServerUrlForm {...props} />);
 
-        const urlInput = container.querySelector('input')!
+    const urlInput = container.querySelector("input")!;
 
-        rerender(<ServerUrlForm {...props} value="https://different.com" />)
+    rerender(<ServerUrlForm {...props} value="https://different.com" />);
 
-        const newValue = urlInput.value
+    const newValue = urlInput.value;
 
-        expect(newValue).toEqual('https://different.com')
-    })
+    expect(newValue).toEqual("https://different.com");
+  });
 
-    test('fires the onSubmit prop handler when the form is submitted', () => {
-        const onSubmit = sinon.spy()
+  test("fires the onSubmit prop handler when the form is submitted", () => {
+    const onSubmit = sinon.spy();
 
-        const { container } = render(
-            <ServerUrlForm
-                value="https://sourcegraph.com"
-                status="connected"
-                onChange={noop}
-                onSubmit={onSubmit}
-                urlHasPermissions={false}
-                requestPermissions={noop}
-            />
-        )
+    const { container } = render(
+      <ServerUrlForm
+        value="https://sourcegraph.com"
+        status="connected"
+        onChange={noop}
+        onSubmit={onSubmit}
+        urlHasPermissions={false}
+        requestPermissions={noop}
+      />
+    );
 
-        const form = container.querySelector('form')!
+    const form = container.querySelector("form")!;
 
-        fireEvent.submit(form)
+    fireEvent.submit(form);
 
-        expect(onSubmit.calledOnce).toBe(true)
-    })
+    expect(onSubmit.calledOnce).toBe(true);
+  });
 
-    test('fires the onSubmit prop handler after 5s on inactivity after a change', () => {
-        const scheduler = new TestScheduler((a, b) => expect(a).toEqual(b))
+  test("fires the onSubmit prop handler after 5s on inactivity after a change", () => {
+    const scheduler = new TestScheduler((a, b) => expect(a).toEqual(b));
 
-        scheduler.run(({ cold, expectObservable }) => {
-            const submits = new Subject<void>()
-            const nextSubmit = (): void => submits.next()
+    scheduler.run(({ cold, expectObservable }) => {
+      const submits = new Subject<void>();
+      const nextSubmit = (): void => submits.next();
 
-            const { container } = render(
-                <ServerUrlForm
-                    value="https://sourcegraph.com"
-                    status="connected"
-                    onChange={noop}
-                    onSubmit={nextSubmit}
-                    urlHasPermissions={false}
-                    requestPermissions={noop}
-                />
-            )
+      const { container } = render(
+        <ServerUrlForm
+          value="https://sourcegraph.com"
+          status="connected"
+          onChange={noop}
+          onSubmit={nextSubmit}
+          urlHasPermissions={false}
+          requestPermissions={noop}
+        />
+      );
 
-            const form = container.querySelector('input')!
+      const form = container.querySelector("input")!;
 
-            const urls: { [key: string]: string } = {
-                a: 'https://different.com',
-            }
+      const urls: { [key: string]: string } = {
+        a: "https://different.com"
+      };
 
-            const submitObservable = cold('a', urls).pipe(
-                switchMap(url => {
-                    const emit = of(undefined).pipe(
-                        tap(() => {
-                            fireEvent.change(form, { target: { value: url } })
-                        }),
-                        switchMap(() => EMPTY)
-                    )
+      const submitObservable = cold("a", urls).pipe(
+        switchMap(url => {
+          const emit = of(undefined).pipe(
+            tap(() => {
+              fireEvent.change(form, { target: { value: url } });
+            }),
+            switchMap(() => EMPTY)
+          );
 
-                    return merge(submits, emit)
-                })
-            )
-
-            expectObservable(submitObservable).toBe('5s a', { a: undefined })
+          return merge(submits, emit);
         })
-    })
+      );
 
-    test("doesn't submit after 5 seconds if the form was submitted manually", () => {
-        const scheduler = new TestScheduler((a, b) => expect(a).toEqual(b))
+      expectObservable(submitObservable).toBe("5s a", { a: undefined });
+    });
+  });
 
-        scheduler.run(({ cold, expectObservable }) => {
-            const changes = new Subject<string>()
-            const nextChange = (): void => changes.next()
+  test("doesn't submit after 5 seconds if the form was submitted manually", () => {
+    const scheduler = new TestScheduler((a, b) => expect(a).toEqual(b));
 
-            const submits = new Subject<void>()
-            const nextSubmit = (): void => submits.next()
+    scheduler.run(({ cold, expectObservable }) => {
+      const changes = new Subject<string>();
+      const nextChange = (): void => changes.next();
 
-            const props: ServerUrlFormProps = {
-                value: 'https://sourcegraph.com',
-                status: 'connected',
-                onChange: nextChange,
-                onSubmit: nextSubmit,
-                urlHasPermissions: false,
-                requestPermissions: noop,
-            }
+      const submits = new Subject<void>();
+      const nextSubmit = (): void => submits.next();
 
-            const { container } = render(<ServerUrlForm {...props} />)
-            const form = container.querySelector('input')!
+      const props: ServerUrlFormProps = {
+        value: "https://sourcegraph.com",
+        status: "connected",
+        onChange: nextChange,
+        onSubmit: nextSubmit,
+        urlHasPermissions: false,
+        requestPermissions: noop
+      };
 
-            changes.subscribe(url => {
-                fireEvent.submit(form)
-            })
+      const { container } = render(<ServerUrlForm {...props} />);
+      const form = container.querySelector("input")!;
 
-            const urls: { [key: string]: string } = {
-                a: 'https://different.com',
-            }
+      changes.subscribe(url => {
+        fireEvent.submit(form);
+      });
 
-            const submitObservable = cold('a', urls).pipe(
-                switchMap(url => {
-                    const emit = of(undefined).pipe(
-                        tap(() => {
-                            fireEvent.change(form, { target: { value: url } })
-                        }),
-                        switchMap(() => EMPTY)
-                    )
+      const urls: { [key: string]: string } = {
+        a: "https://different.com"
+      };
 
-                    return merge(submits, emit)
-                })
-            )
+      const submitObservable = cold("a", urls).pipe(
+        switchMap(url => {
+          const emit = of(undefined).pipe(
+            tap(() => {
+              fireEvent.change(form, { target: { value: url } });
+            }),
+            switchMap(() => EMPTY)
+          );
 
-            expectObservable(submitObservable).toBe('a', { a: undefined })
+          return merge(submits, emit);
         })
-    })
-})
+      );
+
+      expectObservable(submitObservable).toBe("a", { a: undefined });
+    });
+  });
+});

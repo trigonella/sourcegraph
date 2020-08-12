@@ -1,12 +1,26 @@
-import { Remote, proxyMarker, releaseProxy, ProxyMethods, ProxyMarked, proxy, UnproxyOrClone } from 'comlink'
-import { noop } from 'lodash'
-import { from, Observable, observable as symbolObservable, Subscription, Unsubscribable } from 'rxjs'
-import { mergeMap, finalize } from 'rxjs/operators'
-import { Subscribable } from 'sourcegraph'
-import { ProxySubscribable } from '../../extension/api/common'
-import { syncSubscription } from '../../util'
-import { asError } from '../../../util/errors'
-import { FeatureProviderRegistry } from '../services/registry'
+import {
+  Remote,
+  proxyMarker,
+  releaseProxy,
+  ProxyMethods,
+  ProxyMarked,
+  proxy,
+  UnproxyOrClone
+} from "comlink";
+import { noop } from "lodash";
+import {
+  from,
+  Observable,
+  observable as symbolObservable,
+  Subscription,
+  Unsubscribable
+} from "rxjs";
+import { mergeMap, finalize } from "rxjs/operators";
+import { Subscribable } from "sourcegraph";
+import { ProxySubscribable } from "../../extension/api/common";
+import { syncSubscription } from "../../util";
+import { asError } from "../../../util/errors";
+import { FeatureProviderRegistry } from "../services/registry";
 
 // We subclass because rxjs checks instanceof Subscription.
 // By exposing a Subscription as the interface to release the proxy,
@@ -19,18 +33,18 @@ import { FeatureProviderRegistry } from '../services/registry'
  * Unsubscribing will send a RELEASE message over the MessagePort, then close it and remove all event listeners from it.
  */
 export class ProxySubscription extends Subscription {
-    constructor(proxy: Pick<ProxyMethods, typeof releaseProxy>) {
-        super(() => {
-            proxy[releaseProxy]()
-        })
-    }
+  constructor(proxy: Pick<ProxyMethods, typeof releaseProxy>) {
+    super(() => {
+      proxy[releaseProxy]();
+    });
+  }
 }
 
 /**
  * An object that is backed by a comlink Proxy and exposes its Subscription so consumers can release it.
  */
 export interface ProxySubscribed {
-    readonly proxySubscription: Subscription
+  readonly proxySubscription: Subscription;
 }
 
 /**
@@ -49,51 +63,59 @@ export interface RemoteObservable<T> extends Observable<T>, ProxySubscribed {}
  * @param addToSubscription If provided, directly adds the `ProxySubscription` to this Subscription.
  */
 export const wrapRemoteObservable = <T>(
-    proxyPromise: Promise<Remote<ProxySubscribable<T>>>,
-    addToSubscription?: Subscription
+  proxyPromise: Promise<Remote<ProxySubscribable<T>>>,
+  addToSubscription?: Subscription
 ): RemoteObservable<T> => {
-    const proxySubscription = new Subscription()
-    if (addToSubscription) {
-        addToSubscription.add(proxySubscription)
-    }
-    const observable = from(proxyPromise).pipe(
-        mergeMap(
-            (proxySubscribable): Subscribable<T> => {
-                proxySubscription.add(new ProxySubscription(proxySubscribable))
-                return {
-                    // Needed for Rx type check
-                    [symbolObservable](): Subscribable<T> {
-                        return this
-                    },
-                    subscribe(...args: any[]): Subscription {
-                        // Always subscribe with an object because the other side
-                        // is unable to tell if a Proxy is a function or an observer object
-                        // (they always appear as functions)
-                        let proxyObserver: Parameters<typeof proxySubscribable['subscribe']>[0]
-                        if (typeof args[0] === 'function') {
-                            proxyObserver = {
-                                [proxyMarker]: true,
-                                next: args[0] || noop,
-                                error: args[1] ? error => args[1](asError(error)) : noop,
-                                complete: args[2] || noop,
-                            }
-                        } else {
-                            const partialObserver = args[0] || {}
-                            proxyObserver = {
-                                [proxyMarker]: true,
-                                next: partialObserver.next ? value => partialObserver.next(value) : noop,
-                                error: partialObserver.error ? error => partialObserver.error(asError(error)) : noop,
-                                complete: partialObserver.complete ? () => partialObserver.complete() : noop,
-                            }
-                        }
-                        return syncSubscription(proxySubscribable.subscribe(proxyObserver))
-                    },
-                }
+  const proxySubscription = new Subscription();
+  if (addToSubscription) {
+    addToSubscription.add(proxySubscription);
+  }
+  const observable = from(proxyPromise).pipe(
+    mergeMap(
+      (proxySubscribable): Subscribable<T> => {
+        proxySubscription.add(new ProxySubscription(proxySubscribable));
+        return {
+          // Needed for Rx type check
+          [symbolObservable](): Subscribable<T> {
+            return this;
+          },
+          subscribe(...args: any[]): Subscription {
+            // Always subscribe with an object because the other side
+            // is unable to tell if a Proxy is a function or an observer object
+            // (they always appear as functions)
+            let proxyObserver: Parameters<
+              typeof proxySubscribable["subscribe"]
+            >[0];
+            if (typeof args[0] === "function") {
+              proxyObserver = {
+                [proxyMarker]: true,
+                next: args[0] || noop,
+                error: args[1] ? error => args[1](asError(error)) : noop,
+                complete: args[2] || noop
+              };
+            } else {
+              const partialObserver = args[0] || {};
+              proxyObserver = {
+                [proxyMarker]: true,
+                next: partialObserver.next
+                  ? value => partialObserver.next(value)
+                  : noop,
+                error: partialObserver.error
+                  ? error => partialObserver.error(asError(error))
+                  : noop,
+                complete: partialObserver.complete
+                  ? () => partialObserver.complete()
+                  : noop
+              };
             }
-        )
+            return syncSubscription(proxySubscribable.subscribe(proxyObserver));
+          }
+        };
+      }
     )
-    return Object.assign(observable, { proxySubscription })
-}
+  );
+  return Object.assign(observable, { proxySubscription });
+};
 
 /**
  * Releases the underlying MessagePort of a remote Observable when it completes or is unsubscribed from.
@@ -105,14 +127,18 @@ export const wrapRemoteObservable = <T>(
  */
 // needed for the type parameter
 // eslint-disable-next-line unicorn/consistent-function-scoping
-export const finallyReleaseProxy = <T>() => (source: Observable<T> & Partial<ProxySubscribed>): Observable<T> => {
-    const { proxySubscription } = source
-    if (!proxySubscription) {
-        console.warn('finallyReleaseProxy() used on Observable without proxy subscription')
-        return source
-    }
-    return source.pipe(finalize(() => proxySubscription.unsubscribe()))
-}
+export const finallyReleaseProxy = <T>() => (
+  source: Observable<T> & Partial<ProxySubscribed>
+): Observable<T> => {
+  const { proxySubscription } = source;
+  if (!proxySubscription) {
+    console.warn(
+      "finallyReleaseProxy() used on Observable without proxy subscription"
+    );
+    return source;
+  }
+  return source.pipe(finalize(() => proxySubscription.unsubscribe()));
+};
 
 /**
  * Helper function to register a remote provider returning an Observable, proxied by comlink, in a provider registry.
@@ -124,34 +150,37 @@ export const finallyReleaseProxy = <T>() => (source: Observable<T> & Partial<Pro
  * @returns A Subscription that can be proxied through comlink which will unregister the provider.
  */
 export function registerRemoteProvider<
-    TRegistrationOptions,
-    TLocalProviderParams extends UnproxyOrClone<TProviderParams>,
-    TProviderParams,
-    TProviderResult
+  TRegistrationOptions,
+  TLocalProviderParams extends UnproxyOrClone<TProviderParams>,
+  TProviderParams,
+  TProviderResult
 >(
-    registry: FeatureProviderRegistry<
-        TRegistrationOptions,
-        (params: TLocalProviderParams) => Observable<TProviderResult>
-    >,
-    registrationOptions: TRegistrationOptions,
-    remoteProviderFunction: Remote<((params: TProviderParams) => ProxySubscribable<TProviderResult>) & ProxyMarked>
+  registry: FeatureProviderRegistry<
+    TRegistrationOptions,
+    (params: TLocalProviderParams) => Observable<TProviderResult>
+  >,
+  registrationOptions: TRegistrationOptions,
+  remoteProviderFunction: Remote<
+    ((params: TProviderParams) => ProxySubscribable<TProviderResult>) &
+      ProxyMarked
+  >
 ): Unsubscribable & ProxyMarked {
-    // This subscription will unregister the provider when unsubscribed.
-    const subscription = new Subscription()
+  // This subscription will unregister the provider when unsubscribed.
+  const subscription = new Subscription();
 
-    subscription.add(
-        registry.registerProvider(registrationOptions, parameters =>
-            // Wrap the remote, proxied Observable in an ordinary Observable
-            // and add its underlying proxy subscription to our subscription
-            // to release the proxy when the provider gets unregistered.
-            wrapRemoteObservable(remoteProviderFunction(parameters), subscription)
-        )
+  subscription.add(
+    registry.registerProvider(registrationOptions, parameters =>
+      // Wrap the remote, proxied Observable in an ordinary Observable
+      // and add its underlying proxy subscription to our subscription
+      // to release the proxy when the provider gets unregistered.
+      wrapRemoteObservable(remoteProviderFunction(parameters), subscription)
     )
+  );
 
-    // Track the underlying proxy subscription of the provider in our subscription
-    // so that the proxy gets released when the provider gets unregistered.
-    subscription.add(new ProxySubscription(remoteProviderFunction))
+  // Track the underlying proxy subscription of the provider in our subscription
+  // so that the proxy gets released when the provider gets unregistered.
+  subscription.add(new ProxySubscription(remoteProviderFunction));
 
-    // Prepare the subscription to be proxied to the remote side.
-    return proxy(subscription)
+  // Prepare the subscription to be proxied to the remote side.
+  return proxy(subscription);
 }
