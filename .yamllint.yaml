@@ -1,0 +1,16 @@
+---
+
+ignore: |
+  **/testdata/
+
+extends: default
+
+rules:
+  braces:
+    level: warning
+    max-spaces-inside: 1
+  brackets:
+    level: warning
+    max-spaces-inside: 1
+  indentation:
+    indent-sequences: whatever
