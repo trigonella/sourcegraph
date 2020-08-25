@@ -20,7 +20,6 @@ ENV REPODIR="${GOPATH}/src/${REPOPATH}" \
 
 RUN echo "===> Get tool ..." && \
     go get -u "${TOOLPATH}" || true
-RUN ls -la "${TOOLDIR}"
 
 RUN mkdir -p "${REPODIR}" "${OUTDIR}"
 COPY . "${REPODIR}"
