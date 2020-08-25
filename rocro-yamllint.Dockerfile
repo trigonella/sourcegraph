@@ -12,7 +12,7 @@ RUN echo "===> Install the yamllint ..." && \
     pip3 install 'yamllint>=1.24.0,<1.25.0' && \
     echo -n "+++ " ; yamllint --version
 
-ENV REPO=${GOPATH}/src/github.com/tetrafolium/algebird \
+ENV REPO=${GOPATH}/src/github.com/tetrafolium/sourcegraph \
     OUTDIR=/.reports
 RUN mkdir -p ${REPO} ${OUTDIR}
 COPY . ${REPO}
