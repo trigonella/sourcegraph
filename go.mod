@@ -149,7 +149,6 @@ require (
 	github.com/stripe/stripe-go v70.15.0+incompatible
 	github.com/teivah/onecontext v0.0.0-20200513185103-40f981bfd775
 	github.com/temoto/robotstxt v1.1.1
-	github.com/tetrafolium/inspecode-tasks v0.0.0-20200825021624-c83f318e345c
 	github.com/tinylib/msgp v1.1.2 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80
 	github.com/uber/gonduit v0.6.1
