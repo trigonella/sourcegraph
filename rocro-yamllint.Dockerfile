@@ -18,13 +18,13 @@ ENV REPODIR="${GOPATH}/src/${REPOPATH}" \
     TOOLDIR="${GOPATH}/src/${TOOLPATH}" \
     OUTDIR="/.reports"
 
-RUN mkdir -p "${REPODIR}" "${OUTDIR}"
-COPY . "${REPODIR}"
-WORKDIR "${REPODIR}"
-
 RUN echo "===> Get tool ..." && \
     go get -u "${TOOLPATH}" || true
 RUN ls -la "${TOOLDIR}"
+
+RUN mkdir -p "${REPODIR}" "${OUTDIR}"
+COPY . "${REPODIR}"
+WORKDIR "${REPODIR}"
 
 RUN echo "===> Run yamllint ..." && \
     yamllint -f parsable . > "${OUTDIR}/yamllint.issues" || true
