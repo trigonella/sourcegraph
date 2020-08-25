@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/tetrafolium/algebird/.rocro/sarif"
-	"github.com/tetrafolium/algebird/.rocro/yamllint/converter/convert"
-	"github.com/tetrafolium/algebird/.rocro/yamllint/converter/yamllint"
+	"github.com/tetrafolium/sourcegraph/.rocro/sarif"
+	"github.com/tetrafolium/sourcegraph/.rocro/yamllint/converter/convert"
+	"github.com/tetrafolium/sourcegraph/.rocro/yamllint/converter/yamllint"
 )
 
 const (
