@@ -12,23 +12,24 @@ RUN echo "===> Install the yamllint ..." && \
     pip3 install 'yamllint>=1.24.0,<1.25.0' && \
     echo -n "+++ " ; yamllint --version
 
-ENV REPO=${GOPATH}/src/github.com/tetrafolium/sourcegraph \
-    OUTDIR=/.reports
-RUN mkdir -p ${REPO} ${OUTDIR}
-COPY . ${REPO}
-WORKDIR ${REPO}
+ENV REPOPATH="github.com/tetrafolium/sourcegraph" \
+    TOOLPATH="github.com/tetrafolium/inspecode-tasks"
+ENV REPODIR="${GOPATH}/src/${REPOPATH}" \
+    TOOLDIR="${GOPATH}/src/${TOOLPATH}" \
+    OUTDIR="/.reports"
+RUN mkdir -p ${REPODIR} ${OUTDIR}
+COPY . ${REPODIR}
+WORKDIR ${REPODIR}
+
+RUN echo "===> Get tool ..." && \
+    go get -u ${TOOLPATH} || true
 
 RUN echo "===> Run yamllint ..." && \
-    yamllint -f parsable . > ${OUTDIR}/yamllint.out || true
+    yamllint -f parsable . > "${OUTDIR}/yamllint.issues" || true
 
-RUN echo "===> Convert reports to SARIF ..." && \
-    go run .rocro/yamllint/converter/cmd/main.go \
-        < ${OUTDIR}/yamllint.out \
-        > ${OUTDIR}/yamllint.sarif
+RUN echo "===> Convert yamllint issues to SARIF ..." && \
+    go run "${TOOLDIR}/yamllint/cmd/main.go" \
+        < "${OUTDIR}/yamllint.issues" \
+        > "${OUTDIR}/yamllint.sarif"
 
 RUN ls -la ${OUTDIR}
-RUN echo '----------' && \
-    cat -n ${OUTDIR}/yamllint.out && \
-    echo '----------' && \
-    cat -n ${OUTDIR}/yamllint.sarif && \
-    echo '----------'
