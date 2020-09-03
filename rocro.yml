@@ -21,7 +21,7 @@ inspecode:
       - from: hadolint-task
         path: "/.reports/hadolint.sarif"
       machine: {cpu: 0.75}
-      thresholds: {num-issues: 999}
+      thresholds: {num-issues: 9}
 
     - name: yamllint
       type: docker-build
@@ -36,7 +36,7 @@ inspecode:
       - from: yamllint-task
         path: "/.reports/yamllint.sarif"
       machine: {cpu: 0.75}
-      thresholds: {num-issues: 138}
+      thresholds: {num-issues: 27}
 
   tools:
 
