@@ -1,4 +1,8 @@
-FROM python:3-alpine3.11 AS yamllint-task
+FROM hadolint/hadolint:latest AS hadolint-task
+
+RUN echo "===> Install git ..." && \
+    apk add --update --no-cache git && \
+    echo "+++ $(git version)"
 
 RUN echo "===> Install golang ..." && \
     apk add --update --no-cache go && \
@@ -7,10 +11,6 @@ RUN echo "===> Install golang ..." && \
 ENV GOBIN="$GOROOT/bin" \
     GOPATH="/.go" \
     PATH="${GOPATH}/bin:/usr/local/go/bin:$PATH"
-
-RUN echo "===> Install the yamllint ..." && \
-    pip3 install 'yamllint>=1.24.0,<1.25.0' && \
-    echo "+++ $(yamllint --version)"
 
 ENV REPOPATH="github.com/tetrafolium/sourcegraph" \
     TOOLPATH="github.com/tetrafolium/inspecode-tasks"
@@ -27,14 +27,15 @@ RUN mkdir -p "${REPODIR}" "${OUTDIR}"
 COPY . "${REPODIR}"
 WORKDIR "${REPODIR}"
 
-RUN echo "===> Run yamllint ..." && \
-    yamllint -f parsable . > "${OUTDIR}/yamllint.issues" || true
+RUN echo "===> Run hadolint ..." && \
+    ( find . -name '*Dockerfile*' | \
+      xargs hadolint --format json > "${OUTDIR}/hadolint.json" ) || true
 
 RUN ls -la "${OUTDIR}"
 
-RUN echo "===> Convert yamllint issues to SARIF ..." && \
-    go run "${TOOLDIR}/yamllint/cmd/main.go" \
-        < "${OUTDIR}/yamllint.issues" \
-        > "${OUTDIR}/yamllint.sarif"
+RUN echo "===> Convert hadolint JSON to SARIF ..." && \
+    go run "${TOOLDIR}/hadolint/cmd/main.go" \
+        < "${OUTDIR}/hadolint.json" \
+        > "${OUTDIR}/hadolint.sarif"
 
 RUN ls -la "${OUTDIR}"
