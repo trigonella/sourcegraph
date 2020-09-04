@@ -17,11 +17,13 @@ inspecode:
       artifacts:
       - from: hadolint-task
         path: "/.reports/hadolint.json"
+      - from: hadolint-task
+        path: "/.reports/hadolint.sarif"
       reports:
       - from: hadolint-task
         path: "/.reports/hadolint.sarif"
       machine: {cpu: 0.75}
-      thresholds: {num-issues: 13}
+      thresholds: {num-issues: 9}
 
     - name: yamllint
       type: docker-build
@@ -32,8 +34,12 @@ inspecode:
       artifacts:
       - from: yamllint-task
         path: "/.reports/yamllint.issues"
+      - from: yamllint-task
+        path: "/.reports/yamllint.sarif"
       reports:
       - from: yamllint-task
         path: "/.reports/yamllint.sarif"
       machine: {cpu: 0.75}
-      thresholds: {num-issues: 27}
+      thresholds: {num-issues: 28}
+
+  tools:
