@@ -3,8 +3,8 @@ inspecode:
 
   global:
     runtime:
-      go: 1.14
-      nodejs: 10
+      go: 1.14    # (1.13 or later)
+      nodejs: 10  # (version 8 or 10)
 
   tasks:
 
@@ -15,13 +15,13 @@ inspecode:
         --build-arg:
           OUTDIR=/.reports
       artifacts:
-      - from: hadolint-task
-        path: "/.reports/hadolint.json"
-      - from: hadolint-task
-        path: "/.reports/hadolint.sarif"
+        - from: hadolint-task
+          path: "/.reports/hadolint.json"
+        - from: hadolint-task
+          path: "/.reports/hadolint.sarif"
       reports:
-      - from: hadolint-task
-        path: "/.reports/hadolint.sarif"
+        - from: hadolint-task
+          path: "/.reports/hadolint.sarif"
       machine: {cpu: 0.75}
       thresholds: {num-issues: 9}
 
@@ -32,13 +32,13 @@ inspecode:
         --build-arg:
           OUTDIR=/.reports
       artifacts:
-      - from: yamllint-task
-        path: "/.reports/yamllint.issues"
-      - from: yamllint-task
-        path: "/.reports/yamllint.sarif"
+        - from: yamllint-task
+          path: "/.reports/yamllint.issues"
+        - from: yamllint-task
+          path: "/.reports/yamllint.sarif"
       reports:
-      - from: yamllint-task
-        path: "/.reports/yamllint.sarif"
+        - from: yamllint-task
+          path: "/.reports/yamllint.sarif"
       machine: {cpu: 0.75}
       thresholds: {num-issues: 28}
 
