@@ -23,24 +23,7 @@ inspecode:
         - from: hadolint-task
           path: "/.reports/hadolint.sarif"
       machine: {cpu: 0.75}
-      thresholds: {num-issues: 999}
-
-    - name: sql-lint
-      type: docker-build
-      dockerfile: "rocro-sqllint.Dockerfile"
-      options:
-        --build-arg:
-          OUTDIR=/.reports
-      artifacts:
-        - from: sqllint-task
-          path: "/.reports/sql-lint.issues"
-        - from: sqllint-task
-          path: "/.reports/sql-lint.sarif"
-      reports:
-        - from: sqllint-task
-          path: "/.reports/sql-lint.sarif"
-      machine: {cpu: 0.75}
-      thresholds: {num-issues: 999}
+      thresholds: {num-issues: 9}
 
     - name: yamllint
       type: docker-build
