@@ -1,4 +1,4 @@
-module github.com/sourcegraph/sourcegraph
+module github.com/tetrafolium/sourcegraph
 
 go 1.14
 
@@ -182,7 +182,7 @@ require (
 )
 
 replace (
-	// protobuf v1.3.5+ causes issues - https://github.com/sourcegraph/sourcegraph/issues/11804
+	// protobuf v1.3.5+ causes issues - https://github.com/tetrafolium/sourcegraph/issues/11804
 	github.com/golang/protobuf => github.com/golang/protobuf v1.3.5
 
 	// We need our fork until https://github.com/graph-gophers/graphql-go/pull/400 is merged upstream
