@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/internal/graphqlfile"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/graphqlfile"
 )
 
 var Schema = readSchemaFromDisk()

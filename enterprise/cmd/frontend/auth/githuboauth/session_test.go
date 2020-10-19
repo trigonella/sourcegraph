@@ -11,11 +11,11 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-github/github"
 	"github.com/pkg/errors"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/auth"
-	"github.com/sourcegraph/sourcegraph/internal/actor"
-	"github.com/sourcegraph/sourcegraph/internal/db"
-	"github.com/sourcegraph/sourcegraph/internal/extsvc"
-	githubsvc "github.com/sourcegraph/sourcegraph/internal/extsvc/github"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/auth"
+	"github.com/tetrafolium/sourcegraph/internal/actor"
+	"github.com/tetrafolium/sourcegraph/internal/db"
+	"github.com/tetrafolium/sourcegraph/internal/extsvc"
+	githubsvc "github.com/tetrafolium/sourcegraph/internal/extsvc/github"
 	"golang.org/x/oauth2"
 )
 

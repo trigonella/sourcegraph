@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/inconshreveable/log15"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/auth"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/auth/providers"
-	"github.com/sourcegraph/sourcegraph/internal/actor"
-	"github.com/sourcegraph/sourcegraph/schema"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/auth"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/auth/providers"
+	"github.com/tetrafolium/sourcegraph/internal/actor"
+	"github.com/tetrafolium/sourcegraph/schema"
 )
 
 func NewHandler(serviceType, authPrefix string, isAPIHandler bool, next http.Handler) http.Handler {

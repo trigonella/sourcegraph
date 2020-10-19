@@ -8,8 +8,8 @@ import (
 
 	"github.com/efritz/glock"
 	"github.com/google/go-cmp/cmp"
-	indexmanager "github.com/sourcegraph/sourcegraph/enterprise/cmd/precise-code-intel-indexer-vm/internal/index_manager"
-	queuemocks "github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/queue/client/mocks"
+	indexmanager "github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-indexer-vm/internal/index_manager"
+	queuemocks "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/queue/client/mocks"
 )
 
 func TestHeartbeat(t *testing.T) {

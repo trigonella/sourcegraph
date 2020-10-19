@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/envvar"
-	"github.com/sourcegraph/sourcegraph/internal/conf"
-	"github.com/sourcegraph/sourcegraph/internal/db"
-	"github.com/sourcegraph/sourcegraph/internal/txemail"
-	"github.com/sourcegraph/sourcegraph/schema"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/envvar"
+	"github.com/tetrafolium/sourcegraph/internal/conf"
+	"github.com/tetrafolium/sourcegraph/internal/db"
+	"github.com/tetrafolium/sourcegraph/internal/txemail"
+	"github.com/tetrafolium/sourcegraph/schema"
 )
 
 func TestCheckEmailAbuse(t *testing.T) {

@@ -1,7 +1,7 @@
 package gitlab
 
 import (
-	"github.com/sourcegraph/sourcegraph/internal/extsvc"
+	"github.com/tetrafolium/sourcegraph/internal/extsvc"
 	"golang.org/x/oauth2"
 )
 

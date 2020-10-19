@@ -5,11 +5,11 @@ import (
 	"sort"
 	"testing"
 
-	frontendregistry "github.com/sourcegraph/sourcegraph/cmd/frontend/registry"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/internal/licensing"
-	"github.com/sourcegraph/sourcegraph/internal/conf"
-	"github.com/sourcegraph/sourcegraph/internal/registry"
-	"github.com/sourcegraph/sourcegraph/schema"
+	frontendregistry "github.com/tetrafolium/sourcegraph/cmd/frontend/registry"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/internal/licensing"
+	"github.com/tetrafolium/sourcegraph/internal/conf"
+	"github.com/tetrafolium/sourcegraph/internal/registry"
+	"github.com/tetrafolium/sourcegraph/schema"
 )
 
 func TestIsRemoteExtensionAllowed(t *testing.T) {

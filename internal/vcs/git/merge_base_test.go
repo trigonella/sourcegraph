@@ -3,7 +3,7 @@ package git
 import (
 	"testing"
 
-	"github.com/sourcegraph/sourcegraph/internal/gitserver"
+	"github.com/tetrafolium/sourcegraph/internal/gitserver"
 )
 
 func TestMerger_MergeBase(t *testing.T) {

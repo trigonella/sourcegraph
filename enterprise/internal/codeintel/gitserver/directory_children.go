@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/store"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
 )
 
 // DirectoryChildren determines all children known to git for the given directory names via an invocation

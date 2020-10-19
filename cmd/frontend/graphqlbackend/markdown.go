@@ -1,6 +1,6 @@
 package graphqlbackend
 
-import "github.com/sourcegraph/sourcegraph/internal/markdown"
+import "github.com/tetrafolium/sourcegraph/internal/markdown"
 
 type MarkdownResolver interface {
 	Text() string

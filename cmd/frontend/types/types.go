@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/sourcegraph/sourcegraph/internal/api"
-	"github.com/sourcegraph/sourcegraph/internal/extsvc"
+	"github.com/tetrafolium/sourcegraph/internal/api"
+	"github.com/tetrafolium/sourcegraph/internal/extsvc"
 )
 
 // RepoFields are lazy loaded data fields on a Repo (from the DB).
@@ -19,7 +19,7 @@ type RepoFields struct {
 	Description string
 
 	// DEPRECATED: this field is always empty for new repositories as of
-	// https://github.com/sourcegraph/sourcegraph/issues/2586. Do not use it.
+	// https://github.com/tetrafolium/sourcegraph/issues/2586. Do not use it.
 	//
 	// Language is the primary programming language used in this repository.
 	Language string

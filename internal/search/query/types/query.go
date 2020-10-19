@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/sourcegraph/sourcegraph/internal/search/query/syntax"
+	"github.com/tetrafolium/sourcegraph/internal/search/query/syntax"
 )
 
 // Map of field name -> values

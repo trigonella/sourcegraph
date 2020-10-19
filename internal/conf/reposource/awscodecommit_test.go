@@ -3,7 +3,7 @@ package reposource
 import (
 	"testing"
 
-	"github.com/sourcegraph/sourcegraph/schema"
+	"github.com/tetrafolium/sourcegraph/schema"
 )
 
 func TestAWS_cloneURLToRepoName(t *testing.T) {

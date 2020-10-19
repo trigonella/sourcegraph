@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sourcegraph/sourcegraph/cmd/repo-updater/repos"
-	"github.com/sourcegraph/sourcegraph/internal/db/dbtest"
+	"github.com/tetrafolium/sourcegraph/cmd/repo-updater/repos"
+	"github.com/tetrafolium/sourcegraph/internal/db/dbtest"
 )
 
 type clock interface {

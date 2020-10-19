@@ -4,8 +4,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/external/app"
-	"github.com/sourcegraph/sourcegraph/internal/env"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/external/app"
+	"github.com/tetrafolium/sourcegraph/internal/env"
 	"github.com/stripe/stripe-go"
 )
 

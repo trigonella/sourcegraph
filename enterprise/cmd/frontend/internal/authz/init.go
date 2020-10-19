@@ -4,14 +4,14 @@ import (
 	"context"
 	"time"
 
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/enterprise"
-	eauthz "github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/authz"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/internal/authz/resolvers"
-	eiauthz "github.com/sourcegraph/sourcegraph/enterprise/internal/authz"
-	"github.com/sourcegraph/sourcegraph/internal/authz"
-	"github.com/sourcegraph/sourcegraph/internal/conf"
-	"github.com/sourcegraph/sourcegraph/internal/db"
-	"github.com/sourcegraph/sourcegraph/internal/db/dbconn"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/enterprise"
+	eauthz "github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/authz"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/internal/authz/resolvers"
+	eiauthz "github.com/tetrafolium/sourcegraph/enterprise/internal/authz"
+	"github.com/tetrafolium/sourcegraph/internal/authz"
+	"github.com/tetrafolium/sourcegraph/internal/conf"
+	"github.com/tetrafolium/sourcegraph/internal/db"
+	"github.com/tetrafolium/sourcegraph/internal/db/dbconn"
 )
 
 func Init(ctx context.Context, enterpriseServices *enterprise.Services) error {

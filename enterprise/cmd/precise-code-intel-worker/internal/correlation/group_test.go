@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/correlation/datastructures"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/correlation/lsif"
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/bloomfilter"
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/bundles/types"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/correlation/datastructures"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/correlation/lsif"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bloomfilter"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/types"
 )
 
 func TestGroupBundleData(t *testing.T) {

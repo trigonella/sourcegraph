@@ -7,8 +7,8 @@ import (
 
 	"github.com/efritz/glock"
 	"github.com/inconshreveable/log15"
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/commits"
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/store"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/commits"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
 )
 
 // Updater periodically re-calculates the commit and upload visibility graph for repositories

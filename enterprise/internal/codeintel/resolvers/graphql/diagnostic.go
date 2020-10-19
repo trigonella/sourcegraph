@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	gql "github.com/sourcegraph/sourcegraph/cmd/frontend/graphqlbackend"
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/resolvers"
+	gql "github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/resolvers"
 )
 
 type DiagnosticResolver struct {

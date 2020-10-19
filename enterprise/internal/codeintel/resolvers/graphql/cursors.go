@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/graphqlbackend/graphqlutil"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend/graphqlutil"
 )
 
 // encodeCursor creates a PageInfo object from the given cursor. If the cursor is not

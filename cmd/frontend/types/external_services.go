@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/sourcegraph/sourcegraph/schema"
+	"github.com/tetrafolium/sourcegraph/schema"
 )
 
 type CodeHostConnection interface {

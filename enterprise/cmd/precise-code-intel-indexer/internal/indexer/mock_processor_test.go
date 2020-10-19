@@ -4,13 +4,13 @@ package indexer
 
 import (
 	"context"
-	store "github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/store"
+	store "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
 	"sync"
 )
 
 // MockProcessor is a mock implementation of the Processor interface (from
 // the package
-// github.com/sourcegraph/sourcegraph/enterprise/cmd/precise-code-intel-indexer/internal/indexer)
+// github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-indexer/internal/indexer)
 // used for unit testing.
 type MockProcessor struct {
 	// ProcessFunc is an instance of a mock function object controlling the

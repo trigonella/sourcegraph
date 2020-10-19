@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/sourcegraph/sourcegraph/cmd/searcher/protocol"
-	"github.com/sourcegraph/sourcegraph/internal/comby"
-	"github.com/sourcegraph/sourcegraph/internal/testutil"
+	"github.com/tetrafolium/sourcegraph/cmd/searcher/protocol"
+	"github.com/tetrafolium/sourcegraph/internal/comby"
+	"github.com/tetrafolium/sourcegraph/internal/testutil"
 )
 
 func TestMatcherLookupByLanguage(t *testing.T) {

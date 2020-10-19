@@ -3,7 +3,7 @@ package json
 import (
 	"encoding/json"
 
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/bundles/types"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/types"
 )
 
 //

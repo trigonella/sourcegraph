@@ -9,9 +9,9 @@ import (
 	otlog "github.com/opentracing/opentracing-go/log"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/sourcegraph/sourcegraph/internal/logging"
-	"github.com/sourcegraph/sourcegraph/internal/metrics"
-	"github.com/sourcegraph/sourcegraph/internal/trace"
+	"github.com/tetrafolium/sourcegraph/internal/logging"
+	"github.com/tetrafolium/sourcegraph/internal/metrics"
+	"github.com/tetrafolium/sourcegraph/internal/trace"
 )
 
 // ObservedSource returns a decorator that wraps a Source

@@ -8,10 +8,10 @@ import (
 
 	"github.com/efritz/glock"
 	"github.com/keegancsmith/sqlf"
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/store"
-	"github.com/sourcegraph/sourcegraph/internal/workerutil"
-	dbworkerstore "github.com/sourcegraph/sourcegraph/internal/workerutil/dbworker/store"
-	storemocks "github.com/sourcegraph/sourcegraph/internal/workerutil/dbworker/store/mocks"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
+	"github.com/tetrafolium/sourcegraph/internal/workerutil"
+	dbworkerstore "github.com/tetrafolium/sourcegraph/internal/workerutil/dbworker/store"
+	storemocks "github.com/tetrafolium/sourcegraph/internal/workerutil/dbworker/store/mocks"
 )
 
 func TestProcessSuccess(t *testing.T) {

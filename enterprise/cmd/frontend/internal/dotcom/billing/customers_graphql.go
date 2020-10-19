@@ -3,8 +3,8 @@ package billing
 import (
 	"context"
 
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/backend"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/graphqlbackend"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/backend"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/customer"
 )

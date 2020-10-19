@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/envvar"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/envvar"
 )
 
 func TestAuthPublic(t *testing.T) {

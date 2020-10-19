@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/sourcegraph/sourcegraph/internal/db/dbutil"
+	"github.com/tetrafolium/sourcegraph/internal/db/dbutil"
 )
 
 // This is a test script that I use to manually integration-test the new

@@ -8,10 +8,10 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/sourcegraph/go-diff/diff"
-	"github.com/sourcegraph/sourcegraph/internal/extsvc"
-	"github.com/sourcegraph/sourcegraph/internal/extsvc/bitbucketserver"
-	"github.com/sourcegraph/sourcegraph/internal/extsvc/github"
-	"github.com/sourcegraph/sourcegraph/internal/extsvc/gitlab"
+	"github.com/tetrafolium/sourcegraph/internal/extsvc"
+	"github.com/tetrafolium/sourcegraph/internal/extsvc/bitbucketserver"
+	"github.com/tetrafolium/sourcegraph/internal/extsvc/github"
+	"github.com/tetrafolium/sourcegraph/internal/extsvc/gitlab"
 )
 
 func TestChangesetMetadata(t *testing.T) {
@@ -27,7 +27,7 @@ func TestChangesetMetadata(t *testing.T) {
 		ID:           "FOOBARID",
 		Title:        "Fix a bunch of bugs",
 		Body:         "This fixes a bunch of bugs",
-		URL:          "https://github.com/sourcegraph/sourcegraph/pull/12345",
+		URL:          "https://github.com/tetrafolium/sourcegraph/pull/12345",
 		Number:       12345,
 		State:        "MERGED",
 		Author:       githubActor,

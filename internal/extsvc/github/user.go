@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/google/go-github/github"
-	"github.com/sourcegraph/sourcegraph/internal/extsvc"
+	"github.com/tetrafolium/sourcegraph/internal/extsvc"
 	"golang.org/x/oauth2"
 )
 

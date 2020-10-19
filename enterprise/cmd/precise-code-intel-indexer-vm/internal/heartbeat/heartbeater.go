@@ -7,8 +7,8 @@ import (
 	"github.com/efritz/glock"
 	"github.com/inconshreveable/log15"
 	"github.com/pkg/errors"
-	indexmanager "github.com/sourcegraph/sourcegraph/enterprise/cmd/precise-code-intel-indexer-vm/internal/index_manager"
-	queue "github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/queue/client"
+	indexmanager "github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-indexer-vm/internal/index_manager"
+	queue "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/queue/client"
 )
 
 type Heartbeater struct {

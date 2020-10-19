@@ -7,7 +7,7 @@ import (
 
 	"github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
-	"github.com/sourcegraph/sourcegraph/internal/trace"
+	"github.com/tetrafolium/sourcegraph/internal/trace"
 )
 
 func serveGraphQL(schema *graphql.Schema) func(w http.ResponseWriter, r *http.Request) (err error) {

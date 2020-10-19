@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/internal/app/router"
-	uirouter "github.com/sourcegraph/sourcegraph/cmd/frontend/internal/app/ui/router"
-	"github.com/sourcegraph/sourcegraph/internal/actor"
-	"github.com/sourcegraph/sourcegraph/internal/conf"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/app/router"
+	uirouter "github.com/tetrafolium/sourcegraph/cmd/frontend/internal/app/ui/router"
+	"github.com/tetrafolium/sourcegraph/internal/actor"
+	"github.com/tetrafolium/sourcegraph/internal/conf"
 )
 
 // RequireAuthMiddleware is a middleware that requires authentication for all HTTP requests, except

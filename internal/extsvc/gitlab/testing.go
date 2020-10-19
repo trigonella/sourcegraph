@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sourcegraph/sourcegraph/internal/ratelimit"
-	"github.com/sourcegraph/sourcegraph/internal/rcache"
+	"github.com/tetrafolium/sourcegraph/internal/ratelimit"
+	"github.com/tetrafolium/sourcegraph/internal/rcache"
 )
 
 type mockHTTPResponseBody struct {

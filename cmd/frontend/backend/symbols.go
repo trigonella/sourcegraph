@@ -3,9 +3,9 @@ package backend
 import (
 	"context"
 
-	"github.com/sourcegraph/sourcegraph/internal/search"
-	symbolsclient "github.com/sourcegraph/sourcegraph/internal/symbols"
-	"github.com/sourcegraph/sourcegraph/internal/symbols/protocol"
+	"github.com/tetrafolium/sourcegraph/internal/search"
+	symbolsclient "github.com/tetrafolium/sourcegraph/internal/symbols"
+	"github.com/tetrafolium/sourcegraph/internal/symbols/protocol"
 )
 
 // Symbols backend.

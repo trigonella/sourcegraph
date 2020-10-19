@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/internal/graphqlfile"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/graphqlfile"
 )
 
 func main() {

@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/correlation/datastructures"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/correlation/lsif"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/correlation/datastructures"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/correlation/lsif"
 )
 
 func TestCanonicalizeDocuments(t *testing.T) {

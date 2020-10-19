@@ -5,7 +5,7 @@ import (
 	"sort"
 
 	"github.com/google/zoekt"
-	"github.com/sourcegraph/sourcegraph/schema"
+	"github.com/tetrafolium/sourcegraph/schema"
 )
 
 // zoektIndexOptions are options which change what we index for a

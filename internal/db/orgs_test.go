@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sourcegraph/sourcegraph/internal/db/dbtesting"
+	"github.com/tetrafolium/sourcegraph/internal/db/dbtesting"
 )
 
 func TestOrgs_ValidNames(t *testing.T) {

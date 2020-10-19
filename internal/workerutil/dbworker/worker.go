@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/sourcegraph/sourcegraph/internal/workerutil"
-	"github.com/sourcegraph/sourcegraph/internal/workerutil/dbworker/store"
+	"github.com/tetrafolium/sourcegraph/internal/workerutil"
+	"github.com/tetrafolium/sourcegraph/internal/workerutil/dbworker/store"
 )
 
 type WorkerOptions struct {

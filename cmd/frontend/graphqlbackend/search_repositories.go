@@ -5,11 +5,11 @@ import (
 	"math"
 	"regexp"
 
-	"github.com/sourcegraph/sourcegraph/internal/api"
+	"github.com/tetrafolium/sourcegraph/internal/api"
 
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/types"
-	"github.com/sourcegraph/sourcegraph/internal/search"
-	"github.com/sourcegraph/sourcegraph/internal/search/query"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/types"
+	"github.com/tetrafolium/sourcegraph/internal/search"
+	"github.com/tetrafolium/sourcegraph/internal/search/query"
 )
 
 var mockSearchRepositories func(args *search.TextParameters) ([]SearchResultResolver, *searchResultsCommon, error)

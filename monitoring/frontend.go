@@ -17,7 +17,7 @@ func Frontend() *Container {
 							Description:     "99th percentile successful search request duration over 5m",
 							Query:           `histogram_quantile(0.99, sum by (le)(rate(src_graphql_field_seconds_bucket{type="Search",field="results",error="false",source="browser",name!="CodeIntelSearch"}[5m])))`,
 							DataMayNotExist: true,
-							DataMayBeNaN:    true, // See https://github.com/sourcegraph/sourcegraph/issues/9834
+							DataMayBeNaN:    true, // See https://github.com/tetrafolium/sourcegraph/issues/9834
 							Warning:         Alert{GreaterOrEqual: 20},
 							PanelOptions:    PanelOptions().LegendFormat("duration").Unit(Seconds),
 							Owner:           ObservableOwnerSearch,
@@ -33,7 +33,7 @@ func Frontend() *Container {
 							Description:     "90th percentile successful search request duration over 5m",
 							Query:           `histogram_quantile(0.90, sum by (le)(rate(src_graphql_field_seconds_bucket{type="Search",field="results",error="false",source="browser",name!="CodeIntelSearch"}[5m])))`,
 							DataMayNotExist: true,
-							DataMayBeNaN:    true, // See https://github.com/sourcegraph/sourcegraph/issues/9834
+							DataMayBeNaN:    true, // See https://github.com/tetrafolium/sourcegraph/issues/9834
 							Warning:         Alert{GreaterOrEqual: 15},
 							PanelOptions:    PanelOptions().LegendFormat("duration").Unit(Seconds),
 							Owner:           ObservableOwnerSearch,
@@ -132,7 +132,7 @@ func Frontend() *Container {
 							Owner:           ObservableOwnerCodeIntel,
 							Query:           `histogram_quantile(0.99, sum by (le)(rate(src_graphql_field_seconds_bucket{type="Search",field="results",error="false",source="browser",request_name="CodeIntelSearch"}[5m])))`,
 							DataMayNotExist: true,
-							DataMayBeNaN:    true, // See https://github.com/sourcegraph/sourcegraph/issues/9834
+							DataMayBeNaN:    true, // See https://github.com/tetrafolium/sourcegraph/issues/9834
 							Warning:         Alert{GreaterOrEqual: 20},
 							PanelOptions:    PanelOptions().LegendFormat("duration").Unit(Seconds),
 							PossibleSolutions: `
@@ -147,7 +147,7 @@ func Frontend() *Container {
 							Description:     "90th percentile code-intel successful search request duration over 5m",
 							Query:           `histogram_quantile(0.90, sum by (le)(rate(src_graphql_field_seconds_bucket{type="Search",field="results",error="false",source="browser",request_name="CodeIntelSearch"}[5m])))`,
 							DataMayNotExist: true,
-							DataMayBeNaN:    true, // See https://github.com/sourcegraph/sourcegraph/issues/9834
+							DataMayBeNaN:    true, // See https://github.com/tetrafolium/sourcegraph/issues/9834
 							Warning:         Alert{GreaterOrEqual: 15},
 							PanelOptions:    PanelOptions().LegendFormat("duration").Unit(Seconds),
 							Owner:           ObservableOwnerCodeIntel,
@@ -201,7 +201,7 @@ func Frontend() *Container {
 							PanelOptions:    PanelOptions().LegendFormat("{{alert_type}}").Unit(Percentage),
 							Owner:           ObservableOwnerCodeIntel,
 							PossibleSolutions: `
-								- This indicates a bug in Sourcegraph, please [open an issue](https://github.com/sourcegraph/sourcegraph/issues/new/choose).
+								- This indicates a bug in Sourcegraph, please [open an issue](https://github.com/tetrafolium/sourcegraph/issues/new/choose).
 							`,
 						},
 					},
@@ -217,7 +217,7 @@ func Frontend() *Container {
 							Description:     "99th percentile successful search API request duration over 5m",
 							Query:           `histogram_quantile(0.99, sum by (le)(rate(src_graphql_field_seconds_bucket{type="Search",field="results",error="false",source="other"}[5m])))`,
 							DataMayNotExist: true,
-							DataMayBeNaN:    true, // See https://github.com/sourcegraph/sourcegraph/issues/9834
+							DataMayBeNaN:    true, // See https://github.com/tetrafolium/sourcegraph/issues/9834
 							Warning:         Alert{GreaterOrEqual: 50},
 							PanelOptions:    PanelOptions().LegendFormat("duration").Unit(Seconds),
 							Owner:           ObservableOwnerSearch,
@@ -234,7 +234,7 @@ func Frontend() *Container {
 							Description:     "90th percentile successful search API request duration over 5m",
 							Query:           `histogram_quantile(0.90, sum by (le)(rate(src_graphql_field_seconds_bucket{type="Search",field="results",error="false",source="other"}[5m])))`,
 							DataMayNotExist: true,
-							DataMayBeNaN:    true, // See https://github.com/sourcegraph/sourcegraph/issues/9834
+							DataMayBeNaN:    true, // See https://github.com/tetrafolium/sourcegraph/issues/9834
 							Warning:         Alert{GreaterOrEqual: 40},
 							PanelOptions:    PanelOptions().LegendFormat("duration").Unit(Seconds),
 							Owner:           ObservableOwnerSearch,

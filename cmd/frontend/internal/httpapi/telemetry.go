@@ -6,9 +6,9 @@ import (
 
 	"github.com/inconshreveable/log15"
 
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/internal/pkg/usagestatsdeprecated"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/internal/usagestats"
-	"github.com/sourcegraph/sourcegraph/internal/eventlogger"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/pkg/usagestatsdeprecated"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/usagestats"
+	"github.com/tetrafolium/sourcegraph/internal/eventlogger"
 )
 
 var telemetryHandler http.Handler

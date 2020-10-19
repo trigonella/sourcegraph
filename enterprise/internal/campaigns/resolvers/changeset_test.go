@@ -7,17 +7,17 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/backend"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/graphqlbackend"
-	"github.com/sourcegraph/sourcegraph/cmd/repo-updater/repos"
-	ee "github.com/sourcegraph/sourcegraph/enterprise/internal/campaigns"
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/campaigns/resolvers/apitest"
-	"github.com/sourcegraph/sourcegraph/internal/api"
-	"github.com/sourcegraph/sourcegraph/internal/campaigns"
-	"github.com/sourcegraph/sourcegraph/internal/db/dbconn"
-	"github.com/sourcegraph/sourcegraph/internal/db/dbtesting"
-	"github.com/sourcegraph/sourcegraph/internal/extsvc/github"
-	"github.com/sourcegraph/sourcegraph/internal/vcs/git"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/backend"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
+	"github.com/tetrafolium/sourcegraph/cmd/repo-updater/repos"
+	ee "github.com/tetrafolium/sourcegraph/enterprise/internal/campaigns"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/campaigns/resolvers/apitest"
+	"github.com/tetrafolium/sourcegraph/internal/api"
+	"github.com/tetrafolium/sourcegraph/internal/campaigns"
+	"github.com/tetrafolium/sourcegraph/internal/db/dbconn"
+	"github.com/tetrafolium/sourcegraph/internal/db/dbtesting"
+	"github.com/tetrafolium/sourcegraph/internal/extsvc/github"
+	"github.com/tetrafolium/sourcegraph/internal/vcs/git"
 )
 
 func TestChangesetResolver(t *testing.T) {
@@ -90,7 +90,7 @@ func TestChangesetResolver(t *testing.T) {
 			Body:        "GitHub PR Body",
 			Number:      12345,
 			State:       "OPEN",
-			URL:         "https://github.com/sourcegraph/sourcegraph/pull/12345",
+			URL:         "https://github.com/tetrafolium/sourcegraph/pull/12345",
 			HeadRefName: "open-pr",
 			HeadRefOid:  headRev,
 			BaseRefOid:  baseRev,
@@ -175,7 +175,7 @@ func TestChangesetResolver(t *testing.T) {
 				NextSyncAt:    marshalDateTime(t, now.Add(8*time.Hour)),
 				Repository:    apitest.Repository{Name: repo.Name},
 				ExternalURL: apitest.ExternalURL{
-					URL:         "https://github.com/sourcegraph/sourcegraph/pull/12345",
+					URL:         "https://github.com/tetrafolium/sourcegraph/pull/12345",
 					ServiceType: "github",
 				},
 				Events: apitest.ChangesetEventConnection{

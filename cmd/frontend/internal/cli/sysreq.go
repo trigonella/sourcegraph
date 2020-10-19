@@ -9,8 +9,8 @@ import (
 	"github.com/inconshreveable/log15"
 	"github.com/kr/text"
 
-	"github.com/sourcegraph/sourcegraph/internal/env"
-	"github.com/sourcegraph/sourcegraph/internal/sysreq"
+	"github.com/tetrafolium/sourcegraph/internal/env"
+	"github.com/tetrafolium/sourcegraph/internal/sysreq"
 )
 
 const skipSysReqsEnvVar = "SRC_SKIP_REQS"

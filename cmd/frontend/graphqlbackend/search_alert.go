@@ -11,12 +11,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/backend"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/envvar"
-	"github.com/sourcegraph/sourcegraph/internal/search"
-	"github.com/sourcegraph/sourcegraph/internal/search/query"
-	"github.com/sourcegraph/sourcegraph/internal/search/query/syntax"
-	querytypes "github.com/sourcegraph/sourcegraph/internal/search/query/types"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/backend"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/envvar"
+	"github.com/tetrafolium/sourcegraph/internal/search"
+	"github.com/tetrafolium/sourcegraph/internal/search/query"
+	"github.com/tetrafolium/sourcegraph/internal/search/query/syntax"
+	querytypes "github.com/tetrafolium/sourcegraph/internal/search/query/types"
 )
 
 type searchAlert struct {
@@ -46,7 +46,7 @@ func alertForCappedAndExpression() *searchAlert {
 	return &searchAlert{
 		prometheusType: "exceed_and_expression_search_limit",
 		title:          "Too many files to search for and-expression",
-		description:    "One and-expression in the query requires a lot of work! Try using the 'repo:' or 'file:' filters to narrow your search. We're working on improving this experience in https://github.com/sourcegraph/sourcegraph/issues/9824",
+		description:    "One and-expression in the query requires a lot of work! Try using the 'repo:' or 'file:' filters to narrow your search. We're working on improving this experience in https://github.com/tetrafolium/sourcegraph/issues/9824",
 	}
 }
 

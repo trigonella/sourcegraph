@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/graphqlbackend"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
 	"github.com/stripe/stripe-go"
 )
 

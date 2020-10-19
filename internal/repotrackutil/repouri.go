@@ -3,8 +3,8 @@ package repotrackutil
 import (
 	"strings"
 
-	"github.com/sourcegraph/sourcegraph/internal/api"
-	"github.com/sourcegraph/sourcegraph/internal/lazyregexp"
+	"github.com/tetrafolium/sourcegraph/internal/api"
+	"github.com/tetrafolium/sourcegraph/internal/lazyregexp"
 )
 
 var trackedRepo = []string{

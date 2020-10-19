@@ -4,15 +4,15 @@ package mocks
 
 import (
 	"context"
-	gitserver "github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/gitserver"
-	store "github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/store"
+	gitserver "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/gitserver"
+	store "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
 	"io"
 	"sync"
 )
 
 // MockClient is a mock implementation of the Client interface (from the
 // package
-// github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/gitserver)
+// github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/gitserver)
 // used for unit testing.
 type MockClient struct {
 	// ArchiveFunc is an instance of a mock function object controlling the

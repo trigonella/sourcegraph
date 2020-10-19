@@ -3,7 +3,7 @@ package extsvc
 import (
 	"testing"
 
-	"github.com/sourcegraph/sourcegraph/internal/api"
+	"github.com/tetrafolium/sourcegraph/internal/api"
 )
 
 func TestCodeHostOf(t *testing.T) {

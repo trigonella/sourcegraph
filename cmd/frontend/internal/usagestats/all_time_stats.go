@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 
 	"github.com/gomodule/redigo/redis"
-	"github.com/sourcegraph/sourcegraph/internal/redispool"
+	"github.com/tetrafolium/sourcegraph/internal/redispool"
 )
 
 const (

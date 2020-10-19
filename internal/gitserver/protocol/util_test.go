@@ -3,7 +3,7 @@ package protocol
 import (
 	"testing"
 
-	"github.com/sourcegraph/sourcegraph/internal/api"
+	"github.com/tetrafolium/sourcegraph/internal/api"
 )
 
 func TestNormalizeRepo(t *testing.T) {

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/shurcooL/vfsgen"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/internal/app/templates"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/app/templates"
 )
 
 func main() {

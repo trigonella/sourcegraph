@@ -8,9 +8,9 @@ import (
 	"time"
 
 	zoektquery "github.com/google/zoekt/query"
-	"github.com/sourcegraph/sourcegraph/internal/api"
-	"github.com/sourcegraph/sourcegraph/internal/lazyregexp"
-	"github.com/sourcegraph/sourcegraph/internal/search"
+	"github.com/tetrafolium/sourcegraph/internal/api"
+	"github.com/tetrafolium/sourcegraph/internal/lazyregexp"
+	"github.com/tetrafolium/sourcegraph/internal/search"
 )
 
 func splitOnHolesPattern() string {

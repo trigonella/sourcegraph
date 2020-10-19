@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/inconshreveable/log15"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/internal/session"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/session"
 )
 
 type SignOutURL struct {

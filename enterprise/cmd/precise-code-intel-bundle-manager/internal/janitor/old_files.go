@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/inconshreveable/log15"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/precise-code-intel-bundle-manager/internal/paths"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-bundle-manager/internal/paths"
 )
 
 // removeOldUploadFiles removes all upload files that are older than the configured

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sourcegraph/sourcegraph/internal/gitserver"
+	"github.com/tetrafolium/sourcegraph/internal/gitserver"
 )
 
 func TestRepository_BlameFile(t *testing.T) {

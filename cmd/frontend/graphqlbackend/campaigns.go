@@ -5,9 +5,9 @@ import (
 	"errors"
 
 	"github.com/graph-gophers/graphql-go"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/graphqlbackend/externallink"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/graphqlbackend/graphqlutil"
-	"github.com/sourcegraph/sourcegraph/internal/campaigns"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend/externallink"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend/graphqlutil"
+	"github.com/tetrafolium/sourcegraph/internal/campaigns"
 )
 
 type CreateCampaignArgs struct {

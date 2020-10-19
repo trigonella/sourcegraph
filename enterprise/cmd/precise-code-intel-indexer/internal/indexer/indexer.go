@@ -4,12 +4,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/gitserver"
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/store"
-	"github.com/sourcegraph/sourcegraph/internal/actor"
-	"github.com/sourcegraph/sourcegraph/internal/workerutil"
-	"github.com/sourcegraph/sourcegraph/internal/workerutil/dbworker"
-	dbworkerstore "github.com/sourcegraph/sourcegraph/internal/workerutil/dbworker/store"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/gitserver"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
+	"github.com/tetrafolium/sourcegraph/internal/actor"
+	"github.com/tetrafolium/sourcegraph/internal/workerutil"
+	"github.com/tetrafolium/sourcegraph/internal/workerutil/dbworker"
+	dbworkerstore "github.com/tetrafolium/sourcegraph/internal/workerutil/dbworker/store"
 )
 
 func NewIndexer(

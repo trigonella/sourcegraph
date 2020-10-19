@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/license"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/license"
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/plan"
 )

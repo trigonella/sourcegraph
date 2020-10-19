@@ -18,8 +18,8 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
-	"github.com/sourcegraph/sourcegraph/internal/api"
-	"github.com/sourcegraph/sourcegraph/internal/lazyregexp"
+	"github.com/tetrafolium/sourcegraph/internal/api"
+	"github.com/tetrafolium/sourcegraph/internal/lazyregexp"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -588,7 +588,7 @@ func getRecloneTime(dir GitDir) (time.Time, error) {
 // maybeCorruptStderrRe matches stderr lines from git which indicate there
 // might be repository corruption.
 //
-// See https://github.com/sourcegraph/sourcegraph/issues/6676 for more
+// See https://github.com/tetrafolium/sourcegraph/issues/6676 for more
 // context.
 var maybeCorruptStderrRe = lazyregexp.NewPOSIX(`^error: (Could not read|packfile) `)
 

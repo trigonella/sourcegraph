@@ -1,7 +1,7 @@
 package campaigns
 
 import (
-	"github.com/sourcegraph/sourcegraph/internal/conf"
+	"github.com/tetrafolium/sourcegraph/internal/conf"
 )
 
 func init() {

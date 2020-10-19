@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/sourcegraph/sourcegraph/internal/db/dbutil"
+	"github.com/tetrafolium/sourcegraph/internal/db/dbutil"
 )
 
 // TransactableHandle is a wrapper around a database connection that provides nested transactions

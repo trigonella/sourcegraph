@@ -6,9 +6,9 @@ import (
 	"os"
 
 	"github.com/pkg/errors"
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/gitserver"
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/store"
-	"github.com/sourcegraph/sourcegraph/internal/tar"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/gitserver"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
+	"github.com/tetrafolium/sourcegraph/internal/tar"
 )
 
 func fetchRepository(ctx context.Context, store store.Store, gitserverClient gitserver.Client, repositoryID int, commit string) (string, error) {

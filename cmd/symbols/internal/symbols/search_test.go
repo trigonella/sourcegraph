@@ -9,10 +9,10 @@ import (
 	"testing"
 
 	"github.com/inconshreveable/log15"
-	"github.com/sourcegraph/sourcegraph/cmd/symbols/internal/pkg/ctags"
-	"github.com/sourcegraph/sourcegraph/internal/sqliteutil"
-	"github.com/sourcegraph/sourcegraph/internal/symbols/protocol"
-	"github.com/sourcegraph/sourcegraph/internal/testutil"
+	"github.com/tetrafolium/sourcegraph/cmd/symbols/internal/pkg/ctags"
+	"github.com/tetrafolium/sourcegraph/internal/sqliteutil"
+	"github.com/tetrafolium/sourcegraph/internal/symbols/protocol"
+	"github.com/tetrafolium/sourcegraph/internal/testutil"
 )
 
 func BenchmarkSearch(b *testing.B) {

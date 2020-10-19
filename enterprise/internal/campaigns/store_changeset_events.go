@@ -8,7 +8,7 @@ import (
 
 	"github.com/keegancsmith/sqlf"
 	"github.com/pkg/errors"
-	"github.com/sourcegraph/sourcegraph/internal/campaigns"
+	"github.com/tetrafolium/sourcegraph/internal/campaigns"
 )
 
 // GetChangesetEventOpts captures the query options needed for getting a ChangesetEvent

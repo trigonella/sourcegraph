@@ -10,8 +10,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/sourcegraph/sourcegraph/internal/diskcache"
-	"github.com/sourcegraph/sourcegraph/internal/metrics"
+	"github.com/tetrafolium/sourcegraph/internal/diskcache"
+	"github.com/tetrafolium/sourcegraph/internal/metrics"
 )
 
 // ArchiveCacheDir is the location on disk that archives are cached. It is

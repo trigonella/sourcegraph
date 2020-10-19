@@ -12,9 +12,9 @@ import (
 
 	"github.com/inconshreveable/log15"
 	"github.com/sourcegraph/jsonx"
-	"github.com/sourcegraph/sourcegraph/internal/conf/conftypes"
-	"github.com/sourcegraph/sourcegraph/internal/env"
-	"github.com/sourcegraph/sourcegraph/schema"
+	"github.com/tetrafolium/sourcegraph/internal/conf/conftypes"
+	"github.com/tetrafolium/sourcegraph/internal/env"
+	"github.com/tetrafolium/sourcegraph/schema"
 )
 
 // Unified represents the overall global Sourcegraph configuration from various

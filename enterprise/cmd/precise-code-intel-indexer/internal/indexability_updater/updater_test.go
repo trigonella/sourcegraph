@@ -10,10 +10,10 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/inconshreveable/log15"
-	gitservermocks "github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/gitserver/mocks"
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/store"
-	storemocks "github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/store/mocks"
-	"github.com/sourcegraph/sourcegraph/internal/metrics"
+	gitservermocks "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/gitserver/mocks"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
+	storemocks "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store/mocks"
+	"github.com/tetrafolium/sourcegraph/internal/metrics"
 )
 
 func TestMain(m *testing.M) {

@@ -2,10 +2,10 @@ package httpapi
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/enterprise"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/internal/httpapi/router"
-	"github.com/sourcegraph/sourcegraph/internal/httptestutil"
-	"github.com/sourcegraph/sourcegraph/internal/txemail"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/enterprise"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/httpapi/router"
+	"github.com/tetrafolium/sourcegraph/internal/httptestutil"
+	"github.com/tetrafolium/sourcegraph/internal/txemail"
 )
 
 func init() {

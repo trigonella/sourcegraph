@@ -9,8 +9,8 @@ import (
 	"github.com/gregjones/httpcache"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
-	"github.com/sourcegraph/sourcegraph/internal/httputil"
-	"github.com/sourcegraph/sourcegraph/internal/trace/ot"
+	"github.com/tetrafolium/sourcegraph/internal/httputil"
+	"github.com/tetrafolium/sourcegraph/internal/trace/ot"
 )
 
 // A Doer captures the Do method of an http.Client. It facilitates decorating
@@ -179,8 +179,8 @@ func ExternalTransportOpt(cli *http.Client) error {
 	tr, err := getTransportForMutation(cli)
 	if err != nil {
 		// TODO(keegancsmith) for now we don't support unwrappable
-		// transports. https://github.com/sourcegraph/sourcegraph/pull/7741
-		// https://github.com/sourcegraph/sourcegraph/pull/71
+		// transports. https://github.com/tetrafolium/sourcegraph/pull/7741
+		// https://github.com/tetrafolium/sourcegraph/pull/71
 		if isUnwrappableTransport(cli) {
 			return nil
 		}

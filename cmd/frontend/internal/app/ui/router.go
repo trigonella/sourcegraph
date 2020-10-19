@@ -18,13 +18,13 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/envvar"
-	uirouter "github.com/sourcegraph/sourcegraph/cmd/frontend/internal/app/ui/router"
-	"github.com/sourcegraph/sourcegraph/internal/conf"
-	"github.com/sourcegraph/sourcegraph/internal/env"
-	"github.com/sourcegraph/sourcegraph/internal/randstring"
-	"github.com/sourcegraph/sourcegraph/internal/routevar"
-	"github.com/sourcegraph/sourcegraph/internal/trace"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/envvar"
+	uirouter "github.com/tetrafolium/sourcegraph/cmd/frontend/internal/app/ui/router"
+	"github.com/tetrafolium/sourcegraph/internal/conf"
+	"github.com/tetrafolium/sourcegraph/internal/env"
+	"github.com/tetrafolium/sourcegraph/internal/randstring"
+	"github.com/tetrafolium/sourcegraph/internal/routevar"
+	"github.com/tetrafolium/sourcegraph/internal/trace"
 )
 
 const (
@@ -391,7 +391,7 @@ func serveError(w http.ResponseWriter, r *http.Request, err error, statusCode in
 // the user and as such, if it contains sensitive information, it can leak
 // sensitive information.
 //
-// See https://github.com/sourcegraph/sourcegraph/issues/9453
+// See https://github.com/tetrafolium/sourcegraph/issues/9453
 func dangerouslyServeError(w http.ResponseWriter, r *http.Request, err error, statusCode int) {
 	serveErrorNoDebug(w, r, err, statusCode, false, true)
 }

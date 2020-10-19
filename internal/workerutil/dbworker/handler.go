@@ -3,8 +3,8 @@ package dbworker
 import (
 	"context"
 
-	"github.com/sourcegraph/sourcegraph/internal/workerutil"
-	"github.com/sourcegraph/sourcegraph/internal/workerutil/dbworker/store"
+	"github.com/tetrafolium/sourcegraph/internal/workerutil"
+	"github.com/tetrafolium/sourcegraph/internal/workerutil/dbworker/store"
 )
 
 // Handler is a version of workerutil.Handler that refines the store type.

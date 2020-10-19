@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sourcegraph/sourcegraph/internal/lazyregexp"
+	"github.com/tetrafolium/sourcegraph/internal/lazyregexp"
 )
 
 var fieldRx = lazyregexp.New(`^-?[a-zA-Z]+:`)

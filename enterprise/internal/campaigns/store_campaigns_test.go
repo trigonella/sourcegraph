@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/sourcegraph/sourcegraph/cmd/repo-updater/repos"
-	cmpgn "github.com/sourcegraph/sourcegraph/internal/campaigns"
+	"github.com/tetrafolium/sourcegraph/cmd/repo-updater/repos"
+	cmpgn "github.com/tetrafolium/sourcegraph/internal/campaigns"
 )
 
 func testStoreCampaigns(t *testing.T, ctx context.Context, s *Store, _ repos.Store, clock clock) {

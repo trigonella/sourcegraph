@@ -15,11 +15,11 @@ import (
 	"github.com/opentracing/opentracing-go/ext"
 	pkgerrors "github.com/pkg/errors"
 	"github.com/sourcegraph/codeintelutils"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/precise-code-intel-bundle-manager/internal/database"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/precise-code-intel-bundle-manager/internal/paths"
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/bundles/persistence"
-	sqlitereader "github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/bundles/persistence/sqlite"
-	"github.com/sourcegraph/sourcegraph/internal/trace/ot"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-bundle-manager/internal/database"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-bundle-manager/internal/paths"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/persistence"
+	sqlitereader "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/persistence/sqlite"
+	"github.com/tetrafolium/sourcegraph/internal/trace/ot"
 )
 
 const DefaultMonikerResultPageSize = 100

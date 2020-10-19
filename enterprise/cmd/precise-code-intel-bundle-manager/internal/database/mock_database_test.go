@@ -4,13 +4,13 @@ package database
 
 import (
 	"context"
-	client "github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/bundles/client"
+	client "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/client"
 	"sync"
 )
 
 // MockDatabase is a mock implementation of the Database interface (from the
 // package
-// github.com/sourcegraph/sourcegraph/enterprise/cmd/precise-code-intel-bundle-manager/internal/database)
+// github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-bundle-manager/internal/database)
 // used for unit testing.
 type MockDatabase struct {
 	// CloseFunc is an instance of a mock function object controlling the

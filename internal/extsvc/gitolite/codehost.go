@@ -1,8 +1,8 @@
 package gitolite
 
 import (
-	"github.com/sourcegraph/sourcegraph/internal/api"
-	"github.com/sourcegraph/sourcegraph/internal/extsvc"
+	"github.com/tetrafolium/sourcegraph/internal/api"
+	"github.com/tetrafolium/sourcegraph/internal/extsvc"
 )
 
 func ExternalRepoSpec(repo *Repo, serviceID string) api.ExternalRepoSpec {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
-	"github.com/sourcegraph/sourcegraph/internal/db/dbutil"
+	"github.com/tetrafolium/sourcegraph/internal/db/dbutil"
 )
 
 // ErrNotTransactable occurs when Transact is called on a Store whose underlying

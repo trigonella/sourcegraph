@@ -1,6 +1,6 @@
 package sqlite
 
-import "github.com/sourcegraph/sourcegraph/internal/sqliteutil"
+import "github.com/tetrafolium/sourcegraph/internal/sqliteutil"
 
 func init() {
 	sqliteutil.SetLocalLibpath()

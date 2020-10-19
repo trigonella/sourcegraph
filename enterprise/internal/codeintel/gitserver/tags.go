@@ -3,7 +3,7 @@ package gitserver
 import (
 	"context"
 
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/store"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
 )
 
 // Tags returns the git tags associated with the given commit along with a boolean indicating whether

@@ -10,11 +10,11 @@ import (
 	"github.com/gomodule/redigo/redis"
 	"github.com/inconshreveable/log15"
 
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/internal/licensing"
-	"github.com/sourcegraph/sourcegraph/internal/conf"
-	"github.com/sourcegraph/sourcegraph/internal/db"
-	"github.com/sourcegraph/sourcegraph/internal/redispool"
-	"github.com/sourcegraph/sourcegraph/internal/slack"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/internal/licensing"
+	"github.com/tetrafolium/sourcegraph/internal/conf"
+	"github.com/tetrafolium/sourcegraph/internal/db"
+	"github.com/tetrafolium/sourcegraph/internal/redispool"
+	"github.com/tetrafolium/sourcegraph/internal/slack"
 )
 
 const lastLicenseExpirationCheckKey = "last_license_expiration_check"

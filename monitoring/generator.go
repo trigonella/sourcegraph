@@ -723,7 +723,7 @@ func (c *Container) promAlertsFile() *promRulesFile {
 						// Wrap the query in max() so that if there are multiple series (e.g. per-container) they
 						// get flattened into a single one (we only support per-service alerts,
 						// not per-container/replica).
-						// More context: https://github.com/sourcegraph/sourcegraph/issues/11571#issuecomment-654571953
+						// More context: https://github.com/tetrafolium/sourcegraph/issues/11571#issuecomment-654571953
 						group.AppendRow(fmt.Sprintf("max(%s)", alertQuery), makeLabels("high"), alert.For)
 					}
 					if alert.LessOrEqual != 0 {
@@ -750,7 +750,7 @@ func (c *Container) promAlertsFile() *promRulesFile {
 						// Wrap the query in min() so that if there are multiple series (e.g. per-container) they
 						// get flattened into a single one (we only support per-service alerts,
 						// not per-container/replica).
-						// More context: https://github.com/sourcegraph/sourcegraph/issues/11571#issuecomment-654571953
+						// More context: https://github.com/tetrafolium/sourcegraph/issues/11571#issuecomment-654571953
 						group.AppendRow(fmt.Sprintf("min(%s)", alertQuery), makeLabels("low"), alert.For)
 					}
 				}

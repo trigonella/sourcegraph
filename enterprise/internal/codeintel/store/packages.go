@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/keegancsmith/sqlf"
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/bundles/types"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/types"
 )
 
 // GetPackage returns the dump that provides the package with the given scheme, name, and version and a flag indicating its existence.

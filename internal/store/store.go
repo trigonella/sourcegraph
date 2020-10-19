@@ -17,13 +17,13 @@ import (
 	"time"
 
 	"github.com/opentracing/opentracing-go"
-	"github.com/sourcegraph/sourcegraph/internal/api"
-	"github.com/sourcegraph/sourcegraph/internal/conf"
-	"github.com/sourcegraph/sourcegraph/internal/diskcache"
-	"github.com/sourcegraph/sourcegraph/internal/gitserver"
-	"github.com/sourcegraph/sourcegraph/internal/metrics"
-	"github.com/sourcegraph/sourcegraph/internal/mutablelimiter"
-	"github.com/sourcegraph/sourcegraph/internal/trace/ot"
+	"github.com/tetrafolium/sourcegraph/internal/api"
+	"github.com/tetrafolium/sourcegraph/internal/conf"
+	"github.com/tetrafolium/sourcegraph/internal/diskcache"
+	"github.com/tetrafolium/sourcegraph/internal/gitserver"
+	"github.com/tetrafolium/sourcegraph/internal/metrics"
+	"github.com/tetrafolium/sourcegraph/internal/mutablelimiter"
+	"github.com/tetrafolium/sourcegraph/internal/trace/ot"
 
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/pkg/errors"
@@ -267,7 +267,7 @@ func copySearchable(tr *tar.Reader, zw *zip.Writer, largeFilePatterns []string) 
 			// Gitserver sometimes returns invalid headers. However, it only
 			// seems to occur in situations where a retry would likely solve
 			// it. So mark the error as temporary, to avoid failing the whole
-			// search. https://github.com/sourcegraph/sourcegraph/issues/3799
+			// search. https://github.com/tetrafolium/sourcegraph/issues/3799
 			if err == tar.ErrHeader {
 				return temporaryError{error: err}
 			}

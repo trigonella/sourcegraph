@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/keegancsmith/sqlf"
-	"github.com/sourcegraph/sourcegraph/internal/db/basestore"
-	"github.com/sourcegraph/sourcegraph/internal/workerutil"
+	"github.com/tetrafolium/sourcegraph/internal/db/basestore"
+	"github.com/tetrafolium/sourcegraph/internal/workerutil"
 )
 
 // Store is the persistence layer for the dbworker package that handles worker-side operations backed by a Postgres

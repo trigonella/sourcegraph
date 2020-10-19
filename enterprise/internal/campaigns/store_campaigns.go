@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/keegancsmith/sqlf"
-	"github.com/sourcegraph/sourcegraph/internal/campaigns"
-	"github.com/sourcegraph/sourcegraph/internal/db/dbutil"
+	"github.com/tetrafolium/sourcegraph/internal/campaigns"
+	"github.com/tetrafolium/sourcegraph/internal/db/dbutil"
 )
 
 // campaignColumns are used by the campaign related Store methods to insert,

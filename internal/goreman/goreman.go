@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/sourcegraph/sourcegraph/internal/lazyregexp"
+	"github.com/tetrafolium/sourcegraph/internal/lazyregexp"
 )
 
 // -- process information structure.

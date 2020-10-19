@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/bundles/persistence"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/persistence"
 )
 
 // ReaderCache is a cache of reader instances with very short TTL values. The primary purpose of this

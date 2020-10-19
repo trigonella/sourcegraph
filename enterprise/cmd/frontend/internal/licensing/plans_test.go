@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/license"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/license"
 )
 
 const testPlan Plan = "test"

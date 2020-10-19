@@ -4,9 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/graphqlbackend/externallink"
-	"github.com/sourcegraph/sourcegraph/internal/highlight"
-	"github.com/sourcegraph/sourcegraph/internal/markdown"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend/externallink"
+	"github.com/tetrafolium/sourcegraph/internal/highlight"
+	"github.com/tetrafolium/sourcegraph/internal/markdown"
 )
 
 type FileResolver interface {

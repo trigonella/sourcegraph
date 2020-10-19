@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/store"
-	storemocks "github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/store/mocks"
-	"github.com/sourcegraph/sourcegraph/internal/metrics"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
+	storemocks "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store/mocks"
+	"github.com/tetrafolium/sourcegraph/internal/metrics"
 )
 
 func TestRemoveCompletedRecordsWithoutBundleFile(t *testing.T) {

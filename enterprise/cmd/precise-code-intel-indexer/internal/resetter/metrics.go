@@ -2,7 +2,7 @@ package resetter
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/sourcegraph/sourcegraph/internal/workerutil/dbworker"
+	"github.com/tetrafolium/sourcegraph/internal/workerutil/dbworker"
 )
 
 func NewResetterMetrics(r prometheus.Registerer) dbworker.ResetterMetrics {

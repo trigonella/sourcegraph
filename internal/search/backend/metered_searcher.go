@@ -8,7 +8,7 @@ import (
 	"github.com/google/zoekt/query"
 	"github.com/opentracing/opentracing-go/log"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/sourcegraph/sourcegraph/internal/trace"
+	"github.com/tetrafolium/sourcegraph/internal/trace"
 )
 
 var requestDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{

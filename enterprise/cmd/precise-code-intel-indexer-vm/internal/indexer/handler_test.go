@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	indexmanager "github.com/sourcegraph/sourcegraph/enterprise/cmd/precise-code-intel-indexer-vm/internal/index_manager"
-	queuemocks "github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/queue/client/mocks"
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/store"
+	indexmanager "github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-indexer-vm/internal/index_manager"
+	queuemocks "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/queue/client/mocks"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
 )
 
 var testHandlerOptions = HandlerOptions{

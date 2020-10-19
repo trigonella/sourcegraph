@@ -3,8 +3,8 @@ package routevar
 import (
 	"strings"
 
-	"github.com/sourcegraph/sourcegraph/internal/api"
-	"github.com/sourcegraph/sourcegraph/internal/lazyregexp"
+	"github.com/tetrafolium/sourcegraph/internal/api"
+	"github.com/tetrafolium/sourcegraph/internal/lazyregexp"
 )
 
 // A RepoRev specifies a repo at a revision. The revision need not be an absolute

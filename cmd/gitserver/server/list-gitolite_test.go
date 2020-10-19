@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/sourcegraph/sourcegraph/internal/extsvc/gitolite"
-	"github.com/sourcegraph/sourcegraph/schema"
+	"github.com/tetrafolium/sourcegraph/internal/extsvc/gitolite"
+	"github.com/tetrafolium/sourcegraph/schema"
 )
 
 func Test_Gitolite_listRepos(t *testing.T) {

@@ -9,8 +9,8 @@ import (
 	"github.com/efritz/glock"
 	"github.com/hashicorp/go-multierror"
 	"github.com/inconshreveable/log15"
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/store"
-	dbworkerstore "github.com/sourcegraph/sourcegraph/internal/workerutil/dbworker/store"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
+	dbworkerstore "github.com/tetrafolium/sourcegraph/internal/workerutil/dbworker/store"
 	"github.com/teivah/onecontext"
 )
 

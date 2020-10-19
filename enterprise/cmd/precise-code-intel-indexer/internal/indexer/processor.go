@@ -9,8 +9,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sourcegraph/codeintelutils"
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/gitserver"
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/store"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/gitserver"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
 )
 
 type Processor interface {

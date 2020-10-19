@@ -1,8 +1,8 @@
 package userpasswd
 
 import (
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/auth/providers"
-	"github.com/sourcegraph/sourcegraph/internal/conf"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/auth/providers"
+	"github.com/tetrafolium/sourcegraph/internal/conf"
 )
 
 // Watch for configuration changes related to the builtin auth provider.

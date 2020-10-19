@@ -8,12 +8,12 @@ import (
 
 	"github.com/inconshreveable/log15"
 
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/types"
-	"github.com/sourcegraph/sourcegraph/internal/authz"
-	"github.com/sourcegraph/sourcegraph/internal/authz/bitbucketserver"
-	"github.com/sourcegraph/sourcegraph/internal/authz/github"
-	"github.com/sourcegraph/sourcegraph/internal/authz/gitlab"
-	"github.com/sourcegraph/sourcegraph/internal/conf"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/types"
+	"github.com/tetrafolium/sourcegraph/internal/authz"
+	"github.com/tetrafolium/sourcegraph/internal/authz/bitbucketserver"
+	"github.com/tetrafolium/sourcegraph/internal/authz/github"
+	"github.com/tetrafolium/sourcegraph/internal/authz/gitlab"
+	"github.com/tetrafolium/sourcegraph/internal/conf"
 )
 
 type ExternalServicesStore interface {

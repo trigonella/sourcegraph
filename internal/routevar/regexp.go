@@ -1,6 +1,6 @@
 package routevar
 
-import "github.com/sourcegraph/sourcegraph/internal/lazyregexp"
+import "github.com/tetrafolium/sourcegraph/internal/lazyregexp"
 
 // namedToNonCapturingGroups converts named capturing groups
 // `(?P<myname>...)` to non-capturing groups `(?:...)` for use in mux

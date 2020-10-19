@@ -3,7 +3,7 @@ package protocol
 import (
 	"time"
 
-	"github.com/sourcegraph/sourcegraph/internal/api"
+	"github.com/tetrafolium/sourcegraph/internal/api"
 )
 
 // ExecRequest is a request to execute a command inside a git repository.

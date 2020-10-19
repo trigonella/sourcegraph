@@ -2,7 +2,7 @@ package apitest
 
 import (
 	"github.com/sourcegraph/go-diff/diff"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/graphqlbackend"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
 )
 
 type GitTarget struct {

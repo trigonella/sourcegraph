@@ -3,7 +3,7 @@ package gitserver
 import (
 	"fmt"
 
-	"github.com/sourcegraph/sourcegraph/internal/api"
+	"github.com/tetrafolium/sourcegraph/internal/api"
 )
 
 // RevisionNotFoundError is an error that reports a revision doesn't exist.

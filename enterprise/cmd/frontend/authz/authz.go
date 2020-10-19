@@ -9,15 +9,15 @@ import (
 
 	"github.com/inconshreveable/log15"
 
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/backend"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/graphqlbackend"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/hooks"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/internal/licensing"
-	eauthz "github.com/sourcegraph/sourcegraph/enterprise/internal/authz"
-	edb "github.com/sourcegraph/sourcegraph/enterprise/internal/db"
-	"github.com/sourcegraph/sourcegraph/internal/conf"
-	"github.com/sourcegraph/sourcegraph/internal/db"
-	"github.com/sourcegraph/sourcegraph/internal/db/dbutil"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/backend"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/hooks"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/internal/licensing"
+	eauthz "github.com/tetrafolium/sourcegraph/enterprise/internal/authz"
+	edb "github.com/tetrafolium/sourcegraph/enterprise/internal/db"
+	"github.com/tetrafolium/sourcegraph/internal/conf"
+	"github.com/tetrafolium/sourcegraph/internal/db"
+	"github.com/tetrafolium/sourcegraph/internal/db/dbutil"
 )
 
 func Init(d dbutil.DB, clock func() time.Time) {

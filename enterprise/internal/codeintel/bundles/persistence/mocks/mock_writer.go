@@ -4,14 +4,14 @@ package mocks
 
 import (
 	"context"
-	persistence "github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/bundles/persistence"
-	types "github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/bundles/types"
+	persistence "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/persistence"
+	types "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/types"
 	"sync"
 )
 
 // MockWriter is a mock implementation of the Writer interface (from the
 // package
-// github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/bundles/persistence)
+// github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/persistence)
 // used for unit testing.
 type MockWriter struct {
 	// CloseFunc is an instance of a mock function object controlling the

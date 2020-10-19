@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sourcegraph/sourcegraph/internal/rcache"
+	"github.com/tetrafolium/sourcegraph/internal/rcache"
 )
 
 func TestDoWhileLeader(t *testing.T) {

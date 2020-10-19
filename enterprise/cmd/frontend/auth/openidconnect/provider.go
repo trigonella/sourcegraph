@@ -11,10 +11,10 @@ import (
 
 	"github.com/coreos/go-oidc"
 	"github.com/pkg/errors"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/auth"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/auth/providers"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/external/globals"
-	"github.com/sourcegraph/sourcegraph/schema"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/auth"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/auth/providers"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/external/globals"
+	"github.com/tetrafolium/sourcegraph/schema"
 	"golang.org/x/net/context/ctxhttp"
 	"golang.org/x/oauth2"
 )

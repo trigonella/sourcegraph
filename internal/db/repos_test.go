@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	"github.com/keegancsmith/sqlf"
-	"github.com/sourcegraph/sourcegraph/internal/actor"
-	"github.com/sourcegraph/sourcegraph/internal/api"
-	"github.com/sourcegraph/sourcegraph/internal/db/dbtesting"
-	"github.com/sourcegraph/sourcegraph/internal/errcode"
+	"github.com/tetrafolium/sourcegraph/internal/actor"
+	"github.com/tetrafolium/sourcegraph/internal/api"
+	"github.com/tetrafolium/sourcegraph/internal/db/dbtesting"
+	"github.com/tetrafolium/sourcegraph/internal/errcode"
 )
 
 func TestParseIncludePattern(t *testing.T) {
@@ -47,12 +47,12 @@ func TestParseIncludePattern(t *testing.T) {
 		`github.com`:  {regexp: `github.com`},
 		`github\.com`: {like: []string{`%github.com%`}},
 
-		// https://github.com/sourcegraph/sourcegraph/issues/9146
+		// https://github.com/tetrafolium/sourcegraph/issues/9146
 		`github.com/.*/ini$`:      {regexp: `github.com/.*/ini$`},
 		`github\.com/.*/ini$`:     {regexp: `github\.com/.*/ini$`},
 		`github\.com/go-ini/ini$`: {like: []string{`%github.com/go-ini/ini`}},
 
-		// https://github.com/sourcegraph/sourcegraph/issues/4166
+		// https://github.com/tetrafolium/sourcegraph/issues/4166
 		`golang/oauth.*`:                    {like: []string{"%golang/oauth%"}},
 		`^golang/oauth.*`:                   {like: []string{"golang/oauth%"}},
 		`golang/(oauth.*|bla)`:              {like: []string{"%golang/oauth%", "%golang/bla%"}},

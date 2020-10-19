@@ -13,7 +13,7 @@ import (
 	"github.com/machinebox/graphql"
 	"golang.org/x/oauth2"
 
-	"github.com/sourcegraph/sourcegraph/internal/testutil"
+	"github.com/tetrafolium/sourcegraph/internal/testutil"
 )
 
 var (

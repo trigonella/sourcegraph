@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/sourcegraph/sourcegraph/internal/search/query"
+	"github.com/tetrafolium/sourcegraph/internal/search/query"
 )
 
 func toJSON(node query.Node) interface{} {

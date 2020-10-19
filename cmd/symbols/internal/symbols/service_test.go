@@ -11,13 +11,13 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sourcegraph/sourcegraph/cmd/symbols/internal/pkg/ctags"
-	"github.com/sourcegraph/sourcegraph/internal/api"
-	"github.com/sourcegraph/sourcegraph/internal/gitserver"
-	"github.com/sourcegraph/sourcegraph/internal/search"
-	"github.com/sourcegraph/sourcegraph/internal/sqliteutil"
-	symbolsclient "github.com/sourcegraph/sourcegraph/internal/symbols"
-	"github.com/sourcegraph/sourcegraph/internal/symbols/protocol"
+	"github.com/tetrafolium/sourcegraph/cmd/symbols/internal/pkg/ctags"
+	"github.com/tetrafolium/sourcegraph/internal/api"
+	"github.com/tetrafolium/sourcegraph/internal/gitserver"
+	"github.com/tetrafolium/sourcegraph/internal/search"
+	"github.com/tetrafolium/sourcegraph/internal/sqliteutil"
+	symbolsclient "github.com/tetrafolium/sourcegraph/internal/symbols"
+	"github.com/tetrafolium/sourcegraph/internal/symbols/protocol"
 )
 
 func init() {

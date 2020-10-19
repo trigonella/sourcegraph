@@ -12,16 +12,16 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/enterprise"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/shared"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/internal/authz"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/internal/campaigns"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/internal/codeintel"
-	licensing "github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/internal/licensing/init"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/enterprise"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/shared"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/internal/authz"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/internal/campaigns"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/internal/codeintel"
+	licensing "github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/internal/licensing/init"
 
-	_ "github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/auth"
-	_ "github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/internal/graphqlbackend"
-	_ "github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/internal/registry"
+	_ "github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/auth"
+	_ "github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/internal/graphqlbackend"
+	_ "github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/internal/registry"
 )
 
 func main() {

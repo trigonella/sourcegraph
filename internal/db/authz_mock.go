@@ -3,7 +3,7 @@ package db
 import (
 	"context"
 
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/types"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/types"
 )
 
 type MockAuthz struct {

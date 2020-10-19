@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/internal/pkg/suspiciousnames"
-	"github.com/sourcegraph/sourcegraph/internal/lazyregexp"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/pkg/suspiciousnames"
+	"github.com/tetrafolium/sourcegraph/internal/lazyregexp"
 )
 
 // AuthURLPrefix is the URL path prefix under which to attach authentication handlers

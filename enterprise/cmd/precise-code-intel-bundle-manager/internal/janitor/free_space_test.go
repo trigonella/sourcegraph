@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	storemocks "github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/store/mocks"
-	"github.com/sourcegraph/sourcegraph/internal/metrics"
+	storemocks "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store/mocks"
+	"github.com/tetrafolium/sourcegraph/internal/metrics"
 )
 
 func TestEvictBundlesStopsAfterFreeingDesiredSpace(t *testing.T) {

@@ -13,8 +13,8 @@ import (
 	"github.com/prometheus/alertmanager/api/v2/client/silence"
 	"github.com/prometheus/alertmanager/api/v2/models"
 	amconfig "github.com/prometheus/alertmanager/config"
-	"github.com/sourcegraph/sourcegraph/internal/conf"
-	"github.com/sourcegraph/sourcegraph/schema"
+	"github.com/tetrafolium/sourcegraph/internal/conf"
+	"github.com/tetrafolium/sourcegraph/schema"
 )
 
 type ChangeContext struct {
@@ -46,7 +46,7 @@ func changeReceivers(ctx context.Context, log log15.Logger, change ChangeContext
 	change.AMConfig.Route = &amconfig.Route{
 		// include `alertname` for now to accommodate non-generator alerts - in the long run, we want to remove grouping on `alertname`
 		// because all alerts should have some predefined labels
-		// https://github.com/sourcegraph/sourcegraph/issues/5370
+		// https://github.com/tetrafolium/sourcegraph/issues/5370
 		GroupByStr: []string{"alertname", "level", "service_name", "name", "owner"},
 
 		// How long to initially wait to send a notification for a group - each group matches exactly one alert, so fire immediately

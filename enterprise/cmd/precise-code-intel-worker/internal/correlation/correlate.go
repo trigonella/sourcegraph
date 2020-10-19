@@ -8,11 +8,11 @@ import (
 	"strings"
 
 	"github.com/inconshreveable/log15"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/correlation/datastructures"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/correlation/lsif"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/existence"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/metrics"
-	"github.com/sourcegraph/sourcegraph/internal/observation"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/correlation/datastructures"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/correlation/lsif"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/existence"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/metrics"
+	"github.com/tetrafolium/sourcegraph/internal/observation"
 )
 
 // Correlate reads LSIF data from the given reader and returns a correlation state object with

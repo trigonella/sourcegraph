@@ -5,14 +5,14 @@ import (
 	"net/http"
 
 	"github.com/inconshreveable/log15"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/auth"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/external/app"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/auth/githuboauth"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/auth/gitlaboauth"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/auth/httpheader"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/auth/openidconnect"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/auth/saml"
-	"github.com/sourcegraph/sourcegraph/internal/conf"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/auth"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/external/app"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/auth/githuboauth"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/auth/gitlaboauth"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/auth/httpheader"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/auth/openidconnect"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/auth/saml"
+	"github.com/tetrafolium/sourcegraph/internal/conf"
 )
 
 func init() {

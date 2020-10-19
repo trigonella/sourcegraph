@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/license"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/license"
 )
 
 func TestEnforcementPreCreateUser(t *testing.T) {

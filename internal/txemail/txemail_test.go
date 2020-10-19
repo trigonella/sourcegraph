@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/jordan-wright/email"
-	"github.com/sourcegraph/sourcegraph/internal/txemail/txtypes"
+	"github.com/tetrafolium/sourcegraph/internal/txemail/txtypes"
 )
 
 func TestRender(t *testing.T) {

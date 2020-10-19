@@ -14,8 +14,8 @@ import (
 	"strings"
 
 	"github.com/joho/godotenv"
-	"github.com/sourcegraph/sourcegraph/internal/db/dbutil"
-	"github.com/sourcegraph/sourcegraph/internal/goreman"
+	"github.com/tetrafolium/sourcegraph/internal/db/dbutil"
+	"github.com/tetrafolium/sourcegraph/internal/goreman"
 )
 
 // FrontendInternalHost is the value of SRC_FRONTEND_INTERNAL.
@@ -57,11 +57,11 @@ var DefaultEnv = map[string]string{
 	"SRC_LOG_LEVEL": "warn",
 
 	// TODO other bits
-	// * DEBUG LOG_REQUESTS https://github.com/sourcegraph/sourcegraph/issues/8458
+	// * DEBUG LOG_REQUESTS https://github.com/tetrafolium/sourcegraph/issues/8458
 }
 
 // Set verbosity based on simple interpretation of env var to avoid external dependencies (such as
-// on github.com/sourcegraph/sourcegraph/internal/env).
+// on github.com/tetrafolium/sourcegraph/internal/env).
 var verbose = os.Getenv("SRC_LOG_LEVEL") == "dbug" || os.Getenv("SRC_LOG_LEVEL") == "info"
 
 // Main is the main server command function which is shared between Sourcegraph

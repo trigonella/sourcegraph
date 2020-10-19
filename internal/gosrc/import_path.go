@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/sourcegraph/sourcegraph/internal/lazyregexp"
+	"github.com/tetrafolium/sourcegraph/internal/lazyregexp"
 )
 
 // Adapted from github.com/golang/gddo/gosrc.

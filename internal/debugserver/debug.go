@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/felixge/fgprof"
-	"github.com/sourcegraph/sourcegraph/internal/env"
+	"github.com/tetrafolium/sourcegraph/internal/env"
 
 	"golang.org/x/net/trace"
 

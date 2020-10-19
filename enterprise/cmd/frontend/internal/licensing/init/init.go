@@ -3,17 +3,17 @@ package init
 import (
 	"context"
 
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/enterprise"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/envvar"
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/graphqlbackend"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/internal/dotcom/productsubscription"
-	"github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/internal/licensing"
-	"github.com/sourcegraph/sourcegraph/internal/db"
-	"github.com/sourcegraph/sourcegraph/internal/goroutine"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/enterprise"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/envvar"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/internal/dotcom/productsubscription"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/internal/licensing"
+	"github.com/tetrafolium/sourcegraph/internal/db"
+	"github.com/tetrafolium/sourcegraph/internal/goroutine"
 
-	_ "github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/auth"
-	_ "github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/internal/graphqlbackend"
-	_ "github.com/sourcegraph/sourcegraph/enterprise/cmd/frontend/internal/registry"
+	_ "github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/auth"
+	_ "github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/internal/graphqlbackend"
+	_ "github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/internal/registry"
 )
 
 // TODO(efritz) - de-globalize assignments in this function

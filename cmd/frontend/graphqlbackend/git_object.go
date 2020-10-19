@@ -5,8 +5,8 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/sourcegraph/sourcegraph/cmd/frontend/backend"
-	"github.com/sourcegraph/sourcegraph/internal/vcs/git"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/backend"
+	"github.com/tetrafolium/sourcegraph/internal/vcs/git"
 )
 
 type gitObjectType string

@@ -5,7 +5,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/sourcegraph/sourcegraph/internal/campaigns"
+	"github.com/tetrafolium/sourcegraph/internal/campaigns"
 )
 
 // ChangesetCounts represents the states in which a given set of Changesets was

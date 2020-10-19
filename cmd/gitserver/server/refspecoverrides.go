@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/sourcegraph/sourcegraph/internal/env"
+	"github.com/tetrafolium/sourcegraph/internal/env"
 )
 
 // HACK(keegancsmith) workaround to experiment with cloning less in a large

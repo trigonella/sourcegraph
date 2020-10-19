@@ -1,8 +1,8 @@
 package httpheader
 
 import (
-	"github.com/sourcegraph/sourcegraph/internal/conf"
-	"github.com/sourcegraph/sourcegraph/schema"
+	"github.com/tetrafolium/sourcegraph/internal/conf"
+	"github.com/tetrafolium/sourcegraph/schema"
 )
 
 // getProviderConfig returns the HTTP header auth provider config. At most 1 can be specified in

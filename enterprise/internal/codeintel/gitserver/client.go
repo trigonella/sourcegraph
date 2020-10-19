@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/store"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
 )
 
 // Client is an interface that wraps all of the queries to gitserver needed by the

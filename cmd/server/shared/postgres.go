@@ -64,7 +64,7 @@ func maybePostgresProcFile() (string, error) {
 	}
 
 	// Set PGHOST to default to 127.0.0.1, NOT localhost, as localhost does not correctly resolve in some environments
-	// (see https://github.com/sourcegraph/issues/issues/34 and https://github.com/sourcegraph/sourcegraph/issues/9129).
+	// (see https://github.com/sourcegraph/issues/issues/34 and https://github.com/tetrafolium/sourcegraph/issues/9129).
 	SetDefaultEnv("PGHOST", "127.0.0.1")
 	SetDefaultEnv("PGUSER", "postgres")
 	SetDefaultEnv("PGDATABASE", "sourcegraph")

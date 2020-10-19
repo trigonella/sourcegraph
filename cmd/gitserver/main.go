@@ -1,5 +1,5 @@
 // gitserver is the gitserver server.
-package main // import "github.com/sourcegraph/sourcegraph/cmd/gitserver"
+package main // import "github.com/tetrafolium/sourcegraph/cmd/gitserver"
 
 import (
 	"fmt"
@@ -16,11 +16,11 @@ import (
 
 	"github.com/inconshreveable/log15"
 
-	"github.com/sourcegraph/sourcegraph/cmd/gitserver/server"
-	"github.com/sourcegraph/sourcegraph/internal/debugserver"
-	"github.com/sourcegraph/sourcegraph/internal/env"
-	"github.com/sourcegraph/sourcegraph/internal/trace/ot"
-	"github.com/sourcegraph/sourcegraph/internal/tracer"
+	"github.com/tetrafolium/sourcegraph/cmd/gitserver/server"
+	"github.com/tetrafolium/sourcegraph/internal/debugserver"
+	"github.com/tetrafolium/sourcegraph/internal/env"
+	"github.com/tetrafolium/sourcegraph/internal/trace/ot"
+	"github.com/tetrafolium/sourcegraph/internal/tracer"
 )
 
 var (

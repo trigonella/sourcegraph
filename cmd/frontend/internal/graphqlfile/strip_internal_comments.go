@@ -6,7 +6,7 @@ import (
 	"bufio"
 	"bytes"
 
-	"github.com/sourcegraph/sourcegraph/internal/lazyregexp"
+	"github.com/tetrafolium/sourcegraph/internal/lazyregexp"
 )
 
 // StripInternalComments removes lines starting with #! (e.g. internal

@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/store"
+	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
 )
 
 // Head determines the tip commit of the default branch for the given repository.

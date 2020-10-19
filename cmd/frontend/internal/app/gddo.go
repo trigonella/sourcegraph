@@ -7,7 +7,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/sourcegraph/sourcegraph/internal/errcode"
+	"github.com/tetrafolium/sourcegraph/internal/errcode"
 )
 
 // isGoRepoPath returns whether pkg is (likely to be) a Go stdlib

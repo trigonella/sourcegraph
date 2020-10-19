@@ -4,14 +4,14 @@ package mocks
 
 import (
 	"context"
-	client "github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/bundles/client"
-	resolvers "github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/resolvers"
+	client "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/client"
+	resolvers "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/resolvers"
 	"sync"
 )
 
 // MockQueryResolver is a mock implementation of the QueryResolver interface
 // (from the package
-// github.com/sourcegraph/sourcegraph/enterprise/internal/codeintel/resolvers)
+// github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/resolvers)
 // used for unit testing.
 type MockQueryResolver struct {
 	// DefinitionsFunc is an instance of a mock function object controlling
