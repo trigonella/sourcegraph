@@ -9,9 +9,9 @@ import (
 	"github.com/efritz/glock"
 	"github.com/hashicorp/go-multierror"
 	"github.com/inconshreveable/log15"
+	"github.com/teivah/onecontext"
 	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
 	dbworkerstore "github.com/tetrafolium/sourcegraph/internal/workerutil/dbworker/store"
-	"github.com/teivah/onecontext"
 )
 
 // Manager tracks which index records are assigned to which indexers.

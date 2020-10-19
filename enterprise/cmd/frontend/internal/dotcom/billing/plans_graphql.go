@@ -6,9 +6,9 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/plan"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
 )
 
 // productPlan implements the GraphQL type ProductPlan.

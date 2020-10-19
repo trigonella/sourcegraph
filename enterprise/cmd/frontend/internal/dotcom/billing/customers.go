@@ -9,10 +9,10 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/inconshreveable/log15"
 	"github.com/pkg/errors"
-	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
-	"github.com/tetrafolium/sourcegraph/internal/db/dbconn"
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/customer"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
+	"github.com/tetrafolium/sourcegraph/internal/db/dbconn"
 )
 
 // GetOrAssignUserCustomerID returns the billing customer ID associated with the user. If no billing

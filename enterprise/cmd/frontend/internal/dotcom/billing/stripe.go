@@ -4,9 +4,9 @@ import (
 	"log"
 	"strings"
 
+	"github.com/stripe/stripe-go"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/external/app"
 	"github.com/tetrafolium/sourcegraph/internal/env"
-	"github.com/stripe/stripe-go"
 )
 
 var (

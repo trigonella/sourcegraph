@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
-	"github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/internal/dotcom/billing"
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/sub"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/internal/dotcom/billing"
 )
 
 func (r *productSubscription) InvoiceItem(ctx context.Context) (graphqlbackend.ProductSubscriptionInvoiceItem, error) {

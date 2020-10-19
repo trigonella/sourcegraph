@@ -3,10 +3,10 @@ package billing
 import (
 	"context"
 
-	"github.com/tetrafolium/sourcegraph/cmd/frontend/backend"
-	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/customer"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/backend"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
 )
 
 func init() {

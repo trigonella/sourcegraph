@@ -6,13 +6,13 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/tetrafolium/sourcegraph/cmd/frontend/backend"
-	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
-	"github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/internal/dotcom/billing"
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/invoice"
 	"github.com/stripe/stripe-go/plan"
 	"github.com/stripe/stripe-go/sub"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/backend"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
+	"github.com/tetrafolium/sourcegraph/enterprise/cmd/frontend/internal/dotcom/billing"
 )
 
 type productSubscriptionPreviewInvoice struct {

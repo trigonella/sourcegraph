@@ -14,11 +14,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/src-d/enry/v2"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/inventory"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/usagestats"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/types"
 	"github.com/tetrafolium/sourcegraph/internal/authz"
-	"github.com/src-d/enry/v2"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/neelance/parallel"
