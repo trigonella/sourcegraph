@@ -26,6 +26,7 @@ import (
 	searchbackend "github.com/tetrafolium/sourcegraph/internal/search/backend"
 	"github.com/tetrafolium/sourcegraph/internal/search/query"
 	"github.com/tetrafolium/sourcegraph/internal/symbols/protocol"
+	"github.com/tetrafolium/sourcegraph/internal/trace"
 	"github.com/tetrafolium/sourcegraph/schema"
 )
 
@@ -70,7 +71,8 @@ func TestIndexedSearch(t *testing.T) {
 	defer cancel()
 	type args struct {
 		ctx             context.Context
-		query           *search.TextPatternInfo
+		query           string
+		patternInfo     *search.TextPatternInfo
 		repos           []*search.RepositoryRevisions
 		useFullDeadline bool
 		results         []zoekt.FileMatch
@@ -105,7 +107,7 @@ func TestIndexedSearch(t *testing.T) {
 			name: "no matches",
 			args: args{
 				ctx:             context.Background(),
-				query:           &search.TextPatternInfo{},
+				patternInfo:     &search.TextPatternInfo{},
 				repos:           reposHEAD,
 				useFullDeadline: false,
 				since:           func(time.Time) time.Duration { return time.Second - time.Millisecond },
@@ -118,7 +120,7 @@ func TestIndexedSearch(t *testing.T) {
 			name: "no matches timeout",
 			args: args{
 				ctx:             context.Background(),
-				query:           &search.TextPatternInfo{},
+				patternInfo:     &search.TextPatternInfo{},
 				repos:           reposHEAD,
 				useFullDeadline: false,
 				since:           func(time.Time) time.Duration { return time.Minute },
@@ -131,7 +133,7 @@ func TestIndexedSearch(t *testing.T) {
 			name: "context timeout",
 			args: args{
 				ctx:             zeroTimeoutCtx,
-				query:           &search.TextPatternInfo{},
+				patternInfo:     &search.TextPatternInfo{},
 				repos:           reposHEAD,
 				useFullDeadline: true,
 				since:           func(time.Time) time.Duration { return 0 },
@@ -144,7 +146,7 @@ func TestIndexedSearch(t *testing.T) {
 			name: "results",
 			args: args{
 				ctx:             context.Background(),
-				query:           &search.TextPatternInfo{FileMatchLimit: 100},
+				patternInfo:     &search.TextPatternInfo{FileMatchLimit: 100},
 				repos:           makeRepositoryRevisions("foo/bar", "foo/foobar"),
 				useFullDeadline: false,
 				results: []zoekt.FileMatch{
@@ -202,7 +204,7 @@ func TestIndexedSearch(t *testing.T) {
 			name: "results multi-branch",
 			args: args{
 				ctx:             context.Background(),
-				query:           &search.TextPatternInfo{FileMatchLimit: 100},
+				patternInfo:     &search.TextPatternInfo{FileMatchLimit: 100},
 				repos:           makeRepositoryRevisions("foo/bar@HEAD:dev:main"),
 				useFullDeadline: false,
 				results: []zoekt.FileMatch{
@@ -241,7 +243,7 @@ func TestIndexedSearch(t *testing.T) {
 			name: "split branch",
 			args: args{
 				ctx:             context.Background(),
-				query:           &search.TextPatternInfo{FileMatchLimit: 100},
+				patternInfo:     &search.TextPatternInfo{FileMatchLimit: 100},
 				repos:           makeRepositoryRevisions("foo/bar@HEAD:unindexed"),
 				useFullDeadline: false,
 				results: []zoekt.FileMatch{
@@ -258,18 +260,49 @@ func TestIndexedSearch(t *testing.T) {
 			},
 			wantMatchInputRevs: []string{"HEAD"},
 		},
+		{
+			// Fallback to unindexed search if the query contains ref-globs.
+			name: "ref-glob with explicit /*",
+			args: args{
+				ctx:             context.Background(),
+				query:           "repo:foo/bar@*refs/heads/*",
+				patternInfo:     &search.TextPatternInfo{FileMatchLimit: 100},
+				repos:           makeRepositoryRevisions("foo/bar@HEAD"),
+				useFullDeadline: false,
+				results:         []zoekt.FileMatch{},
+			},
+			wantUnindexed:      makeRepositoryRevisions("foo/bar@HEAD"),
+			wantMatchURLs:      nil,
+			wantMatchInputRevs: nil,
+			wantLimitHit:       false,
+		},
+		{
+			name: "ref-glob with implicit /*",
+			args: args{
+				ctx:             context.Background(),
+				query:           "repo:foo/bar@*refs/tags",
+				patternInfo:     &search.TextPatternInfo{FileMatchLimit: 100},
+				repos:           makeRepositoryRevisions("foo/bar@HEAD"),
+				useFullDeadline: false,
+				results:         []zoekt.FileMatch{},
+			},
+			wantUnindexed:      makeRepositoryRevisions("foo/bar@HEAD"),
+			wantMatchURLs:      nil,
+			wantMatchInputRevs: nil,
+			wantLimitHit:       false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			q, err := query.ParseAndCheck("")
+			q, err := query.ParseAndCheck(tt.args.query)
 			if err != nil {
 				t.Fatal(err)
 			}
 
 			args := &search.TextParameters{
 				Query:           q,
-				PatternInfo:     tt.args.query,
-				Repos:           tt.args.repos,
+				PatternInfo:     tt.args.patternInfo,
+				RepoPromise:     (&search.Promise{}).Resolve(tt.args.repos),
 				UseFullDeadline: tt.args.useFullDeadline,
 				Zoekt: &searchbackend.Zoekt{
 					Client: &fakeSearcher{
@@ -405,7 +438,7 @@ func Benchmark_zoektIndexedRepos(b *testing.B) {
 	repoNames := []string{}
 	zoektRepos := map[string]*zoekt.Repository{}
 
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 200000; i++ {
 		indexedName := fmt.Sprintf("foo/indexed-%d@", i)
 		unindexedName := fmt.Sprintf("foo/unindexed-%d@", i)
 
@@ -430,10 +463,11 @@ func Benchmark_zoektIndexedRepos(b *testing.B) {
 
 func TestZoektResultCountFactor(t *testing.T) {
 	cases := []struct {
-		name     string
-		numRepos int
-		pattern  *search.TextPatternInfo
-		want     int
+		name         string
+		numRepos     int
+		globalSearch bool
+		pattern      *search.TextPatternInfo
+		want         int
 	}{
 		{
 			name:     "One repo implies max scaling factor",
@@ -459,10 +493,24 @@ func TestZoektResultCountFactor(t *testing.T) {
 			pattern:  &search.TextPatternInfo{FileMatchLimit: 100},
 			want:     10,
 		},
+		{
+			name:         "for global searches, k should be 1",
+			numRepos:     0,
+			globalSearch: true,
+			pattern:      &search.TextPatternInfo{},
+			want:         1,
+		},
+		{
+			name:         "for global searches, k should be 1, adjusted by the FileMatchLimit",
+			numRepos:     0,
+			globalSearch: true,
+			pattern:      &search.TextPatternInfo{FileMatchLimit: 100},
+			want:         10,
+		},
 	}
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
-			got := zoektResultCountFactor(tt.numRepos, tt.pattern)
+			got := zoektResultCountFactor(tt.numRepos, tt.pattern.FileMatchLimit, tt.globalSearch)
 			if tt.want != got {
 				t.Fatalf("Want scaling factor %d but got %d", tt.want, got)
 			}
@@ -630,11 +678,11 @@ func BenchmarkSearchResults(b *testing.B) {
 
 	ctx := context.Background()
 
-	mockDecodedViewerFinalSettings = &schema.Settings{}
-	defer func() { mockDecodedViewerFinalSettings = nil }()
-
 	db.Mocks.Repos.List = func(_ context.Context, op db.ReposListOptions) ([]*types.Repo, error) {
 		return minimalRepos, nil
+	}
+	db.Mocks.Repos.Count = func(ctx context.Context, opt db.ReposListOptions) (int, error) {
+		return len(minimalRepos), nil
 	}
 	defer func() { db.Mocks = db.MockStores{} }()
 
@@ -642,11 +690,11 @@ func BenchmarkSearchResults(b *testing.B) {
 	b.ReportAllocs()
 
 	for n := 0; n < b.N; n++ {
-		q, err := query.ParseAndCheck(`print index:only count:350`)
+		q, err := query.ProcessAndOr(`print index:only count:350`, query.ParserOptions{SearchType: query.SearchTypeLiteral})
 		if err != nil {
 			b.Fatal(err)
 		}
-		resolver := &searchResolver{query: q, zoekt: z}
+		resolver := &searchResolver{query: q, zoekt: z, userSettings: &schema.Settings{}}
 		results, err := resolver.Results(ctx)
 		if err != nil {
 			b.Fatal("Results:", err)
@@ -755,7 +803,6 @@ func generateRepos(count int) ([]*types.Repo, []*types.Repo, []*zoekt.RepoListEn
 			RepoFields: &types.RepoFields{
 				URI:         fmt.Sprintf("https://github.com/foobar/%s", repoWithIDs.Name),
 				Description: "this repositoriy contains a side project that I haven't maintained in 2 years",
-				Language:    "v-language",
 			}})
 
 		zoektRepos = append(zoektRepos, &zoekt.RepoListEntry{
@@ -978,4 +1025,107 @@ func repoRevsSliceToMap(rs []*search.RepositoryRevisions) map[string]*search.Rep
 		m[string(r.Repo.Name)] = r
 	}
 	return m
+}
+
+func TestContainsRefGlobs(t *testing.T) {
+	tests := []struct {
+		query    string
+		want     bool
+		globbing bool
+	}{
+		{
+			query: "repo:foo",
+			want:  false,
+		},
+		{
+			query: "repo:foo@bar",
+			want:  false,
+		},
+		{
+			query: "repo:foo@*ref/tags",
+			want:  true,
+		},
+		{
+			query: "repo:foo@*!refs/tags",
+			want:  true,
+		},
+		{
+			query: "repo:foo@bar:*refs/heads",
+			want:  true,
+		},
+		{
+			query: "repo:foo@refs/tags/v3.14.3",
+			want:  false,
+		},
+		{
+			query: "repo:foo@*refs/tags/v3.14.?",
+			want:  true,
+		},
+		{
+			query:    "repo:*foo*@v3.14.3",
+			globbing: true,
+			want:     false,
+		},
+		{
+			query: "repo:foo@v3.14.3 repo:foo@*refs/tags/v3.14.* bar",
+			want:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.query, func(t *testing.T) {
+			qInfo, err := query.ProcessAndOr(tt.query, query.ParserOptions{SearchType: query.SearchTypeLiteral, Globbing: tt.globbing})
+			if err != nil {
+				t.Error(err)
+			}
+			got := containsRefGlobs(qInfo)
+			if got != tt.want {
+				t.Errorf("got %t, expected %t", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestContextWithoutDeadline(t *testing.T) {
+	ctxWithDeadline, cancelWithDeadline := context.WithTimeout(context.Background(), time.Minute)
+	defer cancelWithDeadline()
+
+	tr, ctxWithDeadline := trace.New(ctxWithDeadline, "", "")
+
+	if _, ok := ctxWithDeadline.Deadline(); !ok {
+		t.Fatal("expected context to have deadline")
+	}
+
+	ctxNoDeadline, cancelNoDeadline := contextWithoutDeadline(ctxWithDeadline)
+	defer cancelNoDeadline()
+
+	if _, ok := ctxNoDeadline.Deadline(); ok {
+		t.Fatal("expected context to not have deadline")
+	}
+
+	// We want to keep trace info
+	if tr2 := trace.TraceFromContext(ctxNoDeadline); tr != tr2 {
+		t.Error("trace information not propogated")
+	}
+
+	// Calling cancelWithDeadline should cancel ctxNoDeadline
+	cancelWithDeadline()
+	select {
+	case <-ctxNoDeadline.Done():
+	case <-time.After(10 * time.Second):
+		t.Fatal("expected context to be done")
+	}
+}
+
+func TestContextWithoutDeadline_cancel(t *testing.T) {
+	ctxWithDeadline, cancelWithDeadline := context.WithTimeout(context.Background(), time.Minute)
+	defer cancelWithDeadline()
+	ctxNoDeadline, cancelNoDeadline := contextWithoutDeadline(ctxWithDeadline)
+
+	cancelNoDeadline()
+	select {
+	case <-ctxNoDeadline.Done():
+	case <-time.After(10 * time.Second):
+		t.Fatal("expected context to be done")
+	}
 }

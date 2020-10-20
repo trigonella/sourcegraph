@@ -3,7 +3,7 @@ package graphqlbackend
 import (
 	"context"
 
-	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/pkg/siteid"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/siteid"
 	"github.com/tetrafolium/sourcegraph/internal/actor"
 	"github.com/tetrafolium/sourcegraph/internal/db"
 	"github.com/tetrafolium/sourcegraph/internal/errcode"

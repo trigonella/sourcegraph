@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/graph-gophers/graphql-go/gqltesting"
-	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/pkg/usagestatsdeprecated"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/usagestatsdeprecated"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/types"
 	"github.com/tetrafolium/sourcegraph/internal/db"
 )

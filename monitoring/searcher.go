@@ -1,5 +1,7 @@
 package main
 
+import "time"
+
 func Searcher() *Container {
 	return &Container{
 		Name:        "searcher",
@@ -13,10 +15,10 @@ func Searcher() *Container {
 						{
 							Name:              "unindexed_search_request_errors",
 							Description:       "unindexed search request errors every 5m by code",
-							Query:             `sum by (code)(increase(searcher_service_request_total{code!="200",code!="canceled"}[5m]))`,
+							Query:             `sum by (code)(increase(searcher_service_request_total{code!="200",code!="canceled"}[5m])) / ignoring(code) group_left sum(increase(searcher_service_request_total[5m])) * 100`,
 							DataMayNotExist:   true,
-							Warning:           Alert{GreaterOrEqual: 5},
-							PanelOptions:      PanelOptions().LegendFormat("{{code}}"),
+							Warning:           Alert().GreaterOrEqual(5).For(5 * time.Minute),
+							PanelOptions:      PanelOptions().LegendFormat("{{code}}").Unit(Percentage),
 							Owner:             ObservableOwnerSearch,
 							PossibleSolutions: "none",
 						},
@@ -24,12 +26,12 @@ func Searcher() *Container {
 							Name:              "replica_traffic",
 							Description:       "requests per second over 10m",
 							Query:             "sum by(instance) (rate(searcher_service_request_total[10m]))",
-							Warning:           Alert{GreaterOrEqual: 5},
+							Warning:           Alert().GreaterOrEqual(5),
 							PanelOptions:      PanelOptions().LegendFormat("{{instance}}"),
 							Owner:             ObservableOwnerSearch,
 							PossibleSolutions: "none",
 						},
-						sharedFrontendInternalAPIErrorResponses("searcher"),
+						sharedFrontendInternalAPIErrorResponses("searcher", ObservableOwnerSearch),
 					},
 				},
 			},
@@ -38,12 +40,12 @@ func Searcher() *Container {
 				Hidden: true,
 				Rows: []Row{
 					{
-						sharedContainerCPUUsage("searcher"),
-						sharedContainerMemoryUsage("searcher"),
+						sharedContainerCPUUsage("searcher", ObservableOwnerSearch),
+						sharedContainerMemoryUsage("searcher", ObservableOwnerSearch),
 					},
 					{
-						sharedContainerRestarts("searcher"),
-						sharedContainerFsInodes("searcher"),
+						sharedContainerRestarts("searcher", ObservableOwnerSearch),
+						sharedContainerFsInodes("searcher", ObservableOwnerSearch),
 					},
 				},
 			},
@@ -52,12 +54,12 @@ func Searcher() *Container {
 				Hidden: true,
 				Rows: []Row{
 					{
-						sharedProvisioningCPUUsageLongTerm("searcher"),
-						sharedProvisioningMemoryUsageLongTerm("searcher"),
+						sharedProvisioningCPUUsageLongTerm("searcher", ObservableOwnerSearch),
+						sharedProvisioningMemoryUsageLongTerm("searcher", ObservableOwnerSearch),
 					},
 					{
-						sharedProvisioningCPUUsageShortTerm("searcher"),
-						sharedProvisioningMemoryUsageShortTerm("searcher"),
+						sharedProvisioningCPUUsageShortTerm("searcher", ObservableOwnerSearch),
+						sharedProvisioningMemoryUsageShortTerm("searcher", ObservableOwnerSearch),
 					},
 				},
 			},
@@ -66,8 +68,8 @@ func Searcher() *Container {
 				Hidden: true,
 				Rows: []Row{
 					{
-						sharedGoGoroutines("searcher"),
-						sharedGoGcDuration("searcher"),
+						sharedGoGoroutines("searcher", ObservableOwnerSearch),
+						sharedGoGcDuration("searcher", ObservableOwnerSearch),
 					},
 				},
 			},
@@ -76,7 +78,7 @@ func Searcher() *Container {
 				Hidden: true,
 				Rows: []Row{
 					{
-						sharedKubernetesPodsAvailable("searcher"),
+						sharedKubernetesPodsAvailable("searcher", ObservableOwnerSearch),
 					},
 				},
 			},

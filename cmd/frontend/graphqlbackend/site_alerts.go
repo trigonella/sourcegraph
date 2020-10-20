@@ -13,10 +13,9 @@ import (
 	"github.com/Masterminds/semver"
 	"github.com/inconshreveable/log15"
 
-	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/app/pkg/updatecheck"
-
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/backend"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/globals"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/app/updatecheck"
 	"github.com/tetrafolium/sourcegraph/internal/actor"
 	"github.com/tetrafolium/sourcegraph/internal/conf"
 	"github.com/tetrafolium/sourcegraph/internal/env"

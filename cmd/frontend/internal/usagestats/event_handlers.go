@@ -9,7 +9,7 @@ import (
 	"github.com/tetrafolium/sourcegraph/internal/conf"
 	"github.com/tetrafolium/sourcegraph/internal/db"
 	"github.com/tetrafolium/sourcegraph/internal/env"
-	"github.com/tetrafolium/sourcegraph/internal/pubsub/pubsubutil"
+	"github.com/tetrafolium/sourcegraph/internal/pubsub"
 	"github.com/tetrafolium/sourcegraph/internal/version"
 )
 
@@ -84,7 +84,7 @@ func publishSourcegraphDotComEvent(args Event) error {
 	if err != nil {
 		return err
 	}
-	return pubsubutil.Publish(pubSubDotComEventsTopicID, string(event))
+	return pubsub.Publish(pubSubDotComEventsTopicID, string(event))
 }
 
 // logLocalEvent logs users events.

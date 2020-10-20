@@ -6,13 +6,24 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+<<<<<<< HEAD
 	"github.com/tetrafolium/sourcegraph/internal/api"
 	"github.com/tetrafolium/sourcegraph/internal/repoupdater"
 	"github.com/tetrafolium/sourcegraph/internal/repoupdater/protocol"
 	"github.com/tetrafolium/sourcegraph/internal/vcs/git"
+=======
+	"github.com/sourcegraph/go-diff/diff"
+	"github.com/tetrafolium/sourcegraph/internal/api"
+	"github.com/tetrafolium/sourcegraph/internal/repoupdater"
+	"github.com/tetrafolium/sourcegraph/internal/repoupdater/protocol"
+	"github.com/tetrafolium/sourcegraph/internal/vcs/git"
+>>>>>>> main
 )
 
 type MockedChangesetSyncState struct {
+	// DiffStat is the diff.Stat of the mocked "git diff" call to gitserver.
+	DiffStat *diff.Stat
+
 	execReader      func([]string) (io.ReadCloser, error)
 	mockRepoLookup  func(protocol.RepoLookupArgs) (*protocol.RepoLookupResult, error)
 	resolveRevision func(string, git.ResolveRevisionOptions) (api.CommitID, error)
@@ -25,6 +36,9 @@ type MockedChangesetSyncState struct {
 // state.Unmock() must called to clean up, usually via defer.
 func MockChangesetSyncState(repo *protocol.RepoInfo) *MockedChangesetSyncState {
 	state := &MockedChangesetSyncState{
+		// This diff.Stat matches the testGitHubDiff below
+		DiffStat: &diff.Stat{Added: 1, Changed: 1, Deleted: 3},
+
 		execReader:      git.Mocks.ExecReader,
 		mockRepoLookup:  repoupdater.MockRepoLookup,
 		resolveRevision: git.Mocks.ResolveRevision,

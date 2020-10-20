@@ -232,30 +232,50 @@ func TestSubstituteOrForRegexp(t *testing.T) {
 
 func TestSubstituteConcat(t *testing.T) {
 	cases := []struct {
-		input string
-		want  string
+		input  string
+		concat func([]Pattern) Pattern
+		want   string
 	}{
 		{
-			input: "a b c d e f",
-			want:  `"a b c d e f"`,
+			input:  "a b c d e f",
+			concat: space,
+			want:   `"a b c d e f"`,
 		},
 		{
-			input: "a (b and c) d",
-			want:  `"a" (and "b" "c") "d"`,
+			input:  "a (b and c) d",
+			concat: space,
+			want:   `"a" (and "b" "c") "d"`,
 		},
 		{
-			input: "a b (c and d) e f (g or h) (i j k)",
-			want:  `"a b" (and "c" "d") "e f" (or "g" "h") "(i j k)"`,
+			input:  "a b (c and d) e f (g or h) (i j k)",
+			concat: space,
+			want:   `"a b" (and "c" "d") "e f" (or "g" "h") "(i j k)"`,
 		},
 		{
-			input: "(((a b c))) and d",
-			want:  `(and "(((a b c)))" "d")`,
+			input:  "(((a b c))) and d",
+			concat: space,
+			want:   `(and "(((a b c)))" "d")`,
+		},
+		{
+			input:  `foo\d "bar*"`,
+			concat: fuzzyRegexp,
+			want:   `"(foo\\d).*?(bar\\*)"`,
+		},
+		{
+			input:  `"bar*" foo\d "bar*" foo\d`,
+			concat: fuzzyRegexp,
+			want:   `"(bar\\*).*?(foo\\d).*?(bar\\*).*?(foo\\d)"`,
+		},
+		{
+			input:  "a b (c and d) e f (g or h) (i j k)",
+			concat: fuzzyRegexp,
+			want:   `"(a).*?(b)" (and "c" "d") "(e).*?(f)" (or "g" "h") "(i j k)"`,
 		},
 	}
 	for _, c := range cases {
 		t.Run("Map query", func(t *testing.T) {
 			query, _ := ParseAndOr(c.input, SearchTypeRegex)
-			got := prettyPrint(substituteConcat(query, " "))
+			got := prettyPrint(Map(query, substituteConcat(c.concat)))
 			if diff := cmp.Diff(c.want, got); diff != "" {
 				t.Fatal(diff)
 			}
@@ -263,24 +283,77 @@ func TestSubstituteConcat(t *testing.T) {
 	}
 }
 
+func TestEllipsesForHoles(t *testing.T) {
+	input := "if ... { ... }"
+	want := `"if :[_] { :[_] }"`
+	t.Run("Ellipses for holes", func(t *testing.T) {
+		query, _ := ProcessAndOr(input, ParserOptions{SearchType: SearchTypeStructural})
+		got := prettyPrint(query.(*AndOrQuery).Query)
+		if diff := cmp.Diff(want, got); diff != "" {
+			t.Fatal(diff)
+		}
+	})
+}
+
 func TestConvertEmptyGroupsToLiteral(t *testing.T) {
 	cases := []struct {
 		input      string
+		want       string
 		wantLabels labels
 	}{
 		{
 			input:      "func()",
-			wantLabels: HeuristicParensAsPatterns | Literal,
+			want:       `"func\\(\\)"`,
+			wantLabels: Regexp,
 		},
 		{
 			input:      "func(.*)",
-			wantLabels: HeuristicParensAsPatterns | Regexp,
+			want:       `"func(.*)"`,
+			wantLabels: Regexp,
+		},
+		{
+			input:      `(search\()`,
+			want:       `"(search\\()"`,
+			wantLabels: Regexp,
+		},
+		{
+			input:      `()search\(()`,
+			want:       `"\\(\\)search\\(\\(\\)"`,
+			wantLabels: Regexp,
+		},
+		{
+			input:      `search\(`,
+			want:       `"search\\("`,
+			wantLabels: Regexp,
+		},
+		{
+			input:      `\`,
+			want:       `"\\"`,
+			wantLabels: Regexp,
+		},
+		{
+			input:      `search(`,
+			want:       `"search\\("`,
+			wantLabels: Regexp | HeuristicDanglingParens,
+		},
+		{
+			input:      `"search("`,
+			want:       `"search("`,
+			wantLabels: Quoted | Literal,
+		},
+		{
+			input:      `"search()"`,
+			want:       `"search()"`,
+			wantLabels: Quoted | Literal,
 		},
 	}
 	for _, c := range cases {
 		t.Run("Map query", func(t *testing.T) {
 			query, _ := ParseAndOr(c.input, SearchTypeRegex)
-			got := EmptyGroupsToLiteral(query)[0].(Pattern)
+			got := escapeParensHeuristic(query)[0].(Pattern)
+			if diff := cmp.Diff(c.want, prettyPrint([]Node{got})); diff != "" {
+				t.Error(diff)
+			}
 			if diff := cmp.Diff(c.wantLabels, got.Annotation.Labels); diff != "" {
 				t.Fatal(diff)
 			}
@@ -329,7 +402,7 @@ func TestExpandOr(t *testing.T) {
 	for _, c := range cases {
 		t.Run("Map query", func(t *testing.T) {
 			query, _ := ParseAndOr(c.input, SearchTypeRegex)
-			queries := dnf(query)
+			queries := Dnf(query)
 			var queriesStr []string
 			for _, q := range queries {
 				queriesStr = append(queriesStr, prettyPrint(q))
@@ -555,14 +628,19 @@ func TestReporevToRegex(t *testing.T) {
 		want string
 	}{
 		{
-			name: "no revision",
+			name: "starting with github.com, no revision",
 			arg:  "github.com/foo",
-			want: "^.*?github\\.com/foo.*?$",
+			want: "^github\\.com/foo.*?$",
 		},
 		{
-			name: "with revision",
+			name: "starting with github.com, with revision",
 			arg:  "github.com/foo@bar",
-			want: "^.*?github\\.com/foo.*?$@bar",
+			want: "^github\\.com/foo$@bar",
+		},
+		{
+			name: "starting with foo.com, no revision",
+			arg:  "foo.com/bar",
+			want: "^.*?foo\\.com/bar.*?$",
 		},
 		{
 			name: "empty string",
@@ -572,7 +650,7 @@ func TestReporevToRegex(t *testing.T) {
 		{
 			name: "many @",
 			arg:  "foo@bar@bas",
-			want: "^.*?foo.*?$@bar@bas",
+			want: "^foo$@bar@bas",
 		},
 		{
 			name: "just @",
@@ -694,6 +772,10 @@ func TestFuzzifyGlobPattern(t *testing.T) {
 			want: "**foo**",
 		},
 		{
+			in:   "sourcegraph/sourcegraph",
+			want: "**sourcegraph/sourcegraph**",
+		},
+		{
 			in:   "",
 			want: "",
 		},
@@ -717,8 +799,20 @@ func TestMapGlobToRegex(t *testing.T) {
 			want:  `"repo:^.*?sourcegraph.*?$"`,
 		},
 		{
+			input: "repo:sourcegraph@commit-id",
+			want:  `"repo:^sourcegraph$@commit-id"`,
+		},
+		{
 			input: "repo:github.com/sourcegraph",
-			want:  `"repo:^.*?github\\.com/sourcegraph.*?$"`,
+			want:  `"repo:^github\\.com/sourcegraph.*?$"`,
+		},
+		{
+			input: "repo:github.com/sourcegraph/sourcegraph@v3.18.0",
+			want:  `"repo:^github\\.com/sourcegraph/sourcegraph$@v3.18.0"`,
+		},
+		{
+			input: "github.com/foo/bar",
+			want:  `"github.com/foo/bar"`,
 		},
 		{
 			input: "repo:**sourcegraph",
@@ -744,6 +838,83 @@ func TestMapGlobToRegex(t *testing.T) {
 			got := prettyPrint(regexQuery)
 			if diff := cmp.Diff(c.want, got); diff != "" {
 				t.Fatal(diff)
+			}
+		})
+	}
+}
+
+func TestConcatRevFilters(t *testing.T) {
+	cases := []struct {
+		input string
+		want  string
+	}{
+		{
+			input: "repo:foo",
+			want:  `("repo:foo")`,
+		},
+		{
+			input: "repo:foo rev:a",
+			want:  `("repo:foo@a")`,
+		},
+		{
+			input: "repo:foo repo:bar rev:a",
+			want:  `("repo:foo@a" "repo:bar@a")`,
+		},
+		{
+			input: "repo:foo bar and bas rev:a",
+			want:  `("repo:foo@a" "bar" "bas")`,
+		},
+		{
+			input: "(repo:foo rev:a) or (repo:foo rev:b)",
+			want:  `("repo:foo@a") OR ("repo:foo@b")`,
+		},
+		{
+			input: "repo:foo file:bas qux AND (rev:a or rev:b)",
+			want:  `("repo:foo@a" "file:bas" "qux") OR ("repo:foo@b" "file:bas" "qux")`,
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.input, func(t *testing.T) {
+			query, _ := ParseAndOr(c.input, SearchTypeRegex)
+			queries := Dnf(query)
+
+			var queriesStr []string
+			for _, q := range queries {
+				qConcat := ConcatRevFilters(q)
+				queriesStr = append(queriesStr, prettyPrint(qConcat))
+			}
+			got := "(" + strings.Join(queriesStr, ") OR (") + ")"
+			if diff := cmp.Diff(c.want, got); diff != "" {
+				t.Error(diff)
+			}
+		})
+	}
+}
+
+func TestConcatRevFiltersTopLevelAnd(t *testing.T) {
+	cases := []struct {
+		input string
+		want  string
+	}{
+		{
+			input: "repo:sourcegraph",
+			want:  `"repo:sourcegraph"`,
+		},
+		{
+			input: "repo:sourcegraph rev:b",
+			want:  `"repo:sourcegraph@b"`,
+		},
+		{
+			input: "repo:sourcegraph foo and bar rev:b",
+			want:  `(and "repo:sourcegraph@b" "foo" "bar")`,
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.input, func(t *testing.T) {
+			query, _ := ParseAndOr(c.input, SearchTypeRegex)
+			qConcat := ConcatRevFilters(query)
+			if diff := cmp.Diff(c.want, prettyPrint(qConcat)); diff != "" {
+				t.Error(diff)
 			}
 		})
 	}

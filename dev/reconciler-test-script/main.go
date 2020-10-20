@@ -3,13 +3,19 @@ package main
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 
+	"github.com/keegancsmith/sqlf"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
+	"github.com/tetrafolium/sourcegraph/internal/api"
+	"github.com/tetrafolium/sourcegraph/internal/db/basestore"
 	"github.com/tetrafolium/sourcegraph/internal/db/dbutil"
 )
 
@@ -25,26 +31,29 @@ const (
 	graphqlEndpoint = "http://localhost:3082/.api/graphql" // CI:LOCALHOST_OK
 )
 
-func main() {
-	// deleteEverything()
+var deleteFlag = flag.Bool("del", false, "delete everything campaign-related in the DB before applying new campaign specs")
 
+func main() {
+	flag.Parse()
+	if *deleteFlag {
+		deleteEverything()
+	}
+
+	automationTestingID := getRepositoryID("github.com/sourcegraph/automation-testing")
 	err := applySpecs(applyOpts{
 		namespace:    "VXNlcjoxCg==", // User:1
 		campaignSpec: newCampaignSpec("thorstens-campaign", "Updated description of my campaign"),
 		changesetSpecs: []string{
-			// "UmVwb3NpdG9yeToy" is "Repository:1"
-			//
-			//
-			// `{"baseRepository":"UmVwb3NpdG9yeToy","externalID":"1"}`,
-			// `{"baseRepository":"UmVwb3NpdG9yeToy","externalID":"311"}`,
-			// `{"baseRepository":"UmVwb3NpdG9yeToy","externalID":"309"}`,
+			// `{"baseRepository":"` + automationTestingID + `","externalID":"1"}`,
+			// `{"baseRepository":"` + automationTestingID + `","externalID":"311"}`,
+			// `{"baseRepository":"` + automationTestingID + `","externalID":"309"}`,
 			`{
-			     "baseRepository": "UmVwb3NpdG9yeToy",
+			     "baseRepository": "` + automationTestingID + `",
 			     "baseRev": "e4435274b43033cf0c212f61a2c16f7f2210cf56",
 			     "baseRef":"refs/heads/master",
 
-			     "headRepository": "UmVwb3NpdG9yeToy",
-			     "headRef":"refs/heads/what-is-up-reconciler",
+			     "headRepository": "` + automationTestingID + `",
+			     "headRef":"refs/heads/retrying-changeset-creation",
 
 			     "title": "The reconciler created this PR",
 			     "body": "The reconciler also created this PR body",
@@ -65,15 +74,14 @@ func main() {
 		namespace:    "VXNlcjoxCg==",
 		campaignSpec: newCampaignSpec("thorstens-2nd-campaign", "This is the second campaign"),
 		changesetSpecs: []string{
-			// `{"baseRepository":"UmVwb3NpdG9yeToy","externalID":"1"}`,
-			`{"baseRepository":"UmVwb3NpdG9yeToy","externalID":"311"}`,
-			`{"baseRepository":"UmVwb3NpdG9yeToy","externalID":"309"}`,
+			// `{"baseRepository":"` + automationTestingID + `","externalID":"311"}`,
+			// `{"baseRepository":"` + automationTestingID + `","externalID":"309"}`,
 			`{
-			     "baseRepository": "UmVwb3NpdG9yeToy",
+			     "baseRepository": "` + automationTestingID + `",
 			     "baseRev": "e4435274b43033cf0c212f61a2c16f7f2210cf56",
 			     "baseRef":"refs/heads/master",
 
-			     "headRepository": "UmVwb3NpdG9yeToy",
+			     "headRepository": "` + automationTestingID + `",
 			     "headRef":"refs/heads/thorstens-2nd-campaign",
 
 			     "title": "PR in second campaign",
@@ -276,16 +284,19 @@ index 52ada66..0aaaf37 100644
 func deleteEverything() {
 	ctx := context.Background()
 
-	dsn := dbutil.PostgresDSN("sourcegraph", os.Getenv)
+	dsn := dbutil.PostgresDSN("", "sourcegraph", os.Getenv)
 	db, err := dbutil.NewDB(dsn, "campaigns-reconciler")
 	if err != nil {
 		log.Fatalf("failed to initialize db store: %v", err)
 	}
 
-	if _, err := db.ExecContext(ctx, "DELETE FROM campaigns;"); err != nil {
+	if _, err := db.ExecContext(ctx, "DELETE FROM changeset_events;"); err != nil {
 		log.Fatal(err)
 	}
 	if _, err := db.ExecContext(ctx, "DELETE FROM changesets;"); err != nil {
+		log.Fatal(err)
+	}
+	if _, err := db.ExecContext(ctx, "DELETE FROM campaigns;"); err != nil {
 		log.Fatal(err)
 	}
 	if _, err := db.ExecContext(ctx, "DELETE FROM changeset_specs;"); err != nil {
@@ -294,6 +305,21 @@ func deleteEverything() {
 	if _, err := db.ExecContext(ctx, "DELETE FROM campaign_specs;"); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func getRepositoryID(name string) string {
+	dsn := dbutil.PostgresDSN("", "sourcegraph", os.Getenv)
+	s, err := basestore.New(dsn, "campaigns-reconciler", sql.TxOptions{})
+	if err != nil {
+		log.Fatalf("failed to initialize db store: %v", err)
+	}
+
+	q := sqlf.Sprintf("select id from repo where name = %q", name)
+	id, ok, err := basestore.ScanFirstInt(s.Query(context.Background(), q))
+	if err != nil || !ok {
+		log.Fatalf("querying repository id: %s", err)
+	}
+	return string(graphqlbackend.MarshalRepositoryID(api.RepoID(id)))
 }
 
 //

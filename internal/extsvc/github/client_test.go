@@ -245,7 +245,7 @@ func TestClient_LoadPullRequests(t *testing.T) {
 		{
 			name: "non-existing-repo",
 			prs:  []*PullRequest{{RepoWithOwner: "whoisthis/sourcegraph", Number: 5550}},
-			err:  "error in GraphQL response: Could not resolve to a Repository with the name 'sourcegraph'.",
+			err:  "error in GraphQL response: Could not resolve to a Repository with the name 'whoisthis/sourcegraph'.",
 		},
 		{
 			name: "non-existing-pr",
@@ -255,6 +255,7 @@ func TestClient_LoadPullRequests(t *testing.T) {
 		{
 			name: "success",
 			prs: []*PullRequest{
+				{RepoWithOwner: "sourcegraph/sourcegraph", Number: 596},
 				{RepoWithOwner: "sourcegraph/sourcegraph", Number: 5550},
 				{RepoWithOwner: "sourcegraph/sourcegraph", Number: 5834},
 				{RepoWithOwner: "tsenart/vegeta", Number: 50},
@@ -414,6 +415,61 @@ func TestClient_ClosePullRequest(t *testing.T) {
 			testutil.AssertGolden(t,
 				"testdata/golden/ClosePullRequest-"+strconv.Itoa(i),
 				update("ClosePullRequest"),
+				tc.pr,
+			)
+		})
+	}
+}
+
+func TestClient_ReopenPullRequest(t *testing.T) {
+	cli, save := newClient(t, "ReopenPullRequest")
+	defer save()
+
+	// Repository used: sourcegraph/automation-testing
+	// The requests here cannot be easily rerun with `-update` since you can
+	// only reopen a pull request once.
+	// In order to update specific tests, comment out the other ones and then
+	// run with -update.
+	for i, tc := range []struct {
+		name string
+		ctx  context.Context
+		pr   *PullRequest
+		err  string
+	}{
+		{
+			name: "success",
+			// https://github.com/sourcegraph/automation-testing/pull/356
+			pr: &PullRequest{ID: "MDExOlB1bGxSZXF1ZXN0NDg4NjEzODA3"},
+		},
+		{
+			name: "already open",
+			// https://github.com/sourcegraph/automation-testing/pull/355
+			pr: &PullRequest{ID: "MDExOlB1bGxSZXF1ZXN0NDg4NjA0NTQ5"},
+			// Doesn't return an error
+		},
+	} {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.ctx == nil {
+				tc.ctx = context.Background()
+			}
+
+			if tc.err == "" {
+				tc.err = "<nil>"
+			}
+
+			err := cli.ReopenPullRequest(tc.ctx, tc.pr)
+			if have, want := fmt.Sprint(err), tc.err; have != want {
+				t.Errorf("error:\nhave: %q\nwant: %q", have, want)
+			}
+
+			if err != nil {
+				return
+			}
+
+			testutil.AssertGolden(t,
+				"testdata/golden/ReopenPullRequest-"+strconv.Itoa(i),
+				update("ReopenPullRequest"),
 				tc.pr,
 			)
 		})

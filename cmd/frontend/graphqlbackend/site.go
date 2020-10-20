@@ -11,7 +11,7 @@ import (
 	"github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/backend"
-	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/pkg/siteid"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/siteid"
 	"github.com/tetrafolium/sourcegraph/internal/api"
 	"github.com/tetrafolium/sourcegraph/internal/conf"
 	"github.com/tetrafolium/sourcegraph/internal/db"

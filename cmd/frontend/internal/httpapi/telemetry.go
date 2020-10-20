@@ -6,8 +6,8 @@ import (
 
 	"github.com/inconshreveable/log15"
 
-	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/pkg/usagestatsdeprecated"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/usagestats"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/usagestatsdeprecated"
 	"github.com/tetrafolium/sourcegraph/internal/eventlogger"
 )
 

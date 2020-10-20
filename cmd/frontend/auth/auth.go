@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/pkg/suspiciousnames"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/suspiciousnames"
 	"github.com/tetrafolium/sourcegraph/internal/lazyregexp"
 )
 

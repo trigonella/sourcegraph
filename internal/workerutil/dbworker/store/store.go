@@ -21,6 +21,9 @@ type Store interface {
 	// returned from the Dequeue method. See basestore.Store#Done for additional documentation.
 	Done(err error) error
 
+	// QueuedCount returns the number of records in the queued state matching the given conditions.
+	QueuedCount(ctx context.Context, conditions []*sqlf.Query) (int, error)
+
 	// Dequeue selects the first unlocked record matching the given conditions and locks it in a new transaction that
 	// should be held by the worker process. If there is such a record, it is returned along with a new store instance
 	// that wraps the transaction. The resulting transaction must be closed by the caller, and the transaction should
@@ -33,12 +36,15 @@ type Store interface {
 
 	// DequeueWithIndependentTransactionContext is like Dequeue, but will use a context.Background() for the underlying
 	// transaction context. This method allows the transaction to lexically outlive the code in which it was created. This
-	// is useful if a longer-running transaction is managed explicitly bewteen multiple goroutines.
+	// is useful if a longer-running transaction is managed explicitly between multiple goroutines.
 	DequeueWithIndependentTransactionContext(ctx context.Context, conditions []*sqlf.Query) (workerutil.Record, Store, bool, error)
 
 	// Requeue updates the state of the record with the given identifier to queued and adds a processing delay before
 	// the next dequeue of this record can be performed.
 	Requeue(ctx context.Context, id int, after time.Time) error
+
+	// SetLogContents updates the log contents of the record.
+	SetLogContents(ctx context.Context, id int, logContents string) error
 
 	// MarkComplete attempts to update the state of the record to complete. If this record has already been moved from
 	// the processing state to a terminal state, this method will have no effect. This method returns a boolean flag
@@ -79,6 +85,8 @@ type StoreOptions struct {
 	//   - finished_at: timestamp with time zone
 	//   - process_after: timestamp with time zone
 	//   - num_resets: integer not null
+	//   - num_failures: integer not null
+	//   - log_contents: text
 	//
 	// The names of these columns may be customized based on the table name by adding a replacement
 	// pair in the AlternateColumnNames mapping.
@@ -95,11 +103,11 @@ type StoreOptions struct {
 	// ViewName is an optional name of a view on top of the table containing work records to query when
 	// selecting a candidate and when selecting the record after it has been locked. If this value is
 	// not supplied, `TableName` will be used. The value supplied may also indicate a table alias, which
-	// can be referenced in `OrderByExpression`, `ColumnExpressions`, and the conditions suplied to
+	// can be referenced in `OrderByExpression`, `ColumnExpressions`, and the conditions supplied to
 	// `Dequeue`.
 	//
 	// The target of this column must be a view on top of the configured table with the same column
-	// requirements as the base table descried above.
+	// requirements as the base table described above.
 	//
 	// Example use case:
 	// The processor for LSIF uploads supplies `lsif_uploads_with_repository_name`, a view on top of the
@@ -127,10 +135,24 @@ type StoreOptions struct {
 	StalledMaxAge time.Duration
 
 	// MaxNumResets is the maximum number of times a record can be implicitly reset back to the queued
-	// state (via `ResetStalled`). If a record's failed attempts counter reaches this threshold, it will
+	// state (via `ResetStalled`). If a record's reset attempts counter reaches this threshold, it will
 	// be moved into the errored state rather than queued on its next reset to prevent an infinite retry
 	// cycle of the same input.
 	MaxNumResets int
+
+	// RetryAfter determines whether the store dequeues jobs that have errored more than RetryAfter ago.
+	// Setting this value to zero will disable retries entirely.
+	//
+	// If RetryAfter is a non-zero duration, the store dequeues records where:
+	//
+	//   - the state is 'errored'
+	//   - the failed attempts counter hasn't reached MaxNumRetries
+	//   - the finished_at timestamp was more than RetryAfter ago
+	RetryAfter time.Duration
+
+	// MaxNumRetries is the maximum number of times a record can be retried after an explicit failure.
+	// Setting this value to zero will disable retries entirely.
+	MaxNumRetries int
 }
 
 // RecordScanFn is a function that interprets row values as a particular record. This function should
@@ -180,6 +202,17 @@ var columnNames = []string{
 	"finished_at",
 	"process_after",
 	"num_resets",
+	"num_failures",
+	"log_contents",
+}
+
+// DefaultColumnExpressions returns a slice of expressions for the default column name we expect.
+func DefaultColumnExpressions() []*sqlf.Query {
+	expressions := make([]*sqlf.Query, len(columnNames))
+	for i := range columnNames {
+		expressions[i] = sqlf.Sprintf(columnNames[i])
+	}
+	return expressions
 }
 
 func (s *store) Transact(ctx context.Context) (*store, error) {
@@ -190,6 +223,26 @@ func (s *store) Transact(ctx context.Context) (*store, error) {
 
 	return &store{Store: txBase, options: s.options, columnReplacer: s.columnReplacer}, nil
 }
+
+// QueuedCount returns the number of records in the queued state matching the given conditions.
+func (s *store) QueuedCount(ctx context.Context, conditions []*sqlf.Query) (int, error) {
+	count, _, err := basestore.ScanFirstInt(s.Query(ctx, s.formatQuery(
+		queuedCountQuery,
+		quote(s.options.ViewName),
+		s.options.MaxNumRetries,
+		makeConditionSuffix(conditions),
+	)))
+
+	return count, err
+}
+
+const queuedCountQuery = `
+-- source: internal/workerutil/store.go:QueuedCount
+SELECT COUNT(*) FROM %s WHERE (
+	{state} = 'queued' OR
+	({state} = 'errored' AND {num_failures} < %s)
+) %s
+`
 
 // Dequeue selects the first unlocked record matching the given conditions and locks it in a new transaction that
 // should be held by the worker process. If there is such a record, it is returned along with a new store instance
@@ -205,7 +258,7 @@ func (s *store) Dequeue(ctx context.Context, conditions []*sqlf.Query) (record w
 
 // DequeueWithIndependentTransactionContext is like Dequeue, but will use a context.Background() for the underlying
 // transaction context. This method allows the transaction to lexically outlive the code in which it was created. This
-// is useful if a longer-running transaction is managed explicitly bewteen multiple goroutines.
+// is useful if a longer-running transaction is managed explicitly between multiple goroutines.
 func (s *store) DequeueWithIndependentTransactionContext(ctx context.Context, conditions []*sqlf.Query) (workerutil.Record, Store, bool, error) {
 	return s.dequeue(ctx, conditions, true)
 }
@@ -223,6 +276,9 @@ func (s *store) dequeue(ctx context.Context, conditions []*sqlf.Query, independe
 	query := s.formatQuery(
 		selectCandidateQuery,
 		quote(s.options.ViewName),
+		int(s.options.RetryAfter/time.Second),
+		int(s.options.RetryAfter/time.Second),
+		s.options.MaxNumRetries,
 		makeConditionSuffix(conditions),
 		s.options.OrderByExpression,
 		quote(s.options.TableName),
@@ -271,7 +327,6 @@ func (s *store) dequeue(ctx context.Context, conditions []*sqlf.Query, independe
 			// by selecting another identifier - this one will be skipped on a second attempt as
 			// it is now locked.
 			continue
-
 		}
 
 		// The record is now locked in this transaction. As `TableName` and `ViewName` may have distinct
@@ -300,8 +355,17 @@ const selectCandidateQuery = `
 WITH candidate AS (
 	SELECT {id} FROM %s
 	WHERE
-		{state} = 'queued' AND
-		({process_after} IS NULL OR {process_after} <= NOW())
+		(
+			(
+				{state} = 'queued' AND
+				({process_after} IS NULL OR {process_after} <= NOW())
+			) OR (
+				%s > 0 AND
+				{state} = 'errored' AND
+				NOW() - {finished_at} > (%s * '1 second'::interval) AND
+				{num_failures} < %s
+			)
+		)
 		%s
 	ORDER BY %s
 	FOR UPDATE SKIP LOCKED
@@ -310,7 +374,9 @@ WITH candidate AS (
 UPDATE %s
 SET
 	{state} = 'processing',
-	{started_at} = NOW()
+	{started_at} = NOW(),
+	{finished_at} = NULL,
+	{failure_message} = NULL
 WHERE {id} IN (SELECT {id} FROM candidate)
 RETURNING {id}
 `
@@ -348,6 +414,23 @@ SET {state} = 'queued', {process_after} = %s
 WHERE {id} = %s
 `
 
+// SetLogContents updates the log contents of the record.
+func (s *store) SetLogContents(ctx context.Context, id int, logContents string) error {
+	return s.Exec(ctx, s.formatQuery(
+		setLogContentsQuery,
+		quote(s.options.TableName),
+		logContents,
+		id,
+	))
+}
+
+const setLogContentsQuery = `
+-- source: internal/workerutil/store.go:SetLogContents
+UPDATE %s
+SET {log_contents} = %s
+WHERE {id} = %s
+`
+
 // MarkComplete attempts to update the state of the record to complete. If this record has already been moved from
 // the processing state to a terminal state, this method will have no effect. This method returns a boolean flag
 // indicating if the record was updated.
@@ -375,7 +458,7 @@ func (s *store) MarkErrored(ctx context.Context, id int, failureMessage string) 
 const markErroredQuery = `
 -- source: internal/workerutil/store.go:MarkErrored
 UPDATE %s
-SET {state} = 'errored', {finished_at} = clock_timestamp(), {failure_message} = %s
+SET {state} = 'errored', {finished_at} = clock_timestamp(), {failure_message} = %s, {num_failures} = {num_failures} + 1
 WHERE {id} = %s AND ({state} = 'processing' OR {state} = 'completed')
 RETURNING {id}
 `

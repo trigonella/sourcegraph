@@ -13,6 +13,8 @@ import (
 	"github.com/goware/urlx"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
+	"github.com/xeipuuv/gojsonschema"
+
 	"github.com/tetrafolium/sourcegraph/internal/api"
 	"github.com/tetrafolium/sourcegraph/internal/campaigns"
 	"github.com/tetrafolium/sourcegraph/internal/extsvc"
@@ -25,7 +27,6 @@ import (
 	"github.com/tetrafolium/sourcegraph/internal/ratelimit"
 	"github.com/tetrafolium/sourcegraph/internal/vcs/git"
 	"github.com/tetrafolium/sourcegraph/schema"
-	"github.com/xeipuuv/gojsonschema"
 )
 
 // A Changeset of an existing Repo.
@@ -566,8 +567,6 @@ type Repo struct {
 	URI string
 	// Description is a brief description of the repository.
 	Description string
-	// Language is the primary programming language used in this repository.
-	Language string
 	// Fork is whether this repository is a fork of another repository.
 	Fork bool
 	// Archived is whether the repository has been archived.
@@ -586,6 +585,7 @@ type Repo struct {
 	// service itself).
 	ExternalRepo api.ExternalRepoSpec
 	// Sources identifies all the repo sources this Repo belongs to.
+	// The key is a URN created by extsvc.URN
 	Sources map[string]*SourceInfo
 	// Metadata contains the raw source code host JSON metadata.
 	Metadata interface{}
@@ -652,10 +652,6 @@ func (r *Repo) Update(n *Repo) (modified bool) {
 		r.Description, modified = n.Description, true
 	}
 
-	if r.Language != n.Language {
-		r.Language, modified = n.Language, true
-	}
-
 	if n.ExternalRepo != (api.ExternalRepoSpec{}) &&
 		!r.ExternalRepo.Equal(&n.ExternalRepo) {
 		r.ExternalRepo, modified = n.ExternalRepo, true
@@ -663,10 +659,6 @@ func (r *Repo) Update(n *Repo) (modified bool) {
 
 	if r.Archived != n.Archived {
 		r.Archived, modified = n.Archived, true
-	}
-
-	if r.Cloned != n.Cloned {
-		r.Cloned, modified = n.Cloned, true
 	}
 
 	if r.Fork != n.Fork {
@@ -679,6 +671,20 @@ func (r *Repo) Update(n *Repo) (modified bool) {
 
 	if !reflect.DeepEqual(r.Sources, n.Sources) {
 		r.Sources, modified = n.Sources, true
+	}
+
+	// As a special case, we clear out the value of ViewerPermission for GitHub repos as
+	// the value is dependent on the token used to fetch it. We don't want to store this in the DB as it will
+	// flip flop as we fetch the same repo from different external services.
+	switch x := n.Metadata.(type) {
+	case *github.Repository:
+		cp := *x
+		cp.ViewerPermission = ""
+		n = n.With(func(clone *Repo) {
+			// Repo.Clone does not currently clone metadata for any types as they could contain hard to clone
+			// items such as maps. However, we know that copying github.Repository is safe as it only contains values.
+			clone.Metadata = &cp
+		})
 	}
 
 	if !reflect.DeepEqual(r.Metadata, n.Metadata) {
@@ -730,7 +736,7 @@ func (r *Repo) With(opts ...func(*Repo)) *Repo {
 //
 // Context on using other fields such as timestamps to order/resolve
 // conflicts: We only want to rely on values that have constraints in our
-// database. Tmestamps have the following downsides:
+// database. Timestamps have the following downsides:
 //
 //   - We need to assume the upstream codehost has reasonable values for them
 //   - Not all codehosts set them to relevant values (eg gitolite or other)
@@ -776,7 +782,7 @@ func sortedSliceLess(a, b []string) bool {
 			return v < b[i]
 		}
 	}
-	return true
+	return len(a) != len(b)
 }
 
 // pick deterministically chooses between a and b a repo to keep and
@@ -840,6 +846,18 @@ func (rs Repos) ExternalRepos() []api.ExternalRepoSpec {
 	return specs
 }
 
+// Sources returns a map of all the sources per repo id.
+func (rs Repos) Sources() map[api.RepoID][]SourceInfo {
+	sources := make(map[api.RepoID][]SourceInfo)
+	for i := range rs {
+		for _, info := range rs[i].Sources {
+			sources[rs[i].ID] = append(sources[rs[i].ID], *info)
+		}
+	}
+
+	return sources
+}
+
 func (rs Repos) Len() int {
 	return len(rs)
 }
@@ -895,6 +913,15 @@ func (rs Repos) Filter(pred func(*Repo) bool) (fs Repos) {
 // ExternalServices is an utility type with
 // convenience methods for operating on lists of ExternalServices.
 type ExternalServices []*ExternalService
+
+// IDs returns the list of ids from all ExternalServices.
+func (es ExternalServices) IDs() []int64 {
+	ids := make([]int64, len(es))
+	for i := range es {
+		ids[i] = es[i].ID
+	}
+	return ids
+}
 
 // DisplayNames returns the list of display names from all ExternalServices.
 func (es ExternalServices) DisplayNames() []string {
@@ -965,53 +992,69 @@ type externalServiceLister interface {
 	ListExternalServices(context.Context, StoreListExternalServicesArgs) ([]*ExternalService, error)
 }
 
+// RateLimitSyncer syncs rate limits based on external service configuration
+type RateLimitSyncer struct {
+	registry      *ratelimit.Registry
+	serviceLister externalServiceLister
+	// How many services to fetch in each DB call
+	limit int64
+}
+
 // NewRateLimitSyncer returns a new syncer
 func NewRateLimitSyncer(registry *ratelimit.Registry, serviceLister externalServiceLister) *RateLimitSyncer {
 	r := &RateLimitSyncer{
 		registry:      registry,
 		serviceLister: serviceLister,
+		limit:         500,
 	}
 	return r
-}
-
-// RateLimitSyncer syncs rate limits based on external service configuration
-type RateLimitSyncer struct {
-	registry      *ratelimit.Registry
-	serviceLister externalServiceLister
 }
 
 // SyncRateLimiters syncs all rate limiters using current config.
 // We sync them all as we need to pick the most restrictive configured limit per code host
 // and rate limits can be defined in multiple external services for the same host.
 func (r *RateLimitSyncer) SyncRateLimiters(ctx context.Context) error {
-	services, err := r.serviceLister.ListExternalServices(ctx, StoreListExternalServicesArgs{})
-	if err != nil {
-		return errors.Wrap(err, "listing external services")
-	}
+	var cursor int64
+	byURL := make(map[string]extsvc.RateLimitConfig)
 
-	var limits []extsvc.RateLimitConfig
-	for _, svc := range services {
-		rlc, err := extsvc.ExtractRateLimitConfig(svc.Config, svc.Kind, svc.DisplayName)
+	for {
+		services, err := r.serviceLister.ListExternalServices(ctx, StoreListExternalServicesArgs{
+			Cursor: cursor,
+			Limit:  r.limit,
+		})
 		if err != nil {
-			if _, ok := err.(extsvc.ErrRateLimitUnsupported); ok {
+			return errors.Wrap(err, "listing external services")
+		}
+
+		if len(services) == 0 {
+			break
+		}
+
+		cursor = services[len(services)-1].ID
+
+		for _, svc := range services {
+			rlc, err := extsvc.ExtractRateLimitConfig(svc.Config, svc.Kind, svc.DisplayName)
+			if err != nil {
+				if _, ok := err.(extsvc.ErrRateLimitUnsupported); ok {
+					continue
+				}
+				return errors.Wrap(err, "getting rate limit configuration")
+			}
+
+			current, ok := byURL[rlc.BaseURL]
+			if !ok || (ok && current.IsDefault) {
+				byURL[rlc.BaseURL] = rlc
 				continue
 			}
-			return errors.Wrap(err, "getting rate limit configuration")
+			// Use the lower limit, but a default value should not override
+			// a limit that has been configured
+			if rlc.Limit < current.Limit && !rlc.IsDefault {
+				byURL[rlc.BaseURL] = rlc
+			}
 		}
-		limits = append(limits, rlc)
-	}
 
-	byURL := make(map[string]extsvc.RateLimitConfig)
-	for _, rlc := range limits {
-		current, ok := byURL[rlc.BaseURL]
-		if !ok || (ok && current.IsDefault) {
-			byURL[rlc.BaseURL] = rlc
-			continue
-		}
-		// Use the lower limit, but a default value should not override
-		// a limit that has been configured
-		if rlc.Limit < current.Limit && !rlc.IsDefault {
-			byURL[rlc.BaseURL] = rlc
+		if len(services) < int(r.limit) {
+			break
 		}
 	}
 

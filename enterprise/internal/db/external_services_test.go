@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/kylelemons/godebug/pretty"
 	"github.com/tetrafolium/sourcegraph/internal/conf"
+	"github.com/tetrafolium/sourcegraph/internal/db"
 	"github.com/tetrafolium/sourcegraph/internal/extsvc"
 	"github.com/tetrafolium/sourcegraph/schema"
 )
@@ -899,13 +900,13 @@ func TestExternalServices_ValidateConfig(t *testing.T) {
 			kind:   extsvc.KindGitLab,
 			desc:   "invalid empty projects item",
 			config: `{"projects": [{}]}`,
-			assert: includes(`projects.0: Must validate at least one schema (anyOf)`),
+			assert: includes(`projects.0: Must validate one and only one schema (oneOf)`),
 		},
 		{
 			kind:   extsvc.KindGitLab,
 			desc:   "invalid projects item",
 			config: `{"projects": [{"foo": "bar"}]}`,
-			assert: includes(`projects.0: Must validate at least one schema (anyOf)`),
+			assert: includes(`projects.0: Must validate one and only one schema (oneOf)`),
 		},
 		{
 			kind:   extsvc.KindGitLab,
@@ -921,7 +922,7 @@ func TestExternalServices_ValidateConfig(t *testing.T) {
 		},
 		{
 			kind: extsvc.KindGitLab,
-			desc: "both name and id can be specified in projects",
+			desc: "both name and id cannot be specified in projects",
 			config: `
 			{
 				"url": "https://gitlab.corp.com",
@@ -931,7 +932,7 @@ func TestExternalServices_ValidateConfig(t *testing.T) {
 					{"name": "foo/bar", "id": 1234}
 				]
 			}`,
-			assert: equals(`<nil>`),
+			assert: includes(`projects.0: Must validate one and only one schema (oneOf)`),
 		},
 		{
 			kind:   extsvc.KindGitLab,
@@ -1257,7 +1258,11 @@ func TestExternalServices_ValidateConfig(t *testing.T) {
 			}
 
 			s := NewExternalServicesStore()
-			err := s.ValidateConfig(context.Background(), 0, tc.kind, tc.config, tc.ps)
+			err := s.ValidateConfig(context.Background(), db.ValidateExternalServiceConfigOptions{
+				Kind:          tc.kind,
+				Config:        tc.config,
+				AuthProviders: tc.ps,
+			})
 			switch e := err.(type) {
 			case nil:
 				have = append(have, "<nil>")

@@ -21,7 +21,9 @@ import (
 	"github.com/tetrafolium/sourcegraph/internal/debugserver"
 	"github.com/tetrafolium/sourcegraph/internal/env"
 	"github.com/tetrafolium/sourcegraph/internal/gitserver"
+	"github.com/tetrafolium/sourcegraph/internal/logging"
 	"github.com/tetrafolium/sourcegraph/internal/store"
+	"github.com/tetrafolium/sourcegraph/internal/trace"
 	"github.com/tetrafolium/sourcegraph/internal/trace/ot"
 	"github.com/tetrafolium/sourcegraph/internal/tracer"
 )
@@ -35,7 +37,9 @@ func main() {
 	env.Lock()
 	env.HandleHelpFlag()
 	log.SetFlags(0)
+	logging.Init()
 	tracer.Init()
+	trace.Init(true)
 
 	go debugserver.Start()
 
@@ -51,12 +55,14 @@ func main() {
 			FetchTar: func(ctx context.Context, repo gitserver.Repo, commit api.CommitID) (io.ReadCloser, error) {
 				return gitserver.DefaultClient.Archive(ctx, repo, gitserver.ArchiveOptions{Treeish: string(commit), Format: "tar"})
 			},
+			FilterTar: func(ctx context.Context, repo gitserver.Repo, commit api.CommitID) (store.FilterFunc, error) {
+				return search.NewFilter(ctx, repo, commit)
+			},
 			Path:              filepath.Join(cacheDir, "searcher-archives"),
 			MaxCacheSizeBytes: cacheSizeBytes,
 		},
 		Log: log15.Root(),
 	}
-	service.Store.SetMaxConcurrentFetchTar(10)
 	service.Store.Start()
 	handler := ot.Middleware(service)
 

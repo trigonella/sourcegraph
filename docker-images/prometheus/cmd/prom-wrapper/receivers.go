@@ -22,6 +22,15 @@ const (
 	colorGood     = "#00FF00" // green
 )
 
+// commonLabels defines the set of labels we group alerts by, such that each alert falls in a unique group.
+// These labels are available in Alertmanager templates as fields of `.CommonLabels`.
+//
+// Note that `alertname` is provided as a fallback grouping only - combinations of the other labels should be unique
+// for alerts provided by the Sourcegraph generator.
+//
+// When changing this, make sure to update the webhook body documentation in /doc/admin/observability/alerting.md
+var commonLabels = []string{"alertname", "level", "service_name", "name", "owner", "description"}
+
 // Static alertmanager templates
 var (
 	// Alertmanager notification template reference: https://prometheus.io/docs/alerting/latest/notifications
@@ -197,7 +206,9 @@ For more details, please refer to the service dashboard: %s`, firingBodyTemplate
 				newProblem(fmt.Errorf("failed to apply notifier %d: %w", i, err))
 				continue
 			}
-			if notifier.Slack.Username != "" {
+
+			// set a default username if none is provided
+			if notifier.Slack.Username == "" {
 				notifier.Slack.Username = "Sourcegraph Alerts"
 			}
 

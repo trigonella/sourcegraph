@@ -23,6 +23,8 @@ import (
 	"github.com/tetrafolium/sourcegraph/internal/debugserver"
 	"github.com/tetrafolium/sourcegraph/internal/env"
 	"github.com/tetrafolium/sourcegraph/internal/eventlogger"
+	"github.com/tetrafolium/sourcegraph/internal/logging"
+	"github.com/tetrafolium/sourcegraph/internal/trace"
 	"github.com/tetrafolium/sourcegraph/internal/tracer"
 )
 
@@ -33,8 +35,9 @@ const port = "3183"
 func main() {
 	env.Lock()
 	env.HandleHelpFlag()
-
+	logging.Init()
 	tracer.Init()
+	trace.Init(true)
 
 	go func() {
 		c := make(chan os.Signal, 1)

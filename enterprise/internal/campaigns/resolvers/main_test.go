@@ -67,10 +67,7 @@ var testDiffGraphQL = apitest.FileDiffs{
 	TotalCount: 2,
 	RawDiff:    testDiff,
 	DiffStat:   apitest.DiffStat{Changed: 2},
-	PageInfo: struct {
-		HasNextPage bool
-		EndCursor   string
-	}{},
+	PageInfo:   apitest.PageInfo{},
 	Nodes: []apitest.FileDiff{
 		{
 			OldPath: "README.md",
@@ -150,17 +147,39 @@ func insertTestUser(t *testing.T, db *sql.DB, name string, isAdmin bool) (userID
 	return userID
 }
 
-func newGitHubTestRepo(name string, externalID int) *repos.Repo {
+func newGitHubExternalService(t *testing.T, store repos.Store) *repos.ExternalService {
+	t.Helper()
+
+	clock := repos.NewFakeClock(time.Now(), 0)
+	now := clock.Now()
+
+	svc := repos.ExternalService{
+		Kind:        extsvc.KindGitHub,
+		DisplayName: "Github - Test",
+		Config:      `{"url": "https://github.com"}`,
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
+
+	// create a few external services
+	if err := store.UpsertExternalServices(context.Background(), &svc); err != nil {
+		t.Fatalf("failed to insert external services: %v", err)
+	}
+
+	return &svc
+}
+
+func newGitHubTestRepo(name string, externalService *repos.ExternalService) *repos.Repo {
 	return &repos.Repo{
 		Name: name,
 		ExternalRepo: api.ExternalRepoSpec{
-			ID:          fmt.Sprintf("external-id-%d", externalID),
+			ID:          fmt.Sprintf("external-id-%d", externalService.ID),
 			ServiceType: "github",
 			ServiceID:   "https://github.com/",
 		},
 		Sources: map[string]*repos.SourceInfo{
-			"extsvc:github:4": {
-				ID:       "extsvc:github:4",
+			externalService.URN(): {
+				ID:       externalService.URN(),
 				CloneURL: fmt.Sprintf("https://secrettoken@%s", name),
 			},
 		},
@@ -201,7 +220,7 @@ func mockRepoComparison(t *testing.T, baseRev, headRev, diff string) {
 		if string(id) != baseRev && string(id) != headRev {
 			t.Fatalf("git.Mocks.GetCommit received unknown commit id: %s", id)
 		}
-		return &git.Commit{ID: api.CommitID(id)}, nil
+		return &git.Commit{ID: id}, nil
 	}
 	t.Cleanup(func() { git.Mocks.GetCommit = nil })
 
@@ -213,7 +232,7 @@ func mockRepoComparison(t *testing.T, baseRev, headRev, diff string) {
 		if have, want := args[len(args)-2], spec; have != want {
 			t.Fatalf("gitserver.ExecReader received wrong spec: %q, want %q", have, want)
 		}
-		return ioutil.NopCloser(strings.NewReader(testDiff)), nil
+		return ioutil.NopCloser(strings.NewReader(diff)), nil
 	}
 	t.Cleanup(func() { git.Mocks.ExecReader = nil })
 
@@ -253,9 +272,9 @@ type testChangesetOpts struct {
 	publicationState campaigns.ChangesetPublicationState
 	reconcilerState  campaigns.ReconcilerState
 	failureMessage   string
+	unsynced         bool
 
-	createdByCampaign bool
-	ownedByCampaign   int64
+	ownedByCampaign int64
 
 	metadata interface{}
 }
@@ -285,8 +304,8 @@ func createChangeset(
 
 		PublicationState: opts.publicationState,
 		ReconcilerState:  opts.reconcilerState,
+		Unsynced:         opts.unsynced,
 
-		CreatedByCampaign: opts.createdByCampaign,
 		OwnedByCampaignID: opts.ownedByCampaign,
 
 		Metadata: opts.metadata,
@@ -330,7 +349,7 @@ type testSpecOpts struct {
 
 	// If this is set along with headRef, the changesetSpec will have published
 	// set.
-	published bool
+	published interface{}
 
 	title         string
 	body          string
@@ -349,6 +368,15 @@ func createChangesetSpec(
 ) *campaigns.ChangesetSpec {
 	t.Helper()
 
+	published := campaigns.PublishedValue{Val: opts.published}
+	if opts.published == nil {
+		// Set false as the default.
+		published.Val = false
+	}
+	if !published.Valid() {
+		t.Fatalf("invalid value for published passed, got %v (%T)", opts.published, opts.published)
+	}
+
 	spec := &campaigns.ChangesetSpec{
 		UserID:         opts.user,
 		RepoID:         opts.repo,
@@ -361,7 +389,7 @@ func createChangesetSpec(
 
 			ExternalID: opts.externalID,
 			HeadRef:    opts.headRef,
-			Published:  opts.published,
+			Published:  published,
 
 			Title: opts.title,
 			Body:  opts.body,

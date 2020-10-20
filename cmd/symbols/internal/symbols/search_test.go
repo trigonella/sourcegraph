@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/inconshreveable/log15"
-	"github.com/tetrafolium/sourcegraph/cmd/symbols/internal/pkg/ctags"
 	"github.com/tetrafolium/sourcegraph/internal/sqliteutil"
 	"github.com/tetrafolium/sourcegraph/internal/symbols/protocol"
 	"github.com/tetrafolium/sourcegraph/internal/testutil"
@@ -21,11 +20,9 @@ func BenchmarkSearch(b *testing.B) {
 	log15.Root().SetHandler(log15.LvlFilterHandler(log15.LvlError, log15.Root().GetHandler()))
 
 	service := Service{
-		FetchTar: testutil.FetchTarFromGithub,
-		NewParser: func() (ctags.Parser, error) {
-			return ctags.New()
-		},
-		Path: "/tmp/symbols-cache",
+		FetchTar:  testutil.FetchTarFromGithub,
+		NewParser: NewParser,
+		Path:      "/tmp/symbols-cache",
 	}
 	if err := service.Start(); err != nil {
 		b.Fatal(err)

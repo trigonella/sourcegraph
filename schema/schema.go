@@ -155,18 +155,10 @@ type BitbucketCloudRateLimit struct {
 
 // BitbucketServerAuthorization description: If non-null, enforces Bitbucket Server repository permissions.
 type BitbucketServerAuthorization struct {
-	// HardTTL description: DEPRECATED: Duration after which a user's cached permissions must be updated before authorizing any user actions. This is 3 days by default.
-	HardTTL string `json:"hardTTL,omitempty"`
 	// IdentityProvider description: The source of identity to use when computing permissions. This defines how to compute the Bitbucket Server identity to use for a given Sourcegraph user. When 'username' is used, Sourcegraph assumes usernames are identical in Sourcegraph and Bitbucket Server accounts and `auth.enableUsernameChanges` must be set to false for security reasons.
 	IdentityProvider BitbucketServerIdentityProvider `json:"identityProvider"`
 	// Oauth description: OAuth configuration specified when creating the Bitbucket Server Application Link with incoming authentication. Two Legged OAuth with 'ExecuteAs=admin' must be enabled as well as user impersonation.
 	Oauth BitbucketServerOAuth `json:"oauth"`
-	// Ttl description: DEPRECATED: Duration after which a user's cached permissions will be updated in the background (during which time the previously cached permissions will be used). This is 3 hours by default.
-	//
-	// Decreasing the TTL will increase the load on the code host API. If you have X repos on your instance, it will take ~X/1000 API requests to fetch the complete list for 1 user.  If you have Y users, you will incur X*Y/1000 API requests per cache refresh period.
-	//
-	// If set to zero, Sourcegraph will sync a user's entire accessible repository list on every request (NOT recommended).
-	Ttl string `json:"ttl,omitempty"`
 }
 
 // BitbucketServerConnection description: Configuration for a connection to Bitbucket Server.
@@ -213,7 +205,7 @@ type BitbucketServerConnection struct {
 	//
 	// The special string "none" can be used as the only element to disable this feature. Repositories matched by multiple query strings are only imported once. Here's the official Bitbucket Server documentation about which query string parameters are valid: https://docs.atlassian.com/bitbucket-server/rest/6.1.2/bitbucket-rest.html#idp355
 	RepositoryQuery []string `json:"repositoryQuery,omitempty"`
-	// Token description: A Bitbucket Server personal access token with Read scope. Create one at https://[your-bitbucket-hostname]/plugins/servlet/access-tokens/add. Also set the corresponding "username" field.
+	// Token description: A Bitbucket Server personal access token with Read permissions. When using campaigns, the token needs Write permissions. Create one at https://[your-bitbucket-hostname]/plugins/servlet/access-tokens/add. Also set the corresponding "username" field.
 	//
 	// For Bitbucket Server instances that don't support personal access tokens (Bitbucket Server version 5.4 and older), specify user-password credentials in the "username" and "password" fields.
 	Token string `json:"token,omitempty"`
@@ -336,7 +328,7 @@ type ChangesetTemplate struct {
 	// Commit description: The Git commit to create with the changes.
 	Commit ExpandedGitCommitDescription `json:"commit"`
 	// Published description: Whether to publish the changeset. An unpublished changeset can be previewed on Sourcegraph by any person who can view the campaign, but its commit, branch, and pull request aren't created on the code host. A published changeset results in a commit, branch, and pull request being created on the code host.
-	Published bool `json:"published"`
+	Published interface{} `json:"published"`
 	// Title description: The title of the changeset.
 	Title string `json:"title"`
 }
@@ -417,15 +409,17 @@ type ExcludedGitoliteRepo struct {
 
 // ExpandedGitCommitDescription description: The Git commit to create with the changes.
 type ExpandedGitCommitDescription struct {
+	// Author description: The author of the Git commit.
+	Author *GitCommitAuthor `json:"author,omitempty"`
 	// Message description: The Git commit message.
 	Message string `json:"message"`
 }
 
 // ExperimentalFeatures description: Experimental features to enable or disable. Features that are now enabled by default are marked as deprecated.
 type ExperimentalFeatures struct {
-	// AndOrQuery description: Interpret a search input query as an and/or query.
+	// AndOrQuery description: DEPRECATED: Interpret a search input query as an and/or query.
 	AndOrQuery string `json:"andOrQuery,omitempty"`
-	// Automation description: Enables the experimental code change management campaigns feature. NOTE: The automation feature was renamed to campaigns, but this experimental feature flag name was not changed (because the feature flag will go away soon anyway).
+	// Automation description: DEPRECATED: Enables the experimental code change management campaigns feature. This field has been deprecated in favour of campaigns.enabled
 	Automation string `json:"automation,omitempty"`
 	// BitbucketServerFastPerm description: DEPRECATED: Configure in Bitbucket Server config.
 	BitbucketServerFastPerm string `json:"bitbucketServerFastPerm,omitempty"`
@@ -468,8 +462,20 @@ type ExternalIdentity struct {
 	Type           string `json:"type"`
 }
 
+// GitCommitAuthor description: The author of the Git commit.
+type GitCommitAuthor struct {
+	// Email description: The Git commit author email.
+	Email string `json:"email"`
+	// Name description: The Git commit author name.
+	Name string `json:"name"`
+}
+
 // GitCommitDescription description: The Git commit to create with the changes.
 type GitCommitDescription struct {
+	// AuthorEmail description: The Git commit author email.
+	AuthorEmail string `json:"authorEmail"`
+	// AuthorName description: The Git commit author name.
+	AuthorName string `json:"authorName"`
 	// Diff description: The commit diff (in unified diff format).
 	Diff string `json:"diff"`
 	// Message description: The Git commit message.
@@ -494,14 +500,6 @@ type GitHubAuthProvider struct {
 
 // GitHubAuthorization description: If non-null, enforces GitHub repository permissions. This requires that there is an item in the `auth.providers` field of type "github" with the same `url` field as specified in this `GitHubConnection`.
 type GitHubAuthorization struct {
-	// Ttl description: DEPRECATED: The TTL of how long to cache permissions data. This is 3 hours by default.
-	//
-	// Decreasing the TTL will increase the load on the code host API. If you have X private repositories on your instance, it will take ~X/100 API requests to fetch the complete list for 1 user.  If you have Y users, you will incur up to X*Y/100 API requests per cache refresh period (depending on user activity).
-	//
-	// If set to zero, Sourcegraph will sync a user's entire accessible repository list on every request (NOT recommended).
-	//
-	// Public repositories are cached once for all users per cache TTL period.
-	Ttl string `json:"ttl,omitempty"`
 }
 
 // GitHubConnection description: Configuration for a connection to GitHub or GitHub Enterprise.
@@ -591,14 +589,6 @@ type GitLabAuthProvider struct {
 type GitLabAuthorization struct {
 	// IdentityProvider description: The source of identity to use when computing permissions. This defines how to compute the GitLab identity to use for a given Sourcegraph user.
 	IdentityProvider IdentityProvider `json:"identityProvider"`
-	// Ttl description: DEPRECATED: The TTL of how long to cache permissions data. This is 3 hours by default.
-	//
-	// Decreasing the TTL will increase the load on the code host API. If you have X private repositories on your instance, it will take ~X/100 API requests to fetch the complete list for 1 user.  If you have Y users, you will incur up to X*Y/100 API requests per cache refresh period (depending on user activity).
-	//
-	// If set to zero, Sourcegraph will sync a user's entire accessible repository list on every request (NOT recommended).
-	//
-	// Public and internal repositories are cached once for all users per cache TTL period.
-	Ttl string `json:"ttl,omitempty"`
 }
 
 // GitLabConnection description: Configuration for a connection to GitLab (GitLab.com or GitLab self-managed).
@@ -846,11 +836,7 @@ type NotifierWebhook struct {
 	Username    string `json:"username,omitempty"`
 }
 type OAuthIdentity struct {
-	// MaxBatchRequests description: DEPRECATED: The maximum number of batch API requests to make for GitLab Project visibility. Please consult with the Sourcegraph support team before modifying this.
-	MaxBatchRequests int `json:"maxBatchRequests,omitempty"`
-	// MinBatchingThreshold description: DEPRECATED: The minimum number of GitLab projects to fetch at which to start batching requests to fetch project visibility. Please consult with the Sourcegraph support team before modifying this.
-	MinBatchingThreshold int    `json:"minBatchingThreshold,omitempty"`
-	Type                 string `json:"type"`
+	Type string `json:"type"`
 }
 type ObservabilityAlerts struct {
 	// DisableSendResolved description: Disable notifications when alerts resolve themselves.
@@ -921,12 +907,6 @@ type OtherExternalServiceConnection struct {
 // ParentSourcegraph description: URL to fetch unreachable repository details from. Defaults to "https://sourcegraph.com"
 type ParentSourcegraph struct {
 	Url string `json:"url,omitempty"`
-}
-
-// PermissionsBackgroundSync description: DEPRECATED: Sync code host repository and user permissions in the background.
-type PermissionsBackgroundSync struct {
-	// Enabled description: Whether syncing permissions in the background is enabled.
-	Enabled bool `json:"enabled,omitempty"`
 }
 
 // PermissionsUserMapping description: Settings for Sourcegraph permissions, which allow the site admin to explicitly manage repository permissions via the GraphQL API. This setting cannot be enabled if repository permissions for any specific external service are enabled (i.e., when the external service's `authorization` field is set).
@@ -1018,6 +998,18 @@ type SMTPServerConfig struct {
 	// Username description: The username to use when communicating with the SMTP server.
 	Username string `json:"username,omitempty"`
 }
+
+// SearchLimits description: Limits that search applies for number of repositories searched and timeouts.
+type SearchLimits struct {
+	// CommitDiffMaxRepos description: The maximum number of repositories to search across when doing a "type:diff" or "type:commit". The user is prompted to narrow their query if the limit is exceeded. There is a separate limit (commitDiffWithTimeFilterMaxRepos) when "after:" or "before:" is specified because those queries are faster. Defaults to 50.
+	CommitDiffMaxRepos int `json:"commitDiffMaxRepos,omitempty"`
+	// CommitDiffWithTimeFilterMaxRepos description: The maximum number of repositories to search across when doing a "type:diff" or "type:commit" with a "after:" or "before:" filter. The user is prompted to narrow their query if the limit is exceeded. There is a separate limit (commitDiffMaxRepos) when "after:" or "before:" is not specified because those queries are slower. Defaults to 10000.
+	CommitDiffWithTimeFilterMaxRepos int `json:"commitDiffWithTimeFilterMaxRepos,omitempty"`
+	// MaxRepos description: The maximum number of repositories to search across. The user is prompted to narrow their query if exceeded. Any value less than or equal to zero means unlimited.
+	MaxRepos int `json:"maxRepos,omitempty"`
+	// MaxTimeoutSeconds description: The maximum value for "timeout:" that search will respect. "timeout:" values larger than maxTimeoutSeconds are capped at maxTimeoutSeconds. Note: You need to ensure your load balancer / reverse proxy in front of Sourcegraph won't timeout the request for larger values. Note: Too many large rearch requests may harm Soucregraph for other users. Defaults to 1 minute.
+	MaxTimeoutSeconds int `json:"maxTimeoutSeconds,omitempty"`
+}
 type SearchSavedQueries struct {
 	// Description description: Description of this saved query
 	Description string `json:"description"`
@@ -1033,12 +1025,6 @@ type SearchSavedQueries struct {
 	ShowOnHomepage bool `json:"showOnHomepage,omitempty"`
 }
 type SearchScope struct {
-	// Description description: A description for this search scope
-	Description string `json:"description,omitempty"`
-	// Id description: A unique identifier for the search scope.
-	//
-	// If set, a scoped search page is available at https://[sourcegraph-hostname]/search/scope/ID, where ID is this value.
-	Id string `json:"id,omitempty"`
 	// Name description: The human-readable name for this search scope
 	Name string `json:"name"`
 	// Value description: The query string of this search scope
@@ -1053,6 +1039,8 @@ type Sentry struct {
 
 // Settings description: Configuration settings for users and organizations on Sourcegraph.
 type Settings struct {
+	// AlertsCodeHostIntegrationMessaging description: What in-app messaging to use around availability of Sourcegraph's code intelligence on code hosts. If the native code host integration is installed, this should be set to "native-integration" and users won't need to install the Sourcegraph browser extension to get code intelligence on code hosts.
+	AlertsCodeHostIntegrationMessaging string `json:"alerts.codeHostIntegrationMessaging,omitempty"`
 	// AlertsHideObservabilitySiteAlerts description: Disables observability-related site alert banners.
 	AlertsHideObservabilitySiteAlerts *bool `json:"alerts.hideObservabilitySiteAlerts,omitempty"`
 	// AlertsShowPatchUpdates description: Whether to show alerts for patch version updates. Alerts for major and minor version updates will always be shown.
@@ -1085,14 +1073,16 @@ type Settings struct {
 	SearchDefaultPatternType string `json:"search.defaultPatternType,omitempty"`
 	// SearchGlobbing description: Enables globbing for supported field values
 	SearchGlobbing *bool `json:"search.globbing,omitempty"`
+	// SearchHideSuggestions description: Disable search suggestions below the search bar when constructing queries. Defaults to false.
+	SearchHideSuggestions *bool `json:"search.hideSuggestions,omitempty"`
 	// SearchIncludeArchived description: Whether searches should include searching archived repositories.
 	SearchIncludeArchived *bool `json:"search.includeArchived,omitempty"`
 	// SearchIncludeForks description: Whether searches should include searching forked repositories.
 	SearchIncludeForks *bool `json:"search.includeForks,omitempty"`
-	// SearchMigrateParser description: If true, uses the new and/or-compatible parser for all search queries. It is a flag to aid transition to the new parser.
+	// SearchMigrateParser description: If false, disables the new and/or-compatible parser for all search queries. It is a flag to aid transition to the new parser.
 	SearchMigrateParser *bool `json:"search.migrateParser,omitempty"`
-	// SearchRepositoryGroups description: Named groups of repositories that can be referenced in a search query using the repogroup: operator.
-	SearchRepositoryGroups map[string][]string `json:"search.repositoryGroups,omitempty"`
+	// SearchRepositoryGroups description: Named groups of repositories that can be referenced in a search query using the `repogroup:` operator. The list can contain string literals (to include single repositories) and JSON objects with a "regex" field (to include all repositories matching the regular expression). Retrieving repogroups via the GQL interface will currently exclude repositories matched by regex patterns. #14208.
+	SearchRepositoryGroups map[string][]interface{} `json:"search.repositoryGroups,omitempty"`
 	// SearchSavedQueries description: DEPRECATED: Saved search queries
 	SearchSavedQueries []*SearchSavedQueries `json:"search.savedQueries,omitempty"`
 	// SearchScopes description: Predefined search scopes
@@ -1109,12 +1099,20 @@ type SettingsExperimentalFeatures struct {
 	CopyQueryButton *bool `json:"copyQueryButton,omitempty"`
 	// SearchStats description: Enables a new page that shows language statistics about the results for a search query.
 	SearchStats *bool `json:"searchStats,omitempty"`
+	// SearchStreaming description: Enables experimental streaming support.
+	SearchStreaming *bool `json:"searchStreaming,omitempty"`
 	// ShowBadgeAttachments description: Enables the UI indicators for code intelligence precision.
 	ShowBadgeAttachments *bool `json:"showBadgeAttachments,omitempty"`
+	// ShowEnterpriseHomePanels description: Enabled the homepage panels in the Enterprise homepage
+	ShowEnterpriseHomePanels *bool `json:"showEnterpriseHomePanels,omitempty"`
+	// ShowMultilineSearchConsole description: Enables the multiline search console at search/console
+	ShowMultilineSearchConsole *bool `json:"showMultilineSearchConsole,omitempty"`
+	// ShowOnboardingTour description: Enables the onboarding tour.
+	ShowOnboardingTour *bool `json:"showOnboardingTour,omitempty"`
+	// ShowQueryBuilder description: Enables the search query builder page at search/query-builder
+	ShowQueryBuilder *bool `json:"showQueryBuilder,omitempty"`
 	// ShowRepogroupHomepage description: Enables the repository group homepage
 	ShowRepogroupHomepage *bool `json:"showRepogroupHomepage,omitempty"`
-	// SmartSearchField description: Enables displaying a search field that provides syntax highlighting, hover tooltips and diagnostics for search queries.
-	SmartSearchField *bool `json:"smartSearchField,omitempty"`
 	// SplitSearchModes description: Enables toggling between the current omni search mode, and experimental interactive search mode.
 	SplitSearchModes *bool `json:"splitSearchModes,omitempty"`
 }
@@ -1127,7 +1125,7 @@ type SiteConfiguration struct {
 	AuthEnableUsernameChanges bool `json:"auth.enableUsernameChanges,omitempty"`
 	// AuthMinPasswordLength description: The minimum number of Unicode code points that a password must contain.
 	AuthMinPasswordLength int `json:"auth.minPasswordLength,omitempty"`
-	// AuthProviders description: The authentication providers to use for identifying and signing in users. See instructions below for configuring SAML, OpenID Connect (including G Suite), and HTTP authentication proxies. Multiple authentication providers are supported (by specifying multiple elements in this array).
+	// AuthProviders description: The authentication providers to use for identifying and signing in users. See instructions below for configuring SAML, OpenID Connect (including Google Workspace), and HTTP authentication proxies. Multiple authentication providers are supported (by specifying multiple elements in this array).
 	AuthProviders []AuthProviders `json:"auth.providers,omitempty"`
 	// AuthPublic description: WARNING: This option has been removed as of 3.8.
 	AuthPublic bool `json:"auth.public,omitempty"`
@@ -1153,7 +1151,9 @@ type SiteConfiguration struct {
 	//
 	// Only available in Sourcegraph Enterprise.
 	Branding *Branding `json:"branding,omitempty"`
-	// CampaignsReadAccessEnabled description: Enables read-only access to campaigns for non-site-admin users. This is a setting for the experimental campaigns feature. These will only have an effect when campaigns is enabled with `{"experimentalFeatures": {"automation": "enabled"}}`.
+	// CampaignsEnabled description: Enables/disables the campaigns feature.
+	CampaignsEnabled *bool `json:"campaigns.enabled,omitempty"`
+	// CampaignsReadAccessEnabled description: DEPRECATED: Enables read-only access to campaigns for non-site-admin users. This doesn't have an effect anymore.
 	CampaignsReadAccessEnabled *bool `json:"campaigns.readAccess.enabled,omitempty"`
 	// CorsOrigin description: Required when using any of the native code host integrations for Phabricator, GitLab, or Bitbucket Server. It is a space-separated list of allowed origins for cross-origin HTTP requests which should be the base URL for your Phabricator, GitLab, or Bitbucket Server instance.
 	CorsOrigin string `json:"corsOrigin,omitempty"`
@@ -1179,6 +1179,8 @@ type SiteConfiguration struct {
 	ExperimentalFeatures *ExperimentalFeatures `json:"experimentalFeatures,omitempty"`
 	// Extensions description: Configures Sourcegraph extensions.
 	Extensions *Extensions `json:"extensions,omitempty"`
+	// ExternalServiceUserMode description: Enable to allow users to add external services for public reposirories to the Sourcegraph instance.
+	ExternalServiceUserMode string `json:"externalService.userMode,omitempty"`
 	// ExternalURL description: The externally accessible URL for Sourcegraph (i.e., what you type into your browser). Previously called `appURL`. Only root URLs are allowed.
 	ExternalURL string `json:"externalURL,omitempty"`
 	// GitCloneURLToRepositoryName description: JSON array of configuration that maps from Git clone URL to repository name. Sourcegraph automatically resolves remote clone URLs to their proper code host. However, there may be non-remote clone URLs (e.g., in submodule declarations) that Sourcegraph cannot automatically map to a code host. In this case, use this field to specify the mapping. The mappings are tried in the order they are specified and take precedence over automatic mappings.
@@ -1203,7 +1205,7 @@ type SiteConfiguration struct {
 	Log *Log `json:"log,omitempty"`
 	// LsifEnforceAuth description: Whether or not LSIF uploads will be blocked unless a valid LSIF upload token is provided.
 	LsifEnforceAuth bool `json:"lsifEnforceAuth,omitempty"`
-	// MaxReposToSearch description: The maximum number of repositories to search across. The user is prompted to narrow their query if exceeded. Any value less than or equal to zero means unlimited.
+	// MaxReposToSearch description: DEPRECATED: Configure maxRepos in search.limits. The maximum number of repositories to search across. The user is prompted to narrow their query if exceeded. Any value less than or equal to zero means unlimited.
 	MaxReposToSearch int `json:"maxReposToSearch,omitempty"`
 	// ObservabilityAlerts description: Configure notifications for Sourcegraph's built-in alerts.
 	ObservabilityAlerts []*ObservabilityAlerts `json:"observability.alerts,omitempty"`
@@ -1217,22 +1219,28 @@ type SiteConfiguration struct {
 	ObservabilityTracing *ObservabilityTracing `json:"observability.tracing,omitempty"`
 	// ParentSourcegraph description: URL to fetch unreachable repository details from. Defaults to "https://sourcegraph.com"
 	ParentSourcegraph *ParentSourcegraph `json:"parentSourcegraph,omitempty"`
-	// PermissionsBackgroundSync description: DEPRECATED: Sync code host repository and user permissions in the background.
-	PermissionsBackgroundSync *PermissionsBackgroundSync `json:"permissions.backgroundSync,omitempty"`
 	// PermissionsUserMapping description: Settings for Sourcegraph permissions, which allow the site admin to explicitly manage repository permissions via the GraphQL API. This setting cannot be enabled if repository permissions for any specific external service are enabled (i.e., when the external service's `authorization` field is set).
 	PermissionsUserMapping *PermissionsUserMapping `json:"permissions.userMapping,omitempty"`
+	// RepoConcurrentExternalServiceSyncers description: The number of concurrent external service syncers that can run.
+	RepoConcurrentExternalServiceSyncers int `json:"repoConcurrentExternalServiceSyncers,omitempty"`
 	// RepoListUpdateInterval description: Interval (in minutes) for checking code hosts (such as GitHub, Gitolite, etc.) for new repositories.
 	RepoListUpdateInterval int `json:"repoListUpdateInterval,omitempty"`
 	// SearchIndexEnabled description: Whether indexed search is enabled. If unset Sourcegraph detects the environment to decide if indexed search is enabled. Indexed search is RAM heavy, and is disabled by default in the single docker image. All other environments will have it enabled by default. The size of all your repository working copies is the amount of additional RAM required.
 	SearchIndexEnabled *bool `json:"search.index.enabled,omitempty"`
 	// SearchIndexSymbolsEnabled description: Whether indexed symbol search is enabled. This is contingent on the indexed search configuration, and is true by default for instances with indexed search enabled. Enabling this will cause every repository to re-index, which is a time consuming (several hours) operation. Additionally, it requires more storage and ram to accommodate the added symbols information in the search index.
 	SearchIndexSymbolsEnabled *bool `json:"search.index.symbols.enabled,omitempty"`
-	// SearchLargeFiles description: A list of file glob patterns where matching files will be indexed and searched regardless of their size. The glob pattern syntax can be found here: https://golang.org/pkg/path/filepath/#Match.
+	// SearchLargeFiles description: A list of file glob patterns where matching files will be indexed and searched regardless of their size. Files still need to be valid utf-8 to be indexed. The glob pattern syntax can be found here: https://golang.org/pkg/path/filepath/#Match.
 	SearchLargeFiles []string `json:"search.largeFiles,omitempty"`
+	// SearchLimits description: Limits that search applies for number of repositories searched and timeouts.
+	SearchLimits *SearchLimits `json:"search.limits,omitempty"`
 	// UpdateChannel description: The channel on which to automatically check for Sourcegraph updates.
 	UpdateChannel string `json:"update.channel,omitempty"`
 	// UseJaeger description: DEPRECATED. Use `"observability.tracing": { "sampling": "all" }`, instead. Enables Jaeger tracing.
 	UseJaeger bool `json:"useJaeger,omitempty"`
+	// UserReposMaxPerSite description: The site wide maximum number of repos that can be added by non site admins
+	UserReposMaxPerSite int `json:"userRepos.maxPerSite,omitempty"`
+	// UserReposMaxPerUser description: The per user maximum number of repos that can be added by non site admins
+	UserReposMaxPerUser int `json:"userRepos.maxPerUser,omitempty"`
 }
 
 // Step description: A command to run (as part of a sequence) in a repository branch to produce the campaign's changes.

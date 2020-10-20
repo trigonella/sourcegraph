@@ -7,6 +7,7 @@ import (
 
 	"github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
+	"github.com/pkg/errors"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
 	ee "github.com/tetrafolium/sourcegraph/enterprise/internal/campaigns"
 	"github.com/tetrafolium/sourcegraph/internal/campaigns"
@@ -53,9 +54,10 @@ func (r *campaignSpecResolver) ParsedInput() (graphqlbackend.JSONValue, error) {
 
 func (r *campaignSpecResolver) ChangesetSpecs(ctx context.Context, args *graphqlbackend.ChangesetSpecsConnectionArgs) (graphqlbackend.ChangesetSpecConnectionResolver, error) {
 	opts := ee.ListChangesetSpecsOpts{CampaignSpecID: r.campaignSpec.ID}
-	if args.First != nil {
-		opts.Limit = int(*args.First)
+	if err := validateFirstParamDefaults(args.First); err != nil {
+		return nil, err
 	}
+	opts.Limit = int(args.First)
 	if args.After != nil {
 		id, err := strconv.Atoi(*args.After)
 		if err != nil {
@@ -79,7 +81,11 @@ func (r *campaignSpecResolver) Description() graphqlbackend.CampaignDescriptionR
 }
 
 func (r *campaignSpecResolver) Creator(ctx context.Context) (*graphqlbackend.UserResolver, error) {
-	return graphqlbackend.UserByIDInt32(ctx, r.campaignSpec.UserID)
+	user, err := graphqlbackend.UserByIDInt32(ctx, r.campaignSpec.UserID)
+	if errcode.IsNotFound(err) {
+		return nil, nil
+	}
+	return user, err
 }
 
 func (r *campaignSpecResolver) Namespace(ctx context.Context) (*graphqlbackend.NamespaceResolver, error) {
@@ -101,7 +107,7 @@ func (r *campaignSpecResolver) computeNamespace(ctx context.Context) (*graphqlba
 
 		if errcode.IsNotFound(err) {
 			r.namespace = nil
-			r.namespaceErr = nil
+			r.namespaceErr = errors.New("namespace of campaign spec has been deleted")
 			return
 		}
 
@@ -149,7 +155,6 @@ func (r *campaignSpecResolver) DiffStat(ctx context.Context) (*graphqlbackend.Di
 		httpFactory: r.httpFactory,
 		opts: ee.ListChangesetSpecsOpts{
 			CampaignSpecID: r.campaignSpec.ID,
-			Limit:          -1,
 		},
 	}
 

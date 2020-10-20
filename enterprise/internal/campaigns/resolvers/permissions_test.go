@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/graph-gophers/graphql-go"
@@ -17,12 +18,11 @@ import (
 	"github.com/tetrafolium/sourcegraph/internal/actor"
 	"github.com/tetrafolium/sourcegraph/internal/api"
 	"github.com/tetrafolium/sourcegraph/internal/campaigns"
-	"github.com/tetrafolium/sourcegraph/internal/conf"
 	"github.com/tetrafolium/sourcegraph/internal/db/dbconn"
 	"github.com/tetrafolium/sourcegraph/internal/db/dbtesting"
 	"github.com/tetrafolium/sourcegraph/internal/extsvc"
 	"github.com/tetrafolium/sourcegraph/internal/extsvc/github"
-	"github.com/tetrafolium/sourcegraph/schema"
+	"github.com/tetrafolium/sourcegraph/internal/repoupdater"
 )
 
 func TestPermissionLevels(t *testing.T) {
@@ -39,6 +39,12 @@ func TestPermissionLevels(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// SyncChangeset uses EnqueueChangesetSync and tries to talk to repo-updater, hence we need to mock it.
+	repoupdater.MockEnqueueChangesetSync = func(ctx context.Context, ids []int64) error {
+		return nil
+	}
+	t.Cleanup(func() { repoupdater.MockEnqueueChangesetSync = nil })
+
 	ctx := context.Background()
 
 	// Global test data that we reuse in every test
@@ -46,8 +52,8 @@ func TestPermissionLevels(t *testing.T) {
 	userID := insertTestUser(t, dbconn.Global, "perm-level-user", false)
 
 	reposStore := repos.NewDBStore(dbconn.Global, sql.TxOptions{})
-	repo := newGitHubTestRepo("github.com/sourcegraph/sourcegraph", 1)
-	if err := reposStore.UpsertRepos(ctx, repo); err != nil {
+	repo := newGitHubTestRepo("github.com/sourcegraph/sourcegraph", newGitHubExternalService(t, reposStore))
+	if err := reposStore.InsertRepos(ctx, repo); err != nil {
 		t.Fatal(err)
 	}
 
@@ -60,13 +66,16 @@ func TestPermissionLevels(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	createCampaign := func(t *testing.T, s *ee.Store, name string, userID int32) (campaignID int64) {
+	createCampaign := func(t *testing.T, s *ee.Store, name string, userID int32, campaignSpecID int64) (campaignID int64) {
 		t.Helper()
 
 		c := &campaigns.Campaign{
-			Name:            name,
-			AuthorID:        userID,
-			NamespaceUserID: userID,
+			Name:             name,
+			InitialApplierID: userID,
+			NamespaceUserID:  userID,
+			LastApplierID:    userID,
+			LastAppliedAt:    time.Now(),
+			CampaignSpecID:   campaignSpecID,
 			// We attach the changeset to the campaign so we can test syncChangeset
 			ChangesetIDs: []int64{changeset.ID},
 		}
@@ -82,7 +91,7 @@ func TestPermissionLevels(t *testing.T) {
 		return c.ID
 	}
 
-	createCampaignSpec := func(t *testing.T, s *ee.Store, userID int32) (randID string) {
+	createCampaignSpec := func(t *testing.T, s *ee.Store, userID int32) (randID string, id int64) {
 		t.Helper()
 
 		cs := &campaigns.CampaignSpec{UserID: userID, NamespaceUserID: userID}
@@ -90,13 +99,13 @@ func TestPermissionLevels(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		return cs.RandID
+		return cs.RandID, cs.ID
 	}
 
 	cleanUpCampaigns := func(t *testing.T, s *ee.Store) {
 		t.Helper()
 
-		campaigns, next, err := store.ListCampaigns(ctx, ee.ListCampaignsOpts{Limit: 1000})
+		campaigns, next, err := s.ListCampaigns(ctx, ee.ListCampaignsOpts{LimitOpts: ee.LimitOpts{Limit: 1000}})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -105,29 +114,19 @@ func TestPermissionLevels(t *testing.T) {
 		}
 
 		for _, c := range campaigns {
-			if err := store.DeleteCampaign(ctx, c.ID); err != nil {
+			if err := s.DeleteCampaign(ctx, c.ID); err != nil {
 				t.Fatal(err)
 			}
 		}
 	}
 
 	t.Run("queries", func(t *testing.T) {
-		// We need to enable read access so that non-site-admin users can access
-		// the API and we can check for their admin rights.
-		// This can be removed once we enable campaigns for all users and only
-		// check for permissions.
-		readAccessEnabled := true
-		conf.Mock(&conf.Unified{SiteConfiguration: schema.SiteConfiguration{
-			CampaignsReadAccessEnabled: &readAccessEnabled,
-		}})
-		defer conf.Mock(nil)
-
 		cleanUpCampaigns(t, store)
 
-		adminCampaign := createCampaign(t, store, "admin", adminID)
-		adminCampaignSpec := createCampaignSpec(t, store, adminID)
-		userCampaign := createCampaign(t, store, "user", userID)
-		userCampaignSpec := createCampaignSpec(t, store, userID)
+		adminCampaignSpec, adminCampaignSpecID := createCampaignSpec(t, store, adminID)
+		adminCampaign := createCampaign(t, store, "admin", adminID, adminCampaignSpecID)
+		userCampaignSpec, userCampaignSpecID := createCampaignSpec(t, store, userID)
+		userCampaign := createCampaign(t, store, "user", userID, userCampaignSpecID)
 
 		t.Run("CampaignByID", func(t *testing.T) {
 			tests := []struct {
@@ -164,7 +163,7 @@ func TestPermissionLevels(t *testing.T) {
 
 			for _, tc := range tests {
 				t.Run(tc.name, func(t *testing.T) {
-					graphqlID := string(campaigns.MarshalCampaignID(tc.campaign))
+					graphqlID := string(marshalCampaignID(tc.campaign))
 
 					var res struct{ Node apitest.Campaign }
 
@@ -284,7 +283,7 @@ func TestPermissionLevels(t *testing.T) {
 					actorCtx := actor.WithActor(context.Background(), actor.FromUser(tc.currentUser))
 					expectedIDs := make(map[string]bool, len(tc.wantCampaigns))
 					for _, c := range tc.wantCampaigns {
-						graphqlID := string(campaigns.MarshalCampaignID(c))
+						graphqlID := string(marshalCampaignID(c))
 						expectedIDs[graphqlID] = true
 					}
 
@@ -390,8 +389,8 @@ func TestPermissionLevels(t *testing.T) {
 					t.Run(tc.name, func(t *testing.T) {
 						cleanUpCampaigns(t, store)
 
-						campaignID := createCampaign(t, store, "test-campaign", tc.campaignAuthor)
-						campaignSpecID := createCampaignSpec(t, store, tc.campaignAuthor)
+						campaignSpecRandID, campaignSpecID := createCampaignSpec(t, store, tc.campaignAuthor)
+						campaignID := createCampaign(t, store, "test-campaign", tc.campaignAuthor, campaignSpecID)
 
 						// We add the changeset to the campaign. It doesn't matter
 						// for the addChangesetsToCampaign mutation, since that is
@@ -402,9 +401,9 @@ func TestPermissionLevels(t *testing.T) {
 						}
 
 						mutation := m.mutationFunc(
-							string(campaigns.MarshalCampaignID(campaignID)),
+							string(marshalCampaignID(campaignID)),
 							string(marshalChangesetID(changeset.ID)),
-							string(marshalCampaignSpecRandID(campaignSpecID)),
+							string(marshalCampaignSpecRandID(campaignSpecRandID)),
 						)
 
 						actorCtx := actor.WithActor(ctx, actor.FromUser(tc.currentUser))
@@ -433,22 +432,90 @@ func TestPermissionLevels(t *testing.T) {
 			})
 		}
 	})
+
+	t.Run("admin-only create mutations", func(t *testing.T) {
+		// These can be removed once we enable creation of
+		// changesetSpecs/campaignSpecs/applyCampaign for non-site-admin users.
+		mutations := []struct {
+			name         string
+			mutationFunc func(userID string) string
+		}{
+			{
+				name: "createChangesetSpec",
+				mutationFunc: func(_ string) string {
+					return `mutation { createChangesetSpec(changesetSpec: "{}") { type } }`
+				},
+			},
+			{
+				name: "createCampaignSpec",
+				mutationFunc: func(userID string) string {
+					return fmt.Sprintf(`
+					mutation {
+						createCampaignSpec(namespace: %q, campaignSpec: "{}", changesetSpecs: []) {
+							id
+						}
+					}`, userID)
+				},
+			},
+		}
+
+		for _, m := range mutations {
+			t.Run(m.name, func(t *testing.T) {
+				tests := []struct {
+					name        string
+					currentUser int32
+					wantAuthErr bool
+				}{
+					{
+						name:        "authorized user",
+						currentUser: userID,
+						wantAuthErr: true,
+					},
+					{
+						name:        "authorized site-admin",
+						currentUser: adminID,
+						wantAuthErr: false,
+					},
+				}
+
+				for _, tc := range tests {
+					t.Run(tc.name, func(t *testing.T) {
+						cleanUpCampaigns(t, store)
+
+						mutation := m.mutationFunc(string(graphqlbackend.MarshalUserID(tc.currentUser)))
+
+						actorCtx := actor.WithActor(ctx, actor.FromUser(tc.currentUser))
+
+						var response struct{}
+						errs := apitest.Exec(actorCtx, t, s, nil, &response, mutation)
+
+						if tc.wantAuthErr {
+							if len(errs) != 1 {
+								t.Fatalf("expected 1 error, but got %d: %s", len(errs), errs)
+							}
+							if !strings.Contains(errs[0].Error(), "must be site admin") {
+								t.Fatalf("wrong error: %s %T", errs[0], errs[0])
+							}
+						} else {
+							// We don't care about other errors, we only want to
+							// check that we didn't get an auth error.
+							for _, e := range errs {
+								if strings.Contains(e.Error(), "must be site admin") {
+									t.Fatalf("auth error wrongly returned: %s %T", errs[0], errs[0])
+								}
+							}
+						}
+					})
+				}
+			})
+		}
+	})
 }
 
 func TestRepositoryPermissions(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
-
-	// We need to enable read access so that non-site-admin users can access
-	// the API and we can check for their admin rights.
-	// This can be removed once we enable campaigns for all users and only
-	// check for permissions.
-	readAccessEnabled := true
-	conf.Mock(&conf.Unified{SiteConfiguration: schema.SiteConfiguration{
-		CampaignsReadAccessEnabled: &readAccessEnabled,
-	}})
-	defer conf.Mock(nil)
 
 	dbtesting.SetupGlobalTestDB(t)
 
@@ -473,8 +540,8 @@ func TestRepositoryPermissions(t *testing.T) {
 	repos := make([]*repos.Repo, 0, 2)
 	for i := 0; i < cap(repos); i++ {
 		name := fmt.Sprintf("github.com/sourcegraph/repo-%d", i)
-		r := newGitHubTestRepo(name, i)
-		if err := reposStore.UpsertRepos(ctx, r); err != nil {
+		r := newGitHubTestRepo(name, newGitHubExternalService(t, reposStore))
+		if err := reposStore.InsertRepos(ctx, r); err != nil {
 			t.Fatal(err)
 		}
 		repos = append(repos, r)
@@ -512,10 +579,21 @@ func TestRepositoryPermissions(t *testing.T) {
 			changesetIDs = append(changesetIDs, c.ID)
 		}
 
-		campaign := &campaigns.Campaign{
-			Name:            "my campaign",
-			AuthorID:        userID,
+		spec := &campaigns.CampaignSpec{
 			NamespaceUserID: userID,
+			UserID:          userID,
+		}
+		if err := store.CreateCampaignSpec(ctx, spec); err != nil {
+			t.Fatal(err)
+		}
+
+		campaign := &campaigns.Campaign{
+			Name:             "my campaign",
+			InitialApplierID: userID,
+			NamespaceUserID:  userID,
+			LastApplierID:    userID,
+			LastAppliedAt:    time.Now(),
+			CampaignSpecID:   spec.ID,
 			// We attach the two changesets to the campaign
 			ChangesetIDs: changesetIDs,
 		}
@@ -533,7 +611,7 @@ func TestRepositoryPermissions(t *testing.T) {
 		userCtx := actor.WithActor(ctx, actor.FromUser(userID))
 
 		input := map[string]interface{}{
-			"campaign": string(campaigns.MarshalCampaignID(campaign.ID)),
+			"campaign": string(marshalCampaignID(campaign.ID)),
 		}
 		testCampaignResponse(t, s, userCtx, input, wantCampaignResponse{
 			changesetTypes:  map[string]int{"ExternalChangeset": 2},
@@ -585,7 +663,7 @@ func TestRepositoryPermissions(t *testing.T) {
 		// should not be returned, since that would leak information about the
 		// hidden changesets.
 		input = map[string]interface{}{
-			"campaign":   string(campaigns.MarshalCampaignID(campaign.ID)),
+			"campaign":   string(marshalCampaignID(campaign.ID)),
 			"checkState": string(campaigns.ChangesetCheckStatePassed),
 		}
 		wantCheckStateResponse := want
@@ -598,7 +676,7 @@ func TestRepositoryPermissions(t *testing.T) {
 		testCampaignResponse(t, s, userCtx, input, wantCheckStateResponse)
 
 		input = map[string]interface{}{
-			"campaign":    string(campaigns.MarshalCampaignID(campaign.ID)),
+			"campaign":    string(marshalCampaignID(campaign.ID)),
 			"reviewState": string(campaigns.ChangesetReviewStateChangesRequested),
 		}
 		wantReviewStateResponse := wantCheckStateResponse
@@ -903,7 +981,7 @@ query($campaignSpec: ID!) {
 }
 `
 
-func testChangesetSpecResponse(t *testing.T, s *graphql.Schema, ctx context.Context, randID string, wantType string) {
+func testChangesetSpecResponse(t *testing.T, s *graphql.Schema, ctx context.Context, randID, wantType string) {
 	t.Helper()
 
 	var res struct{ Node apitest.ChangesetSpec }

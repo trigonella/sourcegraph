@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -37,8 +38,7 @@ func NewStore(db dbutil.DB) *Store {
 // NewStoreWithClock returns a new Store backed by the given db and
 // clock for timestamps.
 func NewStoreWithClock(db dbutil.DB, clock func() time.Time) *Store {
-	handle := basestore.NewHandleWithDB(db)
-	return &Store{Store: basestore.NewWithHandle(handle), now: clock}
+	return &Store{Store: basestore.NewWithDB(db, sql.TxOptions{}), now: clock}
 }
 
 // Clock returns the clock used by the Store.
@@ -161,4 +161,25 @@ func nullStringColumn(s string) *string {
 		return nil
 	}
 	return &s
+}
+
+type LimitOpts struct {
+	Limit int
+}
+
+func (o LimitOpts) DBLimit() int {
+	if o.Limit == 0 {
+		return o.Limit
+	}
+	// We always request one item more than actually requested, to determine the next ID for pagination.
+	// The store should make sure to strip the last element in a result set, if len(rs) == o.DBLimit().
+	return o.Limit + 1
+}
+
+func (o LimitOpts) ToDB() string {
+	var limitClause string
+	if o.Limit > 0 {
+		limitClause = fmt.Sprintf("LIMIT %d", o.DBLimit())
+	}
+	return limitClause
 }

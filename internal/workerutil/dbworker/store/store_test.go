@@ -10,8 +10,80 @@ import (
 	"github.com/keegancsmith/sqlf"
 	"github.com/tetrafolium/sourcegraph/internal/db/basestore"
 	"github.com/tetrafolium/sourcegraph/internal/db/dbconn"
-	"github.com/tetrafolium/sourcegraph/internal/db/dbtesting"
 )
+
+func TestStoreQueuedCount(t *testing.T) {
+	setupStoreTest(t)
+
+	if _, err := dbconn.Global.Exec(`
+		INSERT INTO workerutil_test (id, state, uploaded_at)
+		VALUES
+			(1, 'queued', NOW() - '1 minute'::interval),
+			(2, 'queued', NOW() - '2 minute'::interval),
+			(3, 'state2', NOW() - '3 minute'::interval),
+			(4, 'queued', NOW() - '4 minute'::interval),
+			(5, 'state2', NOW() - '5 minute'::interval)
+	`); err != nil {
+		t.Fatalf("unexpected error inserting records: %s", err)
+	}
+
+	count, err := testStore(defaultTestStoreOptions).QueuedCount(context.Background(), nil)
+	if err != nil {
+		t.Fatalf("unexpected error getting queued count: %s", err)
+	}
+	if count != 3 {
+		t.Errorf("unexpected count. want=%d have=%d", 3, count)
+	}
+}
+
+func TestStoreQueuedCountFailed(t *testing.T) {
+	setupStoreTest(t)
+
+	if _, err := dbconn.Global.Exec(`
+		INSERT INTO workerutil_test (id, state, uploaded_at, num_failures)
+		VALUES
+			(1, 'queued', NOW() - '1 minute'::interval, 0),
+			(2, 'errored', NOW() - '2 minute'::interval, 2),
+			(3, 'state2', NOW() - '3 minute'::interval, 0),
+			(4, 'errored', NOW() - '4 minute'::interval, 3),
+			(5, 'state2', NOW() - '5 minute'::interval, 0)
+	`); err != nil {
+		t.Fatalf("unexpected error inserting records: %s", err)
+	}
+
+	count, err := testStore(defaultTestStoreOptions).QueuedCount(context.Background(), nil)
+	if err != nil {
+		t.Fatalf("unexpected error getting queued count: %s", err)
+	}
+	if count != 2 {
+		t.Errorf("unexpected count. want=%d have=%d", 2, count)
+	}
+}
+
+func TestStoreQueuedCountConditions(t *testing.T) {
+	setupStoreTest(t)
+
+	if _, err := dbconn.Global.Exec(`
+		INSERT INTO workerutil_test (id, state, uploaded_at)
+		VALUES
+			(1, 'queued', NOW() - '1 minute'::interval),
+			(2, 'queued', NOW() - '2 minute'::interval),
+			(3, 'state2', NOW() - '3 minute'::interval),
+			(4, 'queued', NOW() - '4 minute'::interval),
+			(5, 'state2', NOW() - '5 minute'::interval)
+	`); err != nil {
+		t.Fatalf("unexpected error inserting records: %s", err)
+	}
+
+	conditions := []*sqlf.Query{sqlf.Sprintf("w.id < 4")}
+	count, err := testStore(defaultTestStoreOptions).QueuedCount(context.Background(), conditions)
+	if err != nil {
+		t.Fatalf("unexpected error getting queued count: %s", err)
+	}
+	if count != 2 {
+		t.Errorf("unexpected count. want=%d have=%d", 2, count)
+	}
+}
 
 func TestStoreDequeueState(t *testing.T) {
 	setupStoreTest(t)
@@ -175,6 +247,92 @@ func TestStoreDequeueConcurrent(t *testing.T) {
 	}
 }
 
+func TestStoreDequeueRetryAfter(t *testing.T) {
+	setupStoreTest(t)
+
+	if _, err := dbconn.Global.Exec(`
+		INSERT INTO workerutil_test (id, state, finished_at, failure_message, num_failures, uploaded_at)
+		VALUES
+			(1, 'errored', NOW() - '6 minute'::interval, 'error', 3, NOW() - '2 minutes'::interval),
+			(2, 'errored', NOW() - '4 minute'::interval, 'error', 0, NOW() - '3 minutes'::interval),
+			(3, 'errored', NOW() - '6 minute'::interval, 'error', 5, NOW() - '4 minutes'::interval),
+			(4, 'queued',                          NULL,    NULL, 0, NOW() - '1 minutes'::interval)
+	`); err != nil {
+		t.Fatalf("unexpected error inserting records: %s", err)
+	}
+
+	options := StoreOptions{
+		TableName:     defaultTestStoreOptions.TableName,
+		StalledMaxAge: defaultTestStoreOptions.StalledMaxAge,
+
+		Scan: testScanFirstRecordRetry,
+		ColumnExpressions: []*sqlf.Query{
+			sqlf.Sprintf("w.id"),
+			sqlf.Sprintf("w.state"),
+			sqlf.Sprintf("w.num_resets"),
+		},
+		OrderByExpression: sqlf.Sprintf("w.uploaded_at"),
+		MaxNumRetries:     5,
+		RetryAfter:        5 * time.Minute,
+	}
+
+	store := testStore(options)
+
+	// Dequeue errored record
+	record1, tx, ok, err := store.Dequeue(context.Background(), nil)
+	assertDequeueRecordRetryResult(t, 1, record1, tx, ok, err)
+
+	// Dequeue non-errored record
+	record2, tx, ok, err := store.Dequeue(context.Background(), nil)
+	assertDequeueRecordRetryResult(t, 4, record2, tx, ok, err)
+
+	// Does not dequeue old or max retried errored
+	if _, _, ok, _ := store.Dequeue(context.Background(), nil); ok {
+		t.Fatalf("did not expect a third dequeueable record")
+	}
+}
+
+func TestStoreDequeueRetryAfterDisabled(t *testing.T) {
+	setupStoreTest(t)
+
+	if _, err := dbconn.Global.Exec(`
+		INSERT INTO workerutil_test (id, state, finished_at, failure_message, num_failures, uploaded_at)
+		VALUES
+			(1, 'errored', NOW() - '6 minute'::interval, 'error', 3, NOW() - '2 minutes'::interval),
+			(2, 'errored', NOW() - '4 minute'::interval, 'error', 0, NOW() - '3 minutes'::interval),
+			(3, 'errored', NOW() - '6 minute'::interval, 'error', 5, NOW() - '4 minutes'::interval),
+			(4, 'queued',                          NULL,    NULL, 0, NOW() - '1 minutes'::interval)
+	`); err != nil {
+		t.Fatalf("unexpected error inserting records: %s", err)
+	}
+
+	options := StoreOptions{
+		TableName:     defaultTestStoreOptions.TableName,
+		StalledMaxAge: defaultTestStoreOptions.StalledMaxAge,
+
+		Scan: testScanFirstRecordRetry,
+		ColumnExpressions: []*sqlf.Query{
+			sqlf.Sprintf("w.id"),
+			sqlf.Sprintf("w.state"),
+			sqlf.Sprintf("w.num_resets"),
+		},
+		OrderByExpression: sqlf.Sprintf("w.uploaded_at"),
+		MaxNumRetries:     5,
+		RetryAfter:        0,
+	}
+
+	store := testStore(options)
+
+	// Dequeue non-errored record only
+	record2, tx, ok, err := store.Dequeue(context.Background(), nil)
+	assertDequeueRecordRetryResult(t, 4, record2, tx, ok, err)
+
+	// Does not dequeue errored
+	if _, _, ok, _ := store.Dequeue(context.Background(), nil); ok {
+		t.Fatalf("did not expect a second dequeueable record")
+	}
+}
+
 func TestStoreRequeue(t *testing.T) {
 	setupStoreTest(t)
 
@@ -216,12 +374,8 @@ func TestStoreRequeue(t *testing.T) {
 	}
 }
 
-func TestStoreMarkComplete(t *testing.T) {
-	if testing.Short() {
-		t.Skip()
-	}
-	dbtesting.SetupGlobalTestDB(t)
-	store := testStore(defaultTestStoreOptions)
+func TestStoreSetLogContents(t *testing.T) {
+	setupStoreTest(t)
 
 	if _, err := dbconn.Global.Exec(`
 		INSERT INTO workerutil_test (id, state)
@@ -231,7 +385,34 @@ func TestStoreMarkComplete(t *testing.T) {
 		t.Fatalf("unexpected error inserting records: %s", err)
 	}
 
-	marked, err := store.MarkComplete(context.Background(), 1)
+	if err := testStore(defaultTestStoreOptions).SetLogContents(context.Background(), 1, "<load payload>"); err != nil {
+		t.Fatalf("unexpected error marking upload as completed: %s", err)
+	}
+
+	contents, err := basestore.ScanStrings(dbconn.Global.Query(`SELECT log_contents FROM workerutil_test WHERE id = 1`))
+	if err != nil {
+		t.Fatalf("unexpected error scanning record: %s", err)
+	}
+	if len(contents) != 1 {
+		t.Fatal("expected record to exist")
+	}
+	if contents[0] != "<load payload>" {
+		t.Errorf("unexpected log contents. want=%q have=%q", "<load payload>", contents[0])
+	}
+}
+
+func TestStoreMarkComplete(t *testing.T) {
+	setupStoreTest(t)
+
+	if _, err := dbconn.Global.Exec(`
+		INSERT INTO workerutil_test (id, state)
+		VALUES
+			(1, 'processing')
+	`); err != nil {
+		t.Fatalf("unexpected error inserting records: %s", err)
+	}
+
+	marked, err := testStore(defaultTestStoreOptions).MarkComplete(context.Background(), 1)
 	if err != nil {
 		t.Fatalf("unexpected error marking upload as completed: %s", err)
 	}
@@ -263,11 +444,7 @@ func TestStoreMarkComplete(t *testing.T) {
 }
 
 func TestStoreMarkCompleteNotProcessing(t *testing.T) {
-	if testing.Short() {
-		t.Skip()
-	}
-	dbtesting.SetupGlobalTestDB(t)
-	store := testStore(defaultTestStoreOptions)
+	setupStoreTest(t)
 
 	if _, err := dbconn.Global.Exec(`
 		INSERT INTO workerutil_test (id, state, failure_message)
@@ -277,7 +454,7 @@ func TestStoreMarkCompleteNotProcessing(t *testing.T) {
 		t.Fatalf("unexpected error inserting records: %s", err)
 	}
 
-	marked, err := store.MarkComplete(context.Background(), 1)
+	marked, err := testStore(defaultTestStoreOptions).MarkComplete(context.Background(), 1)
 	if err != nil {
 		t.Fatalf("unexpected error marking upload as completed: %s", err)
 	}
@@ -309,11 +486,7 @@ func TestStoreMarkCompleteNotProcessing(t *testing.T) {
 }
 
 func TestStoreMarkErrored(t *testing.T) {
-	if testing.Short() {
-		t.Skip()
-	}
-	dbtesting.SetupGlobalTestDB(t)
-	store := testStore(defaultTestStoreOptions)
+	setupStoreTest(t)
 
 	if _, err := dbconn.Global.Exec(`
 		INSERT INTO workerutil_test (id, state)
@@ -323,7 +496,7 @@ func TestStoreMarkErrored(t *testing.T) {
 		t.Fatalf("unexpected error inserting records: %s", err)
 	}
 
-	marked, err := store.MarkErrored(context.Background(), 1, "new message")
+	marked, err := testStore(defaultTestStoreOptions).MarkErrored(context.Background(), 1, "new message")
 	if err != nil {
 		t.Fatalf("unexpected error marking upload as completed: %s", err)
 	}
@@ -355,11 +528,7 @@ func TestStoreMarkErrored(t *testing.T) {
 }
 
 func TestStoreMarkErroredAlreadyCompleted(t *testing.T) {
-	if testing.Short() {
-		t.Skip()
-	}
-	dbtesting.SetupGlobalTestDB(t)
-	store := testStore(defaultTestStoreOptions)
+	setupStoreTest(t)
 
 	if _, err := dbconn.Global.Exec(`
 		INSERT INTO workerutil_test (id, state)
@@ -369,7 +538,7 @@ func TestStoreMarkErroredAlreadyCompleted(t *testing.T) {
 		t.Fatalf("unexpected error inserting records: %s", err)
 	}
 
-	marked, err := store.MarkErrored(context.Background(), 1, "new message")
+	marked, err := testStore(defaultTestStoreOptions).MarkErrored(context.Background(), 1, "new message")
 	if err != nil {
 		t.Fatalf("unexpected error marking upload as completed: %s", err)
 	}
@@ -401,11 +570,7 @@ func TestStoreMarkErroredAlreadyCompleted(t *testing.T) {
 }
 
 func TestStoreMarkErroredAlreadyErrored(t *testing.T) {
-	if testing.Short() {
-		t.Skip()
-	}
-	dbtesting.SetupGlobalTestDB(t)
-	store := testStore(defaultTestStoreOptions)
+	setupStoreTest(t)
 
 	if _, err := dbconn.Global.Exec(`
 		INSERT INTO workerutil_test (id, state, failure_message)
@@ -415,7 +580,7 @@ func TestStoreMarkErroredAlreadyErrored(t *testing.T) {
 		t.Fatalf("unexpected error inserting records: %s", err)
 	}
 
-	marked, err := store.MarkErrored(context.Background(), 1, "new message")
+	marked, err := testStore(defaultTestStoreOptions).MarkErrored(context.Background(), 1, "new message")
 	if err != nil {
 		t.Fatalf("unexpected error marking upload as completed: %s", err)
 	}

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/tetrafolium/sourcegraph/internal/db/dbtest"
+	"github.com/tetrafolium/sourcegraph/internal/db/dbtesting"
 )
 
 var dsn = flag.String("dsn", "", "Database connection string to use in integration tests")
@@ -18,6 +19,7 @@ func TestIntegration(t *testing.T) {
 
 	t.Parallel()
 
+	dbtesting.SetupGlobalTestDB(t)
 	db := dbtest.NewDB(t, *dsn)
 
 	userID := insertTestUser(t, db)
@@ -43,6 +45,17 @@ func truncateTables(t *testing.T, db *sql.DB, tables ...string) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func insertTestOrg(t *testing.T, db *sql.DB) (orgID int32) {
+	t.Helper()
+
+	err := db.QueryRow("INSERT INTO orgs (name) VALUES ('bbs-org') RETURNING id").Scan(&orgID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return orgID
 }
 
 func insertTestUser(t *testing.T, db *sql.DB) (userID int32) {

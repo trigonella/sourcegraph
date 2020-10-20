@@ -1,38 +1,42 @@
 package main
 
 import (
+	"database/sql"
 	"log"
-	"os"
-	"os/signal"
-	"syscall"
 
+	"github.com/gorilla/mux"
 	"github.com/inconshreveable/log15"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
 	commitupdater "github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/commit-updater"
 	"github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/metrics"
 	"github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/resetter"
-	"github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/server"
 	"github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/worker"
 	bundles "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/client"
 	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/commits"
 	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/gitserver"
 	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
 	"github.com/tetrafolium/sourcegraph/internal/conf"
-	"github.com/tetrafolium/sourcegraph/internal/db/basestore"
 	"github.com/tetrafolium/sourcegraph/internal/db/dbconn"
 	"github.com/tetrafolium/sourcegraph/internal/debugserver"
 	"github.com/tetrafolium/sourcegraph/internal/env"
+	"github.com/tetrafolium/sourcegraph/internal/goroutine"
+	"github.com/tetrafolium/sourcegraph/internal/httpserver"
+	"github.com/tetrafolium/sourcegraph/internal/logging"
 	"github.com/tetrafolium/sourcegraph/internal/observation"
 	"github.com/tetrafolium/sourcegraph/internal/sqliteutil"
 	"github.com/tetrafolium/sourcegraph/internal/trace"
 	"github.com/tetrafolium/sourcegraph/internal/tracer"
 )
 
+const Port = 3188
+
 func main() {
 	env.Lock()
 	env.HandleHelpFlag()
+	logging.Init()
 	tracer.Init()
+	trace.Init(true)
 
 	sqliteutil.MustRegisterSqlite3WithPcre()
 
@@ -51,11 +55,13 @@ func main() {
 		Registerer: prometheus.DefaultRegisterer,
 	}
 
+	codeIntelDB := mustInitializeCodeIntelDatabase()
+
 	store := store.NewObserved(mustInitializeStore(), observationContext)
 	MustRegisterQueueMonitor(observationContext.Registerer, store)
 	workerMetrics := metrics.NewWorkerMetrics(observationContext)
 	resetterMetrics := resetter.NewResetterMetrics(prometheus.DefaultRegisterer)
-	server := server.New()
+	server := httpserver.New(Port, func(router *mux.Router) {})
 	uploadResetter := resetter.NewUploadResetter(store, resetInterval, resetterMetrics)
 	commitUpdater := commitupdater.NewUpdater(
 		store,
@@ -66,48 +72,51 @@ func main() {
 	)
 	worker := worker.NewWorker(
 		store,
-		bundles.New(bundleManagerURL),
+		codeIntelDB,
+		bundles.New(codeIntelDB, observationContext, bundleManagerURL),
 		gitserver.DefaultClient,
 		workerPollInterval,
 		workerConcurrency,
 		workerBudget,
 		workerMetrics,
+		observationContext,
 	)
 
-	go server.Start()
-	go uploadResetter.Start()
-	go commitUpdater.Start()
-	go worker.Start()
 	go debugserver.Start()
-
-	// Attempt to clean up after first shutdown signal
-	signals := make(chan os.Signal, 2)
-	signal.Notify(signals, syscall.SIGINT, syscall.SIGHUP)
-	<-signals
-
-	go func() {
-		// Insta-shutdown on a second signal
-		<-signals
-		os.Exit(0)
-	}()
-
-	server.Stop()
-	uploadResetter.Stop()
-	commitUpdater.Stop()
-	worker.Stop()
+	goroutine.MonitorBackgroundRoutines(server, uploadResetter, commitUpdater, worker)
 }
 
 func mustInitializeStore() store.Store {
 	postgresDSN := conf.Get().ServiceConnections.PostgresDSN
 	conf.Watch(func() {
 		if newDSN := conf.Get().ServiceConnections.PostgresDSN; postgresDSN != newDSN {
-			log.Fatalf("detected repository DSN change, restarting to take effect: %s", newDSN)
+			log.Fatalf("detected database DSN change, restarting to take effect: %s", newDSN)
 		}
 	})
 
-	if err := dbconn.ConnectToDB(postgresDSN); err != nil {
-		log.Fatalf("failed to connect to database: %s", err)
+	if err := dbconn.SetupGlobalConnection(postgresDSN); err != nil {
+		log.Fatalf("failed to connect to frontend database: %s", err)
 	}
 
-	return store.NewWithHandle(basestore.NewHandleWithDB(dbconn.Global))
+	return store.NewWithDB(dbconn.Global)
+}
+
+func mustInitializeCodeIntelDatabase() *sql.DB {
+	postgresDSN := conf.Get().ServiceConnections.CodeIntelPostgresDSN
+	conf.Watch(func() {
+		if newDSN := conf.Get().ServiceConnections.CodeIntelPostgresDSN; postgresDSN != newDSN {
+			log.Fatalf("detected database DSN change, restarting to take effect: %s", newDSN)
+		}
+	})
+
+	db, err := dbconn.New(postgresDSN, "_codeintel")
+	if err != nil {
+		log.Fatalf("failed to connect to codeintel database: %s", err)
+	}
+
+	if err := dbconn.MigrateDB(db, "codeintel"); err != nil {
+		log.Fatalf("failed to perform codeintel database migration: %s", err)
+	}
+
+	return db
 }

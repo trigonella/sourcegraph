@@ -5,10 +5,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/graph-gophers/graphql-go"
+	"github.com/sourcegraph/campaignutils/overridable"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/backend"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
 	"github.com/tetrafolium/sourcegraph/cmd/repo-updater/repos"
@@ -33,7 +36,7 @@ func TestNullIDResilience(t *testing.T) {
 	ctx := backend.WithAuthzBypass(context.Background())
 
 	ids := []graphql.ID{
-		campaigns.MarshalCampaignID(0),
+		marshalCampaignID(0),
 		marshalChangesetID(0),
 		marshalCampaignSpecRandID(""),
 		marshalChangesetSpecRandID(""),
@@ -51,12 +54,12 @@ func TestNullIDResilience(t *testing.T) {
 	}
 
 	mutations := []string{
-		fmt.Sprintf(`mutation { closeCampaign(campaign: %q) { id } }`, campaigns.MarshalCampaignID(0)),
-		fmt.Sprintf(`mutation { deleteCampaign(campaign: %q) { alwaysNil } }`, campaigns.MarshalCampaignID(0)),
+		fmt.Sprintf(`mutation { closeCampaign(campaign: %q) { id } }`, marshalCampaignID(0)),
+		fmt.Sprintf(`mutation { deleteCampaign(campaign: %q) { alwaysNil } }`, marshalCampaignID(0)),
 		fmt.Sprintf(`mutation { syncChangeset(changeset: %q) { alwaysNil } }`, marshalChangesetID(0)),
 		fmt.Sprintf(`mutation { applyCampaign(campaignSpec: %q) { id } }`, marshalCampaignSpecRandID("")),
 		fmt.Sprintf(`mutation { createCampaign(campaignSpec: %q) { id } }`, marshalCampaignSpecRandID("")),
-		fmt.Sprintf(`mutation { moveCampaign(campaign: %q, newName: "foobar") { id } }`, campaigns.MarshalCampaignID(0)),
+		fmt.Sprintf(`mutation { moveCampaign(campaign: %q, newName: "foobar") { id } }`, marshalCampaignID(0)),
 	}
 
 	for _, m := range mutations {
@@ -85,8 +88,8 @@ func TestCreateCampaignSpec(t *testing.T) {
 	store := ee.NewStore(dbconn.Global)
 	reposStore := repos.NewDBStore(dbconn.Global, sql.TxOptions{})
 
-	repo := newGitHubTestRepo("github.com/sourcegraph/sourcegraph", 1)
-	if err := reposStore.UpsertRepos(ctx, repo); err != nil {
+	repo := newGitHubTestRepo("github.com/sourcegraph/sourcegraph", newGitHubExternalService(t, reposStore))
+	if err := reposStore.InsertRepos(ctx, repo); err != nil {
 		t.Fatal(err)
 	}
 
@@ -105,15 +108,14 @@ func TestCreateCampaignSpec(t *testing.T) {
 	s, err := graphqlbackend.NewSchema(r, nil, nil)
 	if err != nil {
 		t.Fatal(err)
-
 	}
 
-	userApiID := string(graphqlbackend.MarshalUserID(userID))
+	userAPIID := string(graphqlbackend.MarshalUserID(userID))
 	changesetSpecID := marshalChangesetSpecRandID(changesetSpec.RandID)
 	rawSpec := ct.TestRawCampaignSpec
 
 	input := map[string]interface{}{
-		"namespace":      userApiID,
+		"namespace":      userAPIID,
 		"campaignSpec":   rawSpec,
 		"changesetSpecs": []graphql.ID{changesetSpecID},
 	}
@@ -136,9 +138,9 @@ func TestCreateCampaignSpec(t *testing.T) {
 		ExpiresAt:     have.ExpiresAt,
 		OriginalInput: rawSpec,
 		ParsedInput:   graphqlbackend.JSONValue{Value: unmarshaled},
-		ApplyURL:      fmt.Sprintf("/users/%s/campaigns/apply?spec=%s", username, have.ID),
-		Namespace:     apitest.UserOrg{ID: userApiID, DatabaseID: userID, SiteAdmin: true},
-		Creator:       apitest.User{ID: userApiID, DatabaseID: userID, SiteAdmin: true},
+		ApplyURL:      fmt.Sprintf("/users/%s/campaigns/apply/%s", username, have.ID),
+		Namespace:     apitest.UserOrg{ID: userAPIID, DatabaseID: userID, SiteAdmin: true},
+		Creator:       &apitest.User{ID: userAPIID, DatabaseID: userID, SiteAdmin: true},
 		ChangesetSpecs: apitest.ChangesetSpecConnection{
 			Nodes: []apitest.ChangesetSpec{
 				{
@@ -200,8 +202,8 @@ func TestCreateChangesetSpec(t *testing.T) {
 	store := ee.NewStore(dbconn.Global)
 	reposStore := repos.NewDBStore(dbconn.Global, sql.TxOptions{})
 
-	repo := newGitHubTestRepo("github.com/sourcegraph/sourcegraph", 1)
-	if err := reposStore.UpsertRepos(ctx, repo); err != nil {
+	repo := newGitHubTestRepo("github.com/sourcegraph/sourcegraph", newGitHubExternalService(t, reposStore))
+	if err := reposStore.InsertRepos(ctx, repo); err != nil {
 		t.Fatal(err)
 	}
 
@@ -209,7 +211,6 @@ func TestCreateChangesetSpec(t *testing.T) {
 	s, err := graphqlbackend.NewSchema(r, nil, nil)
 	if err != nil {
 		t.Fatal(err)
-
 	}
 
 	input := map[string]interface{}{
@@ -270,15 +271,19 @@ func TestApplyCampaign(t *testing.T) {
 
 	userID := insertTestUser(t, dbconn.Global, "apply-campaign", true)
 
-	store := ee.NewStore(dbconn.Global)
+	now := time.Now().UTC().Truncate(time.Microsecond)
+	clock := func() time.Time {
+		return now.UTC().Truncate(time.Microsecond)
+	}
+	store := ee.NewStoreWithClock(dbconn.Global, clock)
 	reposStore := repos.NewDBStore(dbconn.Global, sql.TxOptions{})
 
-	repo := newGitHubTestRepo("github.com/sourcegraph/sourcegraph", 1)
-	if err := reposStore.UpsertRepos(ctx, repo); err != nil {
+	repo := newGitHubTestRepo("github.com/sourcegraph/sourcegraph", newGitHubExternalService(t, reposStore))
+	if err := reposStore.InsertRepos(ctx, repo); err != nil {
 		t.Fatal(err)
 	}
 
-	repoApiID := graphqlbackend.MarshalRepositoryID(repo.ID)
+	repoAPIID := graphqlbackend.MarshalRepositoryID(repo.ID)
 
 	campaignSpec := &campaigns.CampaignSpec{
 		RawSpec: ct.TestRawCampaignSpec,
@@ -292,7 +297,7 @@ func TestApplyCampaign(t *testing.T) {
 				Commit: campaigns.CommitTemplate{
 					Message: "Add hello world",
 				},
-				Published: false,
+				Published: overridable.FromBoolOrString(false),
 			},
 		},
 		UserID:          userID,
@@ -305,7 +310,7 @@ func TestApplyCampaign(t *testing.T) {
 	changesetSpec := &campaigns.ChangesetSpec{
 		CampaignSpecID: campaignSpec.ID,
 		Spec: &campaigns.ChangesetSpecDescription{
-			BaseRepository: repoApiID,
+			BaseRepository: repoAPIID,
 		},
 		RepoID: repo.ID,
 		UserID: userID,
@@ -320,7 +325,7 @@ func TestApplyCampaign(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	userApiID := string(graphqlbackend.MarshalUserID(userID))
+	userAPIID := string(graphqlbackend.MarshalUserID(userID))
 	input := map[string]interface{}{
 		"campaignSpec": string(marshalCampaignSpecRandID(campaignSpec.RandID)),
 	}
@@ -329,21 +334,25 @@ func TestApplyCampaign(t *testing.T) {
 	actorCtx := actor.WithActor(ctx, actor.FromUser(userID))
 	apitest.MustExec(actorCtx, t, s, input, &response, mutationApplyCampaign)
 
+	apiUser := &apitest.User{
+		ID:         userAPIID,
+		DatabaseID: userID,
+		SiteAdmin:  true,
+	}
+
 	have := response.ApplyCampaign
 	want := apitest.Campaign{
 		ID:          have.ID,
 		Name:        campaignSpec.Spec.Name,
 		Description: campaignSpec.Spec.Description,
 		Namespace: apitest.UserOrg{
-			ID:         userApiID,
+			ID:         userAPIID,
 			DatabaseID: userID,
 			SiteAdmin:  true,
 		},
-		Author: apitest.User{
-			ID:         userApiID,
-			DatabaseID: userID,
-			SiteAdmin:  true,
-		},
+		InitialApplier: apiUser,
+		LastApplier:    apiUser,
+		LastAppliedAt:  marshalDateTime(t, now),
 		Changesets: apitest.ChangesetConnection{
 			Nodes: []apitest.Changeset{
 				{Typename: "ExternalChangeset", ReconcilerState: "QUEUED"},
@@ -372,11 +381,11 @@ func TestApplyCampaign(t *testing.T) {
 	}
 
 	// Execute it again but ensureCampaign set to wrong campaign ID
-	campaignID, err := campaigns.UnmarshalCampaignID(graphql.ID(have3.ID))
+	campaignID, err := unmarshalCampaignID(graphql.ID(have3.ID))
 	if err != nil {
 		t.Fatal(err)
 	}
-	input["ensureCampaign"] = campaigns.MarshalCampaignID(campaignID + 999)
+	input["ensureCampaign"] = marshalCampaignID(campaignID + 999)
 	errs := apitest.Exec(actorCtx, t, s, input, &response, mutationApplyCampaign)
 	if len(errs) == 0 {
 		t.Fatalf("expected errors, got none")
@@ -390,7 +399,9 @@ fragment o on Org  { id, name }
 mutation($campaignSpec: ID!, $ensureCampaign: ID){
   applyCampaign(campaignSpec: $campaignSpec, ensureCampaign: $ensureCampaign) {
     id, name, description
-    author    { ...u }
+    initialApplier    { ...u }
+    lastApplier       { ...u }
+    lastAppliedAt
     namespace {
         ... on User { ...u }
         ... on Org  { ...o }
@@ -504,10 +515,12 @@ func TestMoveCampaign(t *testing.T) {
 	}
 
 	campaign := &campaigns.Campaign{
-		CampaignSpecID:  campaignSpec.ID,
-		Name:            "old-name",
-		AuthorID:        userID,
-		NamespaceUserID: campaignSpec.UserID,
+		CampaignSpecID:   campaignSpec.ID,
+		Name:             "old-name",
+		InitialApplierID: userID,
+		LastApplierID:    userID,
+		LastAppliedAt:    time.Now(),
+		NamespaceUserID:  campaignSpec.UserID,
 	}
 	if err := store.CreateCampaign(ctx, campaign); err != nil {
 		t.Fatal(err)
@@ -520,10 +533,11 @@ func TestMoveCampaign(t *testing.T) {
 	}
 
 	// Move to a new name
-	campaignApiID := string(campaigns.MarshalCampaignID(campaign.ID))
+	campaignAPIID := string(marshalCampaignID(campaign.ID))
+	newCampaignName := "new-name"
 	input := map[string]interface{}{
-		"campaign": campaignApiID,
-		"newName":  "new-name",
+		"campaign": campaignAPIID,
+		"newName":  newCampaignName,
 	}
 
 	var response struct{ MoveCampaign apitest.Campaign }
@@ -535,25 +549,25 @@ func TestMoveCampaign(t *testing.T) {
 		t.Fatalf("unexpected name (-want +got):\n%s", diff)
 	}
 
-	wantURL := fmt.Sprintf("/users/%s/campaigns/%s", username, campaignApiID)
+	wantURL := fmt.Sprintf("/users/%s/campaigns/%s", username, newCampaignName)
 	if diff := cmp.Diff(wantURL, haveCampaign.URL); diff != "" {
 		t.Fatalf("unexpected URL (-want +got):\n%s", diff)
 	}
 
 	// Move to a new namespace
-	orgApiID := graphqlbackend.MarshalOrgID(org.ID)
+	orgAPIID := graphqlbackend.MarshalOrgID(org.ID)
 	input = map[string]interface{}{
-		"campaign":     string(campaigns.MarshalCampaignID(campaign.ID)),
-		"newNamespace": orgApiID,
+		"campaign":     string(marshalCampaignID(campaign.ID)),
+		"newNamespace": orgAPIID,
 	}
 
 	apitest.MustExec(actorCtx, t, s, input, &response, mutationMoveCampaign)
 
 	haveCampaign = response.MoveCampaign
-	if diff := cmp.Diff(string(orgApiID), haveCampaign.Namespace.ID); diff != "" {
+	if diff := cmp.Diff(string(orgAPIID), haveCampaign.Namespace.ID); diff != "" {
 		t.Fatalf("unexpected namespace (-want +got):\n%s", diff)
 	}
-	wantURL = fmt.Sprintf("/organizations/%s/campaigns/%s", org.Name, campaignApiID)
+	wantURL = fmt.Sprintf("/organizations/%s/campaigns/%s", org.Name, newCampaignName)
 	if diff := cmp.Diff(wantURL, haveCampaign.URL); diff != "" {
 		t.Fatalf("unexpected URL (-want +got):\n%s", diff)
 	}
@@ -566,7 +580,7 @@ fragment o on Org  { id, name }
 mutation($campaign: ID!, $newName: String, $newNamespace: ID){
   moveCampaign(campaign: $campaign, newName: $newName, newNamespace: $newNamespace) {
 	id, name, description
-	author    { ...u }
+	initialApplier  { ...u }
 	namespace {
 		... on User { ...u }
 		... on Org  { ...o }
@@ -582,14 +596,16 @@ func TestListChangesetOptsFromArgs(t *testing.T) {
 		"PUBLISHED",
 		"INVALID",
 	}
-	reconcilerStates := []campaigns.ReconcilerState{
-		"PROCESSING",
-		campaigns.ReconcilerStateProcessing,
-		"INVALID",
+	reconcilerStates := [][]campaigns.ReconcilerState{
+		{"PROCESSING"},
+		{campaigns.ReconcilerStateProcessing},
+		{"INVALID"},
 	}
 	wantExternalStates := []campaigns.ChangesetExternalState{"OPEN", "INVALID"}
 	wantReviewStates := []campaigns.ChangesetReviewState{"APPROVED", "INVALID"}
 	wantCheckStates := []campaigns.ChangesetCheckState{"PENDING", "INVALID"}
+	wantOnlyPublishedByThisCampaign := []bool{true}
+	var campaignID int64 = 1
 
 	tcs := []struct {
 		args       *graphqlbackend.ListChangesetsArgs
@@ -606,10 +622,10 @@ func TestListChangesetOptsFromArgs(t *testing.T) {
 		// First argument is set in opts, and considered safe.
 		{
 			args: &graphqlbackend.ListChangesetsArgs{
-				First: &wantFirst,
+				First: wantFirst,
 			},
 			wantSafe:   true,
-			wantParsed: ee.ListChangesetsOpts{Limit: 10},
+			wantParsed: ee.ListChangesetsOpts{LimitOpts: ee.LimitOpts{Limit: 10}},
 		},
 		// Setting publication state is safe and transferred to opts.
 		{
@@ -635,7 +651,7 @@ func TestListChangesetOptsFromArgs(t *testing.T) {
 			},
 			wantSafe: true,
 			wantParsed: ee.ListChangesetsOpts{
-				ReconcilerState: &reconcilerStates[1],
+				ReconcilerStates: reconcilerStates[1],
 			},
 		},
 		// Setting invalid reconciler state fails.
@@ -690,136 +706,38 @@ func TestListChangesetOptsFromArgs(t *testing.T) {
 			},
 			wantErr: "changeset check state not valid",
 		},
-	}
-	for _, tc := range tcs {
-		haveParsed, haveSafe, err := listChangesetOptsFromArgs(tc.args)
-		if tc.wantErr == "" && err != nil {
-			t.Fatal(err)
-		}
-		haveErr := fmt.Sprintf("%v", err)
-		wantErr := tc.wantErr
-		if wantErr == "" {
-			wantErr = "<nil>"
-		}
-		if have, want := haveErr, wantErr; have != want {
-			t.Errorf("wrong error returned. have=%q want=%q", have, want)
-		}
-		if diff := cmp.Diff(haveParsed, tc.wantParsed); diff != "" {
-			t.Errorf("wrong args returned. diff=%s", diff)
-		}
-		if have, want := haveSafe, tc.wantSafe; have != want {
-			t.Errorf("wrong safe value returned. have=%t want=%t", have, want)
-		}
-	}
-}
-
-func TestCampaignsListing(t *testing.T) {
-	if testing.Short() {
-		t.Skip()
-	}
-
-	ctx := context.Background()
-	dbtesting.SetupGlobalTestDB(t)
-
-	userID := insertTestUser(t, dbconn.Global, "campaigns-lsiting", true)
-	actorCtx := actor.WithActor(ctx, actor.FromUser(userID))
-
-	org, err := db.Orgs.Create(ctx, "org", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	store := ee.NewStore(dbconn.Global)
-
-	r := &Resolver{store: store}
-	s, err := graphqlbackend.NewSchema(r, nil, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	createCampaign := func(t *testing.T, c *campaigns.Campaign) {
-		t.Helper()
-
-		c.Name = "n"
-		c.AuthorID = userID
-		if err := store.CreateCampaign(ctx, c); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	t.Run("listing a users campaigns", func(t *testing.T) {
-		campaign := &campaigns.Campaign{NamespaceUserID: userID}
-		createCampaign(t, campaign)
-
-		userApiID := string(graphqlbackend.MarshalUserID(userID))
-		input := map[string]interface{}{"node": userApiID}
-
-		var response struct{ Node apitest.User }
-		apitest.MustExec(actorCtx, t, s, input, &response, listNamespacesCampaigns)
-
-		want := apitest.User{
-			ID: userApiID,
-			Campaigns: apitest.CampaignConnection{
-				TotalCount: 1,
-				Nodes: []apitest.Campaign{
-					{ID: string(campaigns.MarshalCampaignID(campaign.ID))},
-				},
+		// Setting OnlyPublishedByThisCampaign true.
+		{
+			args: &graphqlbackend.ListChangesetsArgs{
+				OnlyPublishedByThisCampaign: &wantOnlyPublishedByThisCampaign[0],
 			},
-		}
-
-		if diff := cmp.Diff(want, response.Node); diff != "" {
-			t.Fatalf("wrong campaign response (-want +got):\n%s", diff)
-		}
-	})
-
-	t.Run("listing an orgs campaigns", func(t *testing.T) {
-		campaign := &campaigns.Campaign{NamespaceOrgID: org.ID}
-		createCampaign(t, campaign)
-
-		orgApiID := string(graphqlbackend.MarshalOrgID(org.ID))
-		input := map[string]interface{}{"node": orgApiID}
-
-		var response struct{ Node apitest.Org }
-		apitest.MustExec(actorCtx, t, s, input, &response, listNamespacesCampaigns)
-
-		want := apitest.Org{
-			ID: orgApiID,
-			Campaigns: apitest.CampaignConnection{
-				TotalCount: 1,
-				Nodes: []apitest.Campaign{
-					{ID: string(campaigns.MarshalCampaignID(campaign.ID))},
-				},
+			wantSafe: true,
+			wantParsed: ee.ListChangesetsOpts{
+				PublicationState:  &wantPublicationStates[0],
+				OwnedByCampaignID: campaignID,
 			},
-		}
-
-		if diff := cmp.Diff(want, response.Node); diff != "" {
-			t.Fatalf("wrong campaign response (-want +got):\n%s", diff)
-		}
-	})
+		},
+	}
+	for i, tc := range tcs {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			haveParsed, haveSafe, err := listChangesetOptsFromArgs(tc.args, campaignID)
+			if tc.wantErr == "" && err != nil {
+				t.Fatal(err)
+			}
+			haveErr := fmt.Sprintf("%v", err)
+			wantErr := tc.wantErr
+			if wantErr == "" {
+				wantErr = "<nil>"
+			}
+			if have, want := haveErr, wantErr; have != want {
+				t.Errorf("wrong error returned. have=%q want=%q", have, want)
+			}
+			if diff := cmp.Diff(haveParsed, tc.wantParsed); diff != "" {
+				t.Errorf("wrong args returned. diff=%s", diff)
+			}
+			if have, want := haveSafe, tc.wantSafe; have != want {
+				t.Errorf("wrong safe value returned. have=%t want=%t", have, want)
+			}
+		})
+	}
 }
-
-const listNamespacesCampaigns = `
-query($node: ID!) {
-  node(id: $node) {
-    ... on User {
-      id
-      campaigns {
-        totalCount
-        nodes {
-          id
-        }
-      }
-    }
-
-    ... on Org {
-      id
-      campaigns {
-        totalCount
-        nodes {
-          id
-        }
-      }
-    }
-  }
-}
-`

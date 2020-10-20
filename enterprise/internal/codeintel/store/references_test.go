@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/types"
+	"github.com/tetrafolium/sourcegraph/internal/db/basestore"
 	"github.com/tetrafolium/sourcegraph/internal/db/dbconn"
 	"github.com/tetrafolium/sourcegraph/internal/db/dbtesting"
 )
@@ -396,7 +397,7 @@ func TestUpdatePackageReferences(t *testing.T) {
 		t.Fatalf("unexpected error updating references: %s", err)
 	}
 
-	count, _, err := scanFirstInt(dbconn.Global.Query("SELECT COUNT(*) FROM lsif_references"))
+	count, _, err := basestore.ScanFirstInt(dbconn.Global.Query("SELECT COUNT(*) FROM lsif_references"))
 	if err != nil {
 		t.Fatalf("unexpected error checking reference count: %s", err)
 	}
@@ -416,7 +417,7 @@ func TestUpdatePackageReferencesEmpty(t *testing.T) {
 		t.Fatalf("unexpected error updating references: %s", err)
 	}
 
-	count, _, err := scanFirstInt(dbconn.Global.Query("SELECT COUNT(*) FROM lsif_references"))
+	count, _, err := basestore.ScanFirstInt(dbconn.Global.Query("SELECT COUNT(*) FROM lsif_references"))
 	if err != nil {
 		t.Fatalf("unexpected error checking reference count: %s", err)
 	}
@@ -457,7 +458,7 @@ func TestUpdatePackageReferencesWithDuplicates(t *testing.T) {
 		t.Fatalf("unexpected error updating references: %s", err)
 	}
 
-	count, _, err := scanFirstInt(dbconn.Global.Query("SELECT COUNT(*) FROM lsif_references"))
+	count, _, err := basestore.ScanFirstInt(dbconn.Global.Query("SELECT COUNT(*) FROM lsif_references"))
 	if err != nil {
 		t.Fatalf("unexpected error checking reference count: %s", err)
 	}

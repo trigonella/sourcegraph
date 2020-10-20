@@ -15,9 +15,10 @@ import (
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/backend"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/enterprise"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/envvar"
-	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/app/pkg/updatecheck"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/app/updatecheck"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/handlerutil"
 	apirouter "github.com/tetrafolium/sourcegraph/cmd/frontend/internal/httpapi/router"
-	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/pkg/handlerutil"
+	frontendsearch "github.com/tetrafolium/sourcegraph/cmd/frontend/internal/search"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/registry"
 	"github.com/tetrafolium/sourcegraph/internal/env"
 	"github.com/tetrafolium/sourcegraph/internal/gitserver"
@@ -59,6 +60,8 @@ func NewHandler(m *mux.Router, schema *graphql.Schema, githubWebhook, gitlabWebh
 	}
 
 	m.Get(apirouter.GraphQL).Handler(trace.TraceRoute(handler(serveGraphQL(schema))))
+
+	m.Get(apirouter.SearchStream).Handler(trace.TraceRoute(http.HandlerFunc(frontendsearch.ServeStream)))
 
 	// Return the minimum src-cli version that's compatible with this instance
 	m.Get(apirouter.SrcCliVersion).Handler(trace.TraceRoute(handler(srcCliVersionServe)))

@@ -20,7 +20,7 @@ import (
 var indexerURL = env.Get("PRECISE_CODE_INTEL_INDEX_MANAGER_URL", "", "HTTP address for the internal precise-code-intel-indexer-manager.")
 var internalProxyAuthToken = env.Get("PRECISE_CODE_INTEL_INTERNAL_PROXY_AUTH_TOKEN", "", "The auth token used to secure communication between the precise-code-intel-indexer service and the internal API provided by this proxy.")
 
-func newInternalProxyHandler() (func() http.Handler, error) {
+func newInternalProxyHandler(uploadHandler http.Handler) (func() http.Handler, error) {
 	if indexerURL == "" {
 		factory := func() http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +59,10 @@ func newInternalProxyHandler() (func() http.Handler, error) {
 		base.Path("/git/{rest:.*/(?:info/refs|git-upload-pack)}").Handler(reverseProxy(frontendOrigin))
 
 		// Proxy only the known routes in the index queue API
-		base.Path("/index-queue/{rest:(?:dequeue|complete|heartbeat)}").Handler(reverseProxy(indexerOrigin))
+		base.Path("/index-queue/{rest:(?:dequeue|setlog|complete|heartbeat)}").Handler(reverseProxy(indexerOrigin))
+
+		// Upload LSIF indexes without a sudo access token or github tokens
+		base.Path("/lsif/upload").Methods("POST").Handler(uploadHandler)
 
 		return internalProxyAuthTokenMiddleware(base)
 	}

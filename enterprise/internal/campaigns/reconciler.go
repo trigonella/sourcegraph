@@ -4,13 +4,16 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/url"
 	"strings"
+	"time"
 
 	"github.com/inconshreveable/log15"
 	"github.com/pkg/errors"
 	"github.com/tetrafolium/sourcegraph/cmd/repo-updater/repos"
 	"github.com/tetrafolium/sourcegraph/internal/api"
 	"github.com/tetrafolium/sourcegraph/internal/campaigns"
+	"github.com/tetrafolium/sourcegraph/internal/db"
 	"github.com/tetrafolium/sourcegraph/internal/gitserver/protocol"
 	"github.com/tetrafolium/sourcegraph/internal/vcs/git"
 	"github.com/tetrafolium/sourcegraph/internal/workerutil"
@@ -30,6 +33,10 @@ type reconciler struct {
 	gitserverClient GitserverClient
 	sourcer         repos.Sourcer
 	store           *Store
+
+	// This is used to disable a time.Sleep in updateChangeset so that the
+	// tests don't run slower.
+	noSleepBeforeSync bool
 }
 
 // HandlerFunc returns a dbworker.HandlerFunc that can be passed to a
@@ -55,54 +62,72 @@ func (r *reconciler) HandlerFunc() dbworker.HandlerFunc {
 // (through the HandlerFunc) will set the changeset's ReconcilerState to
 // errored and set its FailureMessage to the error.
 func (r *reconciler) process(ctx context.Context, tx *Store, ch *campaigns.Changeset) error {
-	log15.Info("Processing changeset", "changeset", ch.ID)
-
 	action, err := determineAction(ctx, tx, ch)
 	if err != nil {
 		return err
 	}
 
-	switch action.actionType {
-	case actionPublish:
-		log15.Info("Publishing", "changeset", ch.ID)
-		if err := r.publishChangeset(ctx, tx, ch, action.spec); err != nil {
-			return err
-		}
+	log15.Info("Reconciler processing changeset", "changeset", ch.ID, "action", action.actionType)
 
-		u, err := ch.URL()
-		if err != nil {
-			return err
-		}
-		log15.Info("Published changeset", "url", u)
+	switch action.actionType {
+	case actionSync:
+		return r.syncChangeset(ctx, tx, ch)
+
+	case actionPublish:
+		return r.publishChangeset(ctx, tx, ch, action.spec)
+
+	case actionReopen:
+		return r.reopenChangeset(ctx, tx, ch)
 
 	case actionUpdate:
-		log15.Info("Updating", "changeset", ch.ID, "delta", action.delta.String())
+		return r.updateChangeset(ctx, tx, ch, action.spec, action.delta, false)
 
-		if err := r.updateChangeset(ctx, tx, ch, action.spec, action.delta); err != nil {
-			return err
-		}
-		u, err := ch.URL()
-		if err != nil {
-			return err
-		}
+	case actionReopenUpdate:
+		return r.updateChangeset(ctx, tx, ch, action.spec, action.delta, true)
 
-		log15.Info("Updated changeset", "url", u)
+	case actionClose:
+		return r.closeChangeset(ctx, tx, ch)
 
 	case actionNone:
-		log15.Info("No action", "changeset", ch.ID)
+		return nil
 
 	default:
 		return fmt.Errorf("Reconciler action %q not implemented", action.actionType)
+	}
+}
+
+func (r *reconciler) syncChangeset(ctx context.Context, tx *Store, ch *campaigns.Changeset) error {
+	rstore := repos.NewDBStore(tx.Handle().DB(), sql.TxOptions{})
+
+	if err := SyncChangesets(ctx, rstore, tx, r.sourcer, ch); err != nil {
+		return errors.Wrapf(err, "syncing changeset with external ID %q failed", ch.ExternalID)
 	}
 
 	return nil
 }
 
+// ErrPublishSameBranch is returned by publish changeset if a changeset with the same external branch
+// already exists in the database and is owned by another campaign.
+var ErrPublishSameBranch = errors.New("cannot create changeset on the same branch in multiple campaigns")
+
 // publishChangeset creates the given changeset on its code host.
 func (r *reconciler) publishChangeset(ctx context.Context, tx *Store, ch *campaigns.Changeset, spec *campaigns.ChangesetSpec) (err error) {
-	repo, extSvc, err := loadAssociations(ctx, tx, ch)
+	repo, extSvc, campaign, err := loadAssociations(ctx, tx, ch)
 	if err != nil {
 		return errors.Wrap(err, "failed to load associations")
+	}
+
+	existingSameBranch, err := tx.GetChangeset(ctx, GetChangesetOpts{
+		ExternalServiceType: ch.ExternalServiceType,
+		RepoID:              ch.RepoID,
+		ExternalBranch:      git.AbbreviateRef(spec.Spec.HeadRef),
+	})
+	if err != nil && err != ErrNoResults {
+		return err
+	}
+
+	if existingSameBranch != nil && existingSameBranch.ID != ch.ID {
+		return ErrPublishSameBranch
 	}
 
 	// Set up a source with which we can create a changeset
@@ -129,6 +154,12 @@ func (r *reconciler) publishChangeset(ctx context.Context, tx *Store, ch *campai
 		HeadRef:   git.EnsureRefPrefix(ref),
 		Repo:      repo,
 		Changeset: ch,
+	}
+
+	// Depending on the changeset, we may want to add to the body (for example,
+	// to add a backlink to Sourcegraph).
+	if err := decorateChangesetBody(ctx, tx, cs, campaign); err != nil {
+		return errors.Wrapf(err, "decorating body for changeset %d", ch.ID)
 	}
 
 	// If we're running this method a second time, because we failed due to an
@@ -161,7 +192,6 @@ func (r *reconciler) publishChangeset(ctx context.Context, tx *Store, ch *campai
 		return err
 	}
 
-	ch.CreatedByCampaign = true
 	ch.PublicationState = campaigns.ChangesetPublicationStatePublished
 	ch.FailureMessage = nil
 	return tx.UpdateChangeset(ctx, ch)
@@ -173,8 +203,8 @@ func (r *reconciler) publishChangeset(ctx context.Context, tx *Store, ch *campai
 // create and force push a new commit.
 // If the delta requires updates to the changeset on the code host, it will
 // update the changeset there.
-func (r *reconciler) updateChangeset(ctx context.Context, tx *Store, ch *campaigns.Changeset, spec *campaigns.ChangesetSpec, delta *changesetSpecDelta) (err error) {
-	repo, extSvc, err := loadAssociations(ctx, tx, ch)
+func (r *reconciler) updateChangeset(ctx context.Context, tx *Store, ch *campaigns.Changeset, spec *campaigns.ChangesetSpec, delta *changesetSpecDelta, reopen bool) (err error) {
+	repo, extSvc, campaign, err := loadAssociations(ctx, tx, ch)
 	if err != nil {
 		return errors.Wrap(err, "failed to load associations")
 	}
@@ -196,13 +226,28 @@ func (r *reconciler) updateChangeset(ctx context.Context, tx *Store, ch *campaig
 		}
 	}
 
-	// If we only need to update the diff, we're done, because we already
-	// pushed the commit. We don't need to update anything on the codehost.
-	if !delta.NeedCodeHostUpdate() {
-		return nil
+	// If we only need to update the diff and we didn't reopen the changeset,
+	// we're done, because we already pushed the commit. We don't need to
+	// update anything on the codehost.
+	if !delta.NeedCodeHostUpdate() && !reopen {
+		ch.FailureMessage = nil
+		// But we need to sync the changeset so that it has the new commit.
+		//
+		// The problem: the code host might not have updated the changeset to
+		// have the new commit SHA as its head ref oid (and the check states,
+		// ...).
+		//
+		// That's why we give them 3 seconds to update the changesets.
+		//
+		// Why 3 seconds? Well... 1 or 2 seem to be too short and 4 too long?
+		if !r.noSleepBeforeSync {
+			time.Sleep(3 * time.Second)
+		}
+		return r.syncChangeset(ctx, tx, ch)
 	}
 
-	// Otherwise, we need to update the pull request on the code host.
+	// Otherwise, we need to update the pull request on the code host or, if we
+	// need to reopen it, update it to make sure it has the newest state.
 	cs := repos.Changeset{
 		Title:     spec.Spec.Title,
 		Body:      spec.Spec.Body,
@@ -210,6 +255,18 @@ func (r *reconciler) updateChangeset(ctx context.Context, tx *Store, ch *campaig
 		HeadRef:   git.EnsureRefPrefix(spec.Spec.HeadRef),
 		Repo:      repo,
 		Changeset: ch,
+	}
+
+	if reopen {
+		if err := ccs.ReopenChangeset(ctx, &cs); err != nil {
+			return errors.Wrap(err, "reopening changeset")
+		}
+	}
+
+	// Depending on the changeset, we may want to add to the body (for example,
+	// to add a backlink to Sourcegraph).
+	if err := decorateChangesetBody(ctx, tx, &cs, campaign); err != nil {
+		return errors.Wrapf(err, "decorating body for changeset %d", ch.ID)
 	}
 
 	if err := ccs.UpdateChangeset(ctx, &cs); err != nil {
@@ -228,6 +285,67 @@ func (r *reconciler) updateChangeset(ctx context.Context, tx *Store, ch *campaig
 
 	ch.FailureMessage = nil
 	return tx.UpdateChangeset(ctx, ch)
+}
+
+// reopenChangeset reopens the given changeset attribute on the code host.
+func (r *reconciler) reopenChangeset(ctx context.Context, tx *Store, ch *campaigns.Changeset) (err error) {
+	repo, extSvc, _, err := loadAssociations(ctx, tx, ch)
+	if err != nil {
+		return errors.Wrap(err, "failed to load associations")
+	}
+
+	// Set up a source with which we can update the changeset on the code host.
+	ccs, err := r.buildChangesetSource(repo, extSvc)
+	if err != nil {
+		return err
+	}
+
+	cs := repos.Changeset{Repo: repo, Changeset: ch}
+	if err := ccs.ReopenChangeset(ctx, &cs); err != nil {
+		return errors.Wrap(err, "updating changeset")
+	}
+
+	// We extract the events, compute derived state and upsert events because
+	// the reopening has updated the changeset on the code host.
+	events := ch.Events()
+	SetDerivedState(ctx, ch, events)
+	if err := tx.UpsertChangesetEvents(ctx, events...); err != nil {
+		log15.Error("UpsertChangesetEvents", "err", err)
+		return err
+	}
+
+	ch.FailureMessage = nil
+	return tx.UpdateChangeset(ctx, ch)
+}
+
+// closeChangeset closes the given changeset on its code host if its ExternalState is OPEN.
+func (r *reconciler) closeChangeset(ctx context.Context, tx *Store, ch *campaigns.Changeset) (err error) {
+	ch.Closing = false
+	ch.FailureMessage = nil
+
+	if ch.ExternalState != campaigns.ChangesetExternalStateOpen {
+		return tx.UpdateChangeset(ctx, ch)
+	}
+
+	repo, extSvc, _, err := loadAssociations(ctx, tx, ch)
+	if err != nil {
+		return errors.Wrap(err, "failed to load associations")
+	}
+
+	// Set up a source with which we can close the changeset
+	ccs, err := r.buildChangesetSource(repo, extSvc)
+	if err != nil {
+		return err
+	}
+
+	cs := &repos.Changeset{Changeset: ch, Repo: repo}
+
+	if err := ccs.CloseChangeset(ctx, cs); err != nil {
+		return errors.Wrap(err, "creating changeset")
+	}
+
+	// syncChangeset updates the changeset in the same transaction
+	return r.syncChangeset(ctx, tx, ch)
 }
 
 func (r *reconciler) pushCommit(ctx context.Context, opts protocol.CreateCommitFromPatchRequest) (string, error) {
@@ -280,6 +398,16 @@ func buildCommitOpts(repo *repos.Repo, spec *campaigns.ChangesetSpec) (protocol.
 		return opts, err
 	}
 
+	commitAuthorName, err := desc.AuthorName()
+	if err != nil {
+		return opts, err
+	}
+
+	commitAuthorEmail, err := desc.AuthorEmail()
+	if err != nil {
+		return opts, err
+	}
+
 	opts = protocol.CreateCommitFromPatchRequest{
 		Repo:       api.RepoName(repo.Name),
 		BaseCommit: api.CommitID(desc.BaseRev),
@@ -296,8 +424,8 @@ func buildCommitOpts(repo *repos.Repo, spec *campaigns.ChangesetSpec) (protocol.
 
 		CommitInfo: protocol.PatchCommitInfo{
 			Message:     commitMessage,
-			AuthorName:  "Sourcegraph",
-			AuthorEmail: "campaigns@sourcegraph.com",
+			AuthorName:  commitAuthorName,
+			AuthorEmail: commitAuthorEmail,
 			Date:        spec.CreatedAt,
 		},
 		// We use unified diffs, not git diffs, which means they're missing the
@@ -314,9 +442,13 @@ func buildCommitOpts(repo *repos.Repo, spec *campaigns.ChangesetSpec) (protocol.
 type actionType string
 
 const (
-	actionNone    actionType = "none"
-	actionUpdate  actionType = "update"
-	actionPublish actionType = "publish"
+	actionNone         actionType = "none"
+	actionUpdate       actionType = "update"
+	actionPublish      actionType = "publish"
+	actionSync         actionType = "sync"
+	actionClose        actionType = "close"
+	actionReopen       actionType = "reopen"
+	actionReopenUpdate actionType = "reopen-update"
 )
 
 // reconcilerAction represents the possible actions the reconciler can take for
@@ -344,8 +476,15 @@ func determineAction(ctx context.Context, tx *Store, ch *campaigns.Changeset) (r
 	// If it doesn't have a spec, it's an imported changeset and we can't do
 	// anything.
 	if ch.CurrentSpecID == 0 {
-		// TODO: This would be the place where we check whether it's fully
-		// synced, and if not, we sync it here.
+		if ch.Unsynced {
+			action.actionType = actionSync
+		}
+		return action, nil
+	}
+
+	// If it's marked as closing, we don't need to look at the specs.
+	if ch.Closing {
+		action.actionType = actionClose
 		return action, nil
 	}
 
@@ -369,23 +508,64 @@ func determineAction(ctx context.Context, tx *Store, ch *campaigns.Changeset) (r
 
 	switch ch.PublicationState {
 	case campaigns.ChangesetPublicationStateUnpublished:
-		if curr.Spec.Published {
+		if curr.Spec.Published.True() {
 			action.actionType = actionPublish
 		}
+
 	case campaigns.ChangesetPublicationStatePublished:
+		reopen := reopenAfterDetach(ch)
+		if reopen {
+			action.actionType = actionReopen
+		}
+
 		delta, err := CompareChangesetSpecs(prev, curr)
 		if err != nil {
 			return action, nil
 		}
+
 		if delta.AttributesChanged() {
-			action.actionType = actionUpdate
 			action.delta = delta
+			if reopen {
+				action.actionType = actionReopenUpdate
+			} else {
+				action.actionType = actionUpdate
+			}
 		}
 	default:
 		return action, fmt.Errorf("unknown changeset publication state: %s", ch.PublicationState)
 	}
 
 	return action, nil
+}
+
+func reopenAfterDetach(ch *campaigns.Changeset) bool {
+	closed := ch.ExternalState == campaigns.ChangesetExternalStateClosed
+	if !closed {
+		return false
+	}
+
+	// Sanity check: if it's not owned by a campaign, it's simply being tracked.
+	if ch.OwnedByCampaignID == 0 {
+		return false
+	}
+	// Sanity check 2: if it's marked as to-be-closed, then we don't reopen it.
+	if ch.Closing {
+		return false
+	}
+
+	// Check if it's (re-)attached to the campaign that created it.
+	attachedToOwner := false
+	for _, campaignID := range ch.CampaignIDs {
+		if campaignID == ch.OwnedByCampaignID {
+			attachedToOwner = true
+		}
+	}
+
+	// At this point the changeset is closed and not marked as to-be-closed and
+	// attached to the owning campaign.
+	return attachedToOwner
+
+	// TODO: What if somebody closed the changeset on purpose on the codehost?
 }
 
 func checkSpecAppliedToCampaign(ctx context.Context, tx *Store, spec *campaigns.ChangesetSpec) error {
@@ -406,20 +586,25 @@ func checkSpecAppliedToCampaign(ctx context.Context, tx *Store, spec *campaigns.
 	return nil
 }
 
-func loadAssociations(ctx context.Context, tx *Store, ch *campaigns.Changeset) (*repos.Repo, *repos.ExternalService, error) {
+func loadAssociations(ctx context.Context, tx *Store, ch *campaigns.Changeset) (*repos.Repo, *repos.ExternalService, *campaigns.Campaign, error) {
 	reposStore := repos.NewDBStore(tx.Handle().DB(), sql.TxOptions{})
 
 	repo, err := loadRepo(ctx, reposStore, ch.RepoID)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to load repository")
+		return nil, nil, nil, errors.Wrap(err, "failed to load repository")
 	}
 
 	extSvc, err := loadExternalService(ctx, reposStore, repo)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to load external service")
+		return nil, nil, nil, errors.Wrap(err, "failed to load external service")
 	}
 
-	return repo, extSvc, nil
+	campaign, err := loadCampaign(ctx, tx, ch.OwnedByCampaignID)
+	if err != nil {
+		return nil, nil, nil, errors.Wrap(err, "failed to load campaign")
+	}
+
+	return repo, extSvc, campaign, nil
 }
 
 func loadRepo(ctx context.Context, tx repos.Store, id api.RepoID) (*repos.Repo, error) {
@@ -476,6 +661,77 @@ func loadExternalService(ctx context.Context, reposStore repos.Store, repo *repo
 	return externalService, nil
 }
 
+func loadCampaign(ctx context.Context, tx *Store, id int64) (*campaigns.Campaign, error) {
+	if id == 0 {
+		return nil, errors.New("changeset has no owning campaign")
+	}
+
+	campaign, err := tx.GetCampaign(ctx, GetCampaignOpts{ID: id})
+	if err != nil && err != ErrNoResults {
+		return nil, errors.Wrapf(err, "retrieving owning campaign: %d", id)
+	} else if campaign == nil {
+		return nil, errors.Errorf("campaign not found: %d", id)
+	}
+
+	return campaign, nil
+}
+
+func decorateChangesetBody(ctx context.Context, tx *Store, cs *repos.Changeset, campaign *campaigns.Campaign) error {
+	// We need to get the namespace, since external campaign URLs are
+	// namespaced.
+	ns, err := db.Namespaces.GetByID(ctx, campaign.NamespaceOrgID, campaign.NamespaceUserID)
+	if err != nil {
+		return errors.Wrap(err, "retrieving namespace")
+	}
+
+	url, err := campaignURL(ctx, ns, campaign)
+	if err != nil {
+		return errors.Wrap(err, "building URL")
+	}
+
+	cs.Body = fmt.Sprintf(
+		"%s\n\n[_Created by Sourcegraph campaign `%s/%s`._](%s)",
+		cs.Body, ns.Name, campaign.Name, url,
+	)
+
+	return nil
+}
+
+// internalClient is here for mocking reasons.
+var internalClient interface {
+	ExternalURL(context.Context) (string, error)
+} = api.InternalClient
+
+func campaignURL(ctx context.Context, ns *db.Namespace, c *campaigns.Campaign) (string, error) {
+	// To build the absolute URL, we need to know where Sourcegraph is!
+	extStr, err := internalClient.ExternalURL(ctx)
+	if err != nil {
+		return "", errors.Wrap(err, "getting external Sourcegraph URL")
+	}
+
+	extURL, err := url.Parse(extStr)
+	if err != nil {
+		return "", errors.Wrap(err, "parsing external Sourcegraph URL")
+	}
+
+	// This needs to be kept consistent with resolvers.campaignURL().
+	// (Refactoring the resolver to use the same function is difficult due to
+	// the different querying and caching behaviour in GraphQL resolvers, so we
+	// simply replicate the logic here.)
+	u := extURL.ResolveReference(&url.URL{Path: namespaceURL(ns) + "/campaigns/" + c.Name})
+
+	return u.String(), nil
+}
+
+func namespaceURL(ns *db.Namespace) string {
+	prefix := "/users/"
+	if ns.Organization != 0 {
+		prefix = "/organizations/"
+	}
+
+	return prefix + ns.Name
+}
+
 func CompareChangesetSpecs(previous, current *campaigns.ChangesetSpec) (*changesetSpecDelta, error) {
 	delta := &changesetSpecDelta{}
 
@@ -519,6 +775,32 @@ func CompareChangesetSpecs(previous, current *campaigns.ChangesetSpec) (*changes
 		delta.commitMessageChanged = true
 	}
 
+	// AuthorName
+	currentAuthorName, err := current.Spec.AuthorName()
+	if err != nil {
+		return nil, nil
+	}
+	previousAuthorName, err := previous.Spec.AuthorName()
+	if err != nil {
+		return nil, err
+	}
+	if previousAuthorName != currentAuthorName {
+		delta.authorNameChanged = true
+	}
+
+	// AuthorEmail
+	currentAuthorEmail, err := current.Spec.AuthorEmail()
+	if err != nil {
+		return nil, nil
+	}
+	previousAuthorEmail, err := previous.Spec.AuthorEmail()
+	if err != nil {
+		return nil, err
+	}
+	if previousAuthorEmail != currentAuthorEmail {
+		delta.authorEmailChanged = true
+	}
+
 	return delta, nil
 }
 
@@ -528,12 +810,14 @@ type changesetSpecDelta struct {
 	baseRefChanged       bool
 	diffChanged          bool
 	commitMessageChanged bool
+	authorNameChanged    bool
+	authorEmailChanged   bool
 }
 
 func (d *changesetSpecDelta) String() string { return fmt.Sprintf("%#v", d) }
 
 func (d *changesetSpecDelta) NeedCommitUpdate() bool {
-	return d.diffChanged || d.commitMessageChanged
+	return d.diffChanged || d.commitMessageChanged || d.authorNameChanged || d.authorEmailChanged
 }
 
 func (d *changesetSpecDelta) NeedCodeHostUpdate() bool {

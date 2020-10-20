@@ -9,7 +9,7 @@ import (
 	"github.com/inconshreveable/log15"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
-	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/pkg/handlerutil"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/handlerutil"
 	"github.com/tetrafolium/sourcegraph/internal/env"
 	"github.com/tetrafolium/sourcegraph/internal/trace"
 )

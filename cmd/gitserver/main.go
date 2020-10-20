@@ -19,6 +19,8 @@ import (
 	"github.com/tetrafolium/sourcegraph/cmd/gitserver/server"
 	"github.com/tetrafolium/sourcegraph/internal/debugserver"
 	"github.com/tetrafolium/sourcegraph/internal/env"
+	"github.com/tetrafolium/sourcegraph/internal/logging"
+	"github.com/tetrafolium/sourcegraph/internal/trace"
 	"github.com/tetrafolium/sourcegraph/internal/trace/ot"
 	"github.com/tetrafolium/sourcegraph/internal/tracer"
 )
@@ -33,7 +35,9 @@ var (
 func main() {
 	env.Lock()
 	env.HandleHelpFlag()
+	logging.Init()
 	tracer.Init()
+	trace.Init(true)
 
 	if reposDir == "" {
 		log.Fatal("git-server: SRC_REPOS_DIR is required")

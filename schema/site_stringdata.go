@@ -35,7 +35,7 @@ const SiteSchemaJSON = `{
       "group": "Search"
     },
     "search.largeFiles": {
-      "description": "A list of file glob patterns where matching files will be indexed and searched regardless of their size. The glob pattern syntax can be found here: https://golang.org/pkg/path/filepath/#Match.",
+      "description": "A list of file glob patterns where matching files will be indexed and searched regardless of their size. Files still need to be valid utf-8 to be indexed. The glob pattern syntax can be found here: https://golang.org/pkg/path/filepath/#Match.",
       "type": "array",
       "items": {
         "type": "string"
@@ -73,10 +73,10 @@ const SiteSchemaJSON = `{
           }
         },
         "automation": {
-          "description": "Enables the experimental code change management campaigns feature. NOTE: The automation feature was renamed to campaigns, but this experimental feature flag name was not changed (because the feature flag will go away soon anyway).",
+          "description": "DEPRECATED: Enables the experimental code change management campaigns feature. This field has been deprecated in favour of campaigns.enabled",
           "type": "string",
           "enum": ["enabled", "disabled"],
-          "default": "disabled"
+          "default": "enabled"
         },
         "structuralSearch": {
           "description": "Enables structural search.",
@@ -85,7 +85,7 @@ const SiteSchemaJSON = `{
           "default": "enabled"
         },
         "andOrQuery": {
-          "description": "Interpret a search input query as an and/or query.",
+          "description": "DEPRECATED: Interpret a search input query as an and/or query.",
           "type": "string",
           "enum": ["enabled", "disabled"],
           "default": "enabled"
@@ -258,8 +258,15 @@ const SiteSchemaJSON = `{
       "!go": { "pointer": true },
       "group": "Campaigns"
     },
+    "campaigns.enabled": {
+      "description": "Enables/disables the campaigns feature.",
+      "type": "boolean",
+      "!go": { "pointer": true },
+      "group": "Campaigns",
+      "default": true
+    },
     "campaigns.readAccess.enabled": {
-      "description": "Enables read-only access to campaigns for non-site-admin users. This is a setting for the experimental campaigns feature. These will only have an effect when campaigns is enabled with ` + "`" + `{\"experimentalFeatures\": {\"automation\": \"enabled\"}}` + "`" + `.",
+      "description": "DEPRECATED: Enables read-only access to campaigns for non-site-admin users. This doesn't have an effect anymore.",
       "type": "boolean",
       "!go": { "pointer": true },
       "group": "Campaigns"
@@ -340,11 +347,48 @@ const SiteSchemaJSON = `{
       "default": 1,
       "group": "External services"
     },
+    "repoConcurrentExternalServiceSyncers": {
+      "description": "The number of concurrent external service syncers that can run.",
+      "type": "integer",
+      "default": 3,
+      "group": "External services"
+    },
     "maxReposToSearch": {
-      "description": "The maximum number of repositories to search across. The user is prompted to narrow their query if exceeded. Any value less than or equal to zero means unlimited.",
+      "description": "DEPRECATED: Configure maxRepos in search.limits. The maximum number of repositories to search across. The user is prompted to narrow their query if exceeded. Any value less than or equal to zero means unlimited.",
       "type": "integer",
       "default": -1,
       "group": "Search"
+    },
+    "search.limits": {
+      "description": "Limits that search applies for number of repositories searched and timeouts.",
+      "type": "object",
+      "group": "Search",
+      "additionalProperties": false,
+      "properties": {
+        "maxTimeoutSeconds": {
+          "description": "The maximum value for \"timeout:\" that search will respect. \"timeout:\" values larger than maxTimeoutSeconds are capped at maxTimeoutSeconds. Note: You need to ensure your load balancer / reverse proxy in front of Sourcegraph won't timeout the request for larger values. Note: Too many large rearch requests may harm Soucregraph for other users. Defaults to 1 minute.",
+          "type": "integer",
+          "default": "60",
+          "minimum": 1
+        },
+        "maxRepos": {
+          "description": "The maximum number of repositories to search across. The user is prompted to narrow their query if exceeded. Any value less than or equal to zero means unlimited.",
+          "type": "integer",
+          "default": -1
+        },
+        "commitDiffMaxRepos": {
+          "description": "The maximum number of repositories to search across when doing a \"type:diff\" or \"type:commit\". The user is prompted to narrow their query if the limit is exceeded. There is a separate limit (commitDiffWithTimeFilterMaxRepos) when \"after:\" or \"before:\" is specified because those queries are faster. Defaults to 50.",
+          "type": "integer",
+          "default": 50,
+          "minimum": 1
+        },
+        "commitDiffWithTimeFilterMaxRepos": {
+          "description": "The maximum number of repositories to search across when doing a \"type:diff\" or \"type:commit\" with a \"after:\" or \"before:\" filter. The user is prompted to narrow their query if the limit is exceeded. There is a separate limit (commitDiffMaxRepos) when \"after:\" or \"before:\" is not specified because those queries are slower. Defaults to 10000.",
+          "type": "integer",
+          "default": 10000,
+          "minimum": 1
+        }
+      }
     },
     "parentSourcegraph": {
       "description": "URL to fetch unreachable repository details from. Defaults to \"https://sourcegraph.com\"",
@@ -381,6 +425,12 @@ const SiteSchemaJSON = `{
       ],
       "group": "Security"
     },
+    "externalService.userMode": {
+      "description": "Enable to allow users to add external services for public reposirories to the Sourcegraph instance.",
+      "type": "string",
+      "enum": ["public", "disabled"],
+      "default": "disabled"
+    },
     "permissions.userMapping": {
       "description": "Settings for Sourcegraph permissions, which allow the site admin to explicitly manage repository permissions via the GraphQL API. This setting cannot be enabled if repository permissions for any specific external service are enabled (i.e., when the external service's ` + "`" + `authorization` + "`" + ` field is set).",
       "type": "object",
@@ -403,23 +453,6 @@ const SiteSchemaJSON = `{
         "bindID": "email"
       },
       "examples": [{ "bindID": "email" }, { "bindID": "username" }],
-      "group": "Security"
-    },
-    "permissions.backgroundSync": {
-      "description": "DEPRECATED: Sync code host repository and user permissions in the background.",
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "enabled": {
-          "description": "Whether syncing permissions in the background is enabled.",
-          "type": "boolean",
-          "default": true
-        }
-      },
-      "default": {
-        "enabled": true
-      },
-      "examples": [{ "enabled": true }],
       "group": "Security"
     },
     "branding": {
@@ -725,7 +758,7 @@ const SiteSchemaJSON = `{
       "group": "Sourcegraph.com"
     },
     "auth.providers": {
-      "description": "The authentication providers to use for identifying and signing in users. See instructions below for configuring SAML, OpenID Connect (including G Suite), and HTTP authentication proxies. Multiple authentication providers are supported (by specifying multiple elements in this array).",
+      "description": "The authentication providers to use for identifying and signing in users. See instructions below for configuring SAML, OpenID Connect (including Google Workspace), and HTTP authentication proxies. Multiple authentication providers are supported (by specifying multiple elements in this array).",
       "type": "array",
       "items": {
         "required": ["type"],
@@ -781,6 +814,18 @@ const SiteSchemaJSON = `{
       "enum": ["release", "none"],
       "default": "release",
       "examples": ["none"],
+      "group": "Misc."
+    },
+    "userRepos.maxPerSite": {
+      "description": "The site wide maximum number of repos that can be added by non site admins",
+      "type": "integer",
+      "default": 200000,
+      "group": "Misc."
+    },
+    "userRepos.maxPerUser": {
+      "description": "The per user maximum number of repos that can be added by non site admins",
+      "type": "integer",
+      "default": 2000,
       "group": "Misc."
     }
   },

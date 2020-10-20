@@ -6,7 +6,7 @@ import (
 	"github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
 	"github.com/inconshreveable/log15"
-	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/pkg/siteid"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/siteid"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/types"
 	"github.com/tetrafolium/sourcegraph/internal/actor"
 	"github.com/tetrafolium/sourcegraph/internal/db"

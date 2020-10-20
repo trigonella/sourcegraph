@@ -15,9 +15,9 @@ func Symbols() *Container {
 							Description:       "store fetch failures every 5m",
 							Query:             `sum(increase(symbols_store_fetch_failed[5m]))`,
 							DataMayNotExist:   true,
-							Warning:           Alert{GreaterOrEqual: 5},
+							Warning:           Alert().GreaterOrEqual(5),
 							PanelOptions:      PanelOptions().LegendFormat("failures"),
-							Owner:             ObservableOwnerSearch,
+							Owner:             ObservableOwnerCodeIntel,
 							PossibleSolutions: "none",
 						},
 						{
@@ -25,14 +25,14 @@ func Symbols() *Container {
 							Description:       "current fetch queue size",
 							Query:             `sum(symbols_store_fetch_queue_size)`,
 							DataMayNotExist:   true,
-							Warning:           Alert{GreaterOrEqual: 25},
+							Warning:           Alert().GreaterOrEqual(25),
 							PanelOptions:      PanelOptions().LegendFormat("size"),
-							Owner:             ObservableOwnerSearch,
+							Owner:             ObservableOwnerCodeIntel,
 							PossibleSolutions: "none",
 						},
 					},
 					{
-						sharedFrontendInternalAPIErrorResponses("symbols"),
+						sharedFrontendInternalAPIErrorResponses("symbols", ObservableOwnerCodeIntel),
 					},
 				},
 			},
@@ -41,12 +41,12 @@ func Symbols() *Container {
 				Hidden: true,
 				Rows: []Row{
 					{
-						sharedContainerCPUUsage("symbols"),
-						sharedContainerMemoryUsage("symbols"),
+						sharedContainerCPUUsage("symbols", ObservableOwnerCodeIntel),
+						sharedContainerMemoryUsage("symbols", ObservableOwnerCodeIntel),
 					},
 					{
-						sharedContainerRestarts("symbols"),
-						sharedContainerFsInodes("symbols"),
+						sharedContainerRestarts("symbols", ObservableOwnerCodeIntel),
+						sharedContainerFsInodes("symbols", ObservableOwnerCodeIntel),
 					},
 				},
 			},
@@ -55,12 +55,12 @@ func Symbols() *Container {
 				Hidden: true,
 				Rows: []Row{
 					{
-						sharedProvisioningCPUUsageLongTerm("symbols"),
-						sharedProvisioningMemoryUsageLongTerm("symbols"),
+						sharedProvisioningCPUUsageLongTerm("symbols", ObservableOwnerCodeIntel),
+						sharedProvisioningMemoryUsageLongTerm("symbols", ObservableOwnerCodeIntel),
 					},
 					{
-						sharedProvisioningCPUUsageShortTerm("symbols"),
-						sharedProvisioningMemoryUsageShortTerm("symbols"),
+						sharedProvisioningCPUUsageShortTerm("symbols", ObservableOwnerCodeIntel),
+						sharedProvisioningMemoryUsageShortTerm("symbols", ObservableOwnerCodeIntel),
 					},
 				},
 			},
@@ -69,8 +69,8 @@ func Symbols() *Container {
 				Hidden: true,
 				Rows: []Row{
 					{
-						sharedGoGoroutines("symbols"),
-						sharedGoGcDuration("symbols"),
+						sharedGoGoroutines("symbols", ObservableOwnerCodeIntel),
+						sharedGoGcDuration("symbols", ObservableOwnerCodeIntel),
 					},
 				},
 			},
@@ -79,7 +79,7 @@ func Symbols() *Container {
 				Hidden: true,
 				Rows: []Row{
 					{
-						sharedKubernetesPodsAvailable("symbols"),
+						sharedKubernetesPodsAvailable("symbols", ObservableOwnerCodeIntel),
 					},
 				},
 			},

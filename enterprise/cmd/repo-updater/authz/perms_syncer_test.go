@@ -92,7 +92,23 @@ func (s *mockReposStore) ListRepos(ctx context.Context, args repos.StoreListRepo
 	return s.listRepos(ctx, args)
 }
 
+func (s *mockReposStore) ListExternalRepoSpecs(ctx context.Context) (map[api.ExternalRepoSpec]struct{}, error) {
+	return nil, nil
+}
+
+func (s *mockReposStore) InsertRepos(context.Context, ...*repos.Repo) error {
+	return nil
+}
+
+func (s *mockReposStore) DeleteRepos(context.Context, ...api.RepoID) error {
+	return nil
+}
+
 func (s *mockReposStore) UpsertRepos(context.Context, ...*repos.Repo) error {
+	return nil
+}
+
+func (s *mockReposStore) UpsertSources(ctx context.Context, added, modified, deleted map[api.RepoID][]repos.SourceInfo) error {
 	return nil
 }
 
@@ -102,6 +118,14 @@ func (s *mockReposStore) SetClonedRepos(ctx context.Context, repoNames ...string
 
 func (s *mockReposStore) CountNotClonedRepos(ctx context.Context) (uint64, error) {
 	return 0, nil
+}
+
+func (s *mockReposStore) CountUserAddedRepos(ctx context.Context) (uint64, error) {
+	return 0, nil
+}
+
+func (s *mockReposStore) EnqueueSyncJobs(ctx context.Context, ignoreSiteAdmin bool) error {
+	return nil
 }
 
 func TestPermsSyncer_syncUserPerms(t *testing.T) {

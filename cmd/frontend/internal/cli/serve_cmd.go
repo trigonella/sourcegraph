@@ -17,30 +17,34 @@ import (
 
 	"github.com/inconshreveable/log15"
 	"github.com/keegancsmith/tmpfriend"
+
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/backend"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/enterprise"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/envvar"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/globals"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
-	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/app/pkg/updatecheck"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/app/updatecheck"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/bg"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/cli/loghandlers"
-	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/pkg/siteid"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/siteid"
 	"github.com/tetrafolium/sourcegraph/internal/conf"
 	"github.com/tetrafolium/sourcegraph/internal/db/dbconn"
 	"github.com/tetrafolium/sourcegraph/internal/db/dbutil"
 	"github.com/tetrafolium/sourcegraph/internal/debugserver"
 	"github.com/tetrafolium/sourcegraph/internal/env"
 	"github.com/tetrafolium/sourcegraph/internal/goroutine"
+	"github.com/tetrafolium/sourcegraph/internal/logging"
 	"github.com/tetrafolium/sourcegraph/internal/processrestart"
+	"github.com/tetrafolium/sourcegraph/internal/secret"
 	"github.com/tetrafolium/sourcegraph/internal/sysreq"
+	"github.com/tetrafolium/sourcegraph/internal/trace"
 	"github.com/tetrafolium/sourcegraph/internal/tracer"
 	"github.com/tetrafolium/sourcegraph/internal/version"
 	"github.com/tetrafolium/sourcegraph/internal/vfsutil"
 )
 
 var (
-	trace          = env.Get("SRC_LOG_TRACE", "HTTP", "space separated list of trace logs to show. Options: all, HTTP, build, github")
+	traceFields    = env.Get("SRC_LOG_TRACE", "HTTP", "space separated list of trace logs to show. Options: all, HTTP, build, github")
 	traceThreshold = env.Get("SRC_LOG_TRACE_THRESHOLD", "", "show traces that take longer than this")
 
 	printLogo, _ = strconv.ParseBool(env.Get("LOGO", "false", "print Sourcegraph logo upon startup"))
@@ -83,8 +87,8 @@ func defaultExternalURL(nginxAddr, httpAddr string) *url.URL {
 // InitDB initializes the global database connection and sets the
 // version of the frontend in our versions table.
 func InitDB() error {
-	if err := dbconn.ConnectToDB(""); err != nil {
-		return err
+	if err := dbconn.SetupGlobalConnection(""); err != nil {
+		return fmt.Errorf("failed to connect to frontend database: %s", err)
 	}
 
 	ctx := context.Background()
@@ -104,7 +108,7 @@ func InitDB() error {
 			return nil
 		}
 
-		if err := dbconn.MigrateDB(dbconn.Global, ""); err != nil {
+		if err := dbconn.MigrateDB(dbconn.Global, "frontend"); err != nil {
 			return err
 		}
 
@@ -130,7 +134,9 @@ func Main(enterpriseSetupHook func() enterprise.Services) error {
 
 	// Filter trace logs
 	d, _ := time.ParseDuration(traceThreshold)
-	tracer.Init(tracer.Filter(loghandlers.Trace(strings.Fields(trace), d)))
+	logging.Init(logging.Filter(loghandlers.Trace(strings.Fields(traceFields), d)))
+	tracer.Init()
+	trace.Init(true)
 
 	// Run enterprise setup hook
 	enterprise := enterpriseSetupHook()
@@ -200,6 +206,11 @@ func Main(enterpriseSetupHook func() enterprise.Services) error {
 	// being initialized
 	if dbconn.Global == nil {
 		return errors.New("dbconn.Global is nil when trying to parse GraphQL schema")
+	}
+
+	err := secret.Init()
+	if err != nil {
+		return err
 	}
 
 	schema, err := graphqlbackend.NewSchema(enterprise.CampaignsResolver, enterprise.CodeIntelResolver, enterprise.AuthzResolver)

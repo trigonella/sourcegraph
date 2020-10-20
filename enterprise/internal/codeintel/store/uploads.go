@@ -7,6 +7,7 @@ import (
 
 	"github.com/keegancsmith/sqlf"
 	"github.com/lib/pq"
+	"github.com/tetrafolium/sourcegraph/internal/db/basestore"
 	"github.com/tetrafolium/sourcegraph/internal/workerutil"
 	dbworkerstore "github.com/tetrafolium/sourcegraph/internal/workerutil/dbworker/store"
 )
@@ -25,6 +26,7 @@ type Upload struct {
 	FinishedAt     *time.Time `json:"finishedAt"`
 	ProcessAfter   *time.Time `json:"processAfter"`
 	NumResets      int        `json:"numResets"`
+	NumFailures    int        `json:"numFailures"`
 	RepositoryID   int        `json:"repositoryId"`
 	RepositoryName string     `json:"repositoryName"`
 	Indexer        string     `json:"indexer"`
@@ -43,7 +45,7 @@ func scanUploads(rows *sql.Rows, queryErr error) (_ []Upload, err error) {
 	if queryErr != nil {
 		return nil, queryErr
 	}
-	defer func() { err = closeRows(rows, err) }()
+	defer func() { err = basestore.CloseRows(rows, err) }()
 
 	var uploads []Upload
 	for rows.Next() {
@@ -61,6 +63,7 @@ func scanUploads(rows *sql.Rows, queryErr error) (_ []Upload, err error) {
 			&upload.FinishedAt,
 			&upload.ProcessAfter,
 			&upload.NumResets,
+			&upload.NumFailures,
 			&upload.RepositoryID,
 			&upload.RepositoryName,
 			&upload.Indexer,
@@ -108,7 +111,7 @@ func scanStates(rows *sql.Rows, queryErr error) (_ map[int]string, err error) {
 	if queryErr != nil {
 		return nil, queryErr
 	}
-	defer func() { err = closeRows(rows, err) }()
+	defer func() { err = basestore.CloseRows(rows, err) }()
 
 	states := map[int]string{}
 	for rows.Next() {
@@ -129,7 +132,7 @@ func scanCounts(rows *sql.Rows, queryErr error) (_ map[int]int, err error) {
 	if queryErr != nil {
 		return nil, queryErr
 	}
-	defer func() { err = closeRows(rows, err) }()
+	defer func() { err = basestore.CloseRows(rows, err) }()
 
 	visibilities := map[int]int{}
 	for rows.Next() {
@@ -147,7 +150,7 @@ func scanCounts(rows *sql.Rows, queryErr error) (_ map[int]int, err error) {
 
 // GetUploadByID returns an upload by its identifier and boolean flag indicating its existence.
 func (s *store) GetUploadByID(ctx context.Context, id int) (Upload, bool, error) {
-	return scanFirstUpload(s.query(ctx, sqlf.Sprintf(`
+	return scanFirstUpload(s.Store.Query(ctx, sqlf.Sprintf(`
 		SELECT
 			u.id,
 			u.commit,
@@ -160,6 +163,7 @@ func (s *store) GetUploadByID(ctx context.Context, id int) (Upload, bool, error)
 			u.finished_at,
 			u.process_after,
 			u.num_resets,
+			u.num_failures,
 			u.repository_id,
 			u.repository_name,
 			u.indexer,
@@ -174,7 +178,7 @@ func (s *store) GetUploadByID(ctx context.Context, id int) (Upload, bool, error)
 			WHERE r.state = 'queued'
 		) s
 		ON u.id = s.id
-		WHERE u.id = %s
+		WHERE u.state != 'deleted' AND u.id = %s
 	`, id)))
 }
 
@@ -188,6 +192,24 @@ type GetUploadsOptions struct {
 	Offset         int
 }
 
+// DeleteUploadsStuckUploading soft deletes any upload record that has been uploading since the given time.
+func (s *store) DeleteUploadsStuckUploading(ctx context.Context, uploadedBefore time.Time) (int, error) {
+	count, _, err := basestore.ScanFirstInt(s.Store.Query(
+		ctx,
+		sqlf.Sprintf(`
+			WITH deleted AS (
+				UPDATE lsif_uploads
+				SET state = 'deleted'
+				WHERE state = 'uploading' AND uploaded_at < %s
+				RETURNING repository_id
+			)
+			SELECT count(*) FROM deleted
+		`, uploadedBefore),
+	))
+
+	return count, err
+}
+
 // GetUploads returns a list of uploads and the total count of records matching the given conditions.
 func (s *store) GetUploads(ctx context.Context, opts GetUploadsOptions) (_ []Upload, _ int, err error) {
 	tx, err := s.transact(ctx)
@@ -197,7 +219,6 @@ func (s *store) GetUploads(ctx context.Context, opts GetUploadsOptions) (_ []Upl
 	defer func() { err = tx.Done(err) }()
 
 	var conds []*sqlf.Query
-
 	if opts.RepositoryID != 0 {
 		conds = append(conds, sqlf.Sprintf("u.repository_id = %s", opts.RepositoryID))
 	}
@@ -206,6 +227,8 @@ func (s *store) GetUploads(ctx context.Context, opts GetUploadsOptions) (_ []Upl
 	}
 	if opts.State != "" {
 		conds = append(conds, sqlf.Sprintf("u.state = %s", opts.State))
+	} else {
+		conds = append(conds, sqlf.Sprintf("u.state != 'deleted'"))
 	}
 	if opts.VisibleAtTip {
 		conds = append(conds, sqlf.Sprintf("EXISTS (SELECT 1 FROM lsif_uploads_visible_at_tip where repository_id = u.repository_id and upload_id = u.id)"))
@@ -214,11 +237,7 @@ func (s *store) GetUploads(ctx context.Context, opts GetUploadsOptions) (_ []Upl
 		conds = append(conds, sqlf.Sprintf("u.uploaded_at < %s", *opts.UploadedBefore))
 	}
 
-	if len(conds) == 0 {
-		conds = append(conds, sqlf.Sprintf("TRUE"))
-	}
-
-	count, _, err := scanFirstInt(tx.query(
+	count, _, err := basestore.ScanFirstInt(tx.Store.Query(
 		ctx,
 		sqlf.Sprintf(`SELECT COUNT(*) FROM lsif_uploads_with_repository_name u WHERE %s`, sqlf.Join(conds, " AND ")),
 	))
@@ -226,7 +245,7 @@ func (s *store) GetUploads(ctx context.Context, opts GetUploadsOptions) (_ []Upl
 		return nil, 0, err
 	}
 
-	uploads, err := scanUploads(tx.query(
+	uploads, err := scanUploads(tx.Store.Query(
 		ctx,
 		sqlf.Sprintf(`
 			SELECT
@@ -241,6 +260,7 @@ func (s *store) GetUploads(ctx context.Context, opts GetUploadsOptions) (_ []Upl
 				u.finished_at,
 				u.process_after,
 				u.num_resets,
+				u.num_failures,
 				u.repository_id,
 				u.repository_name,
 				u.indexer,
@@ -286,7 +306,7 @@ func makeSearchCondition(term string) *sqlf.Query {
 
 // QueueSize returns the number of uploads in the queued state.
 func (s *store) QueueSize(ctx context.Context) (int, error) {
-	count, _, err := scanFirstInt(s.query(ctx, sqlf.Sprintf(`SELECT COUNT(*) FROM lsif_uploads_with_repository_name WHERE state = 'queued'`)))
+	count, _, err := basestore.ScanFirstInt(s.Store.Query(ctx, sqlf.Sprintf(`SELECT COUNT(*) FROM lsif_uploads_with_repository_name WHERE state = 'queued'`)))
 	return count, err
 }
 
@@ -296,7 +316,7 @@ func (s *store) InsertUpload(ctx context.Context, upload Upload) (int, error) {
 		upload.UploadedParts = []int{}
 	}
 
-	id, _, err := scanFirstInt(s.query(
+	id, _, err := basestore.ScanFirstInt(s.Store.Query(
 		ctx,
 		sqlf.Sprintf(`
 			INSERT INTO lsif_uploads (
@@ -328,7 +348,7 @@ func (s *store) InsertUpload(ctx context.Context, upload Upload) (int, error) {
 // AddUploadPart adds the part index to the given upload's uploaded parts array. This method is idempotent
 // (the resulting array is deduplicated on update).
 func (s *store) AddUploadPart(ctx context.Context, uploadID, partIndex int) error {
-	return s.queryForEffect(ctx, sqlf.Sprintf(`
+	return s.Store.Exec(ctx, sqlf.Sprintf(`
 		UPDATE lsif_uploads
 		SET uploaded_parts = array(SELECT DISTINCT * FROM unnest(array_append(uploaded_parts, %s)))
 		WHERE id = %s
@@ -337,12 +357,12 @@ func (s *store) AddUploadPart(ctx context.Context, uploadID, partIndex int) erro
 
 // MarkQueued updates the state of the upload to queued and updates the upload size.
 func (s *store) MarkQueued(ctx context.Context, id int, uploadSize *int) error {
-	return s.queryForEffect(ctx, sqlf.Sprintf(`UPDATE lsif_uploads SET state = 'queued', upload_size = %s WHERE id = %s`, uploadSize, id))
+	return s.Store.Exec(ctx, sqlf.Sprintf(`UPDATE lsif_uploads SET state = 'queued', upload_size = %s WHERE id = %s`, uploadSize, id))
 }
 
 // MarkComplete updates the state of the upload to complete.
 func (s *store) MarkComplete(ctx context.Context, id int) (err error) {
-	return s.queryForEffect(ctx, sqlf.Sprintf(`
+	return s.Store.Exec(ctx, sqlf.Sprintf(`
 		UPDATE lsif_uploads
 		SET state = 'completed', finished_at = clock_timestamp()
 		WHERE id = %s
@@ -351,7 +371,7 @@ func (s *store) MarkComplete(ctx context.Context, id int) (err error) {
 
 // MarkErrored updates the state of the upload to errored and updates the failure summary data.
 func (s *store) MarkErrored(ctx context.Context, id int, failureMessage string) (err error) {
-	return s.queryForEffect(ctx, sqlf.Sprintf(`
+	return s.Store.Exec(ctx, sqlf.Sprintf(`
 		UPDATE lsif_uploads
 		SET state = 'errored', finished_at = clock_timestamp(), failure_message = %s
 		WHERE id = %s
@@ -362,7 +382,7 @@ var uploadColumnsWithNullRank = []*sqlf.Query{
 	sqlf.Sprintf("u.id"),
 	sqlf.Sprintf("u.commit"),
 	sqlf.Sprintf("u.root"),
-	sqlf.Sprintf("EXISTS (SELECT 1 FROM lsif_uploads_visible_at_tip where repository_id = u.repository_id and upload_id = u.id) AS visible_at_tip"),
+	sqlf.Sprintf("EXISTS (SELECT 1 FROM lsif_uploads_visible_at_tip WHERE state != 'deleted' AND repository_id = u.repository_id AND upload_id = u.id) AS visible_at_tip"),
 	sqlf.Sprintf("u.uploaded_at"),
 	sqlf.Sprintf("u.state"),
 	sqlf.Sprintf("u.failure_message"),
@@ -370,6 +390,7 @@ var uploadColumnsWithNullRank = []*sqlf.Query{
 	sqlf.Sprintf("u.finished_at"),
 	sqlf.Sprintf("u.process_after"),
 	sqlf.Sprintf("u.num_resets"),
+	sqlf.Sprintf("u.num_failures"),
 	sqlf.Sprintf("u.repository_id"),
 	sqlf.Sprintf(`u.repository_name`),
 	sqlf.Sprintf("u.indexer"),
@@ -404,8 +425,12 @@ func (s *store) Requeue(ctx context.Context, id int, after time.Time) error {
 
 // GetStates returns the states for the uploads with the given identifiers.
 func (s *store) GetStates(ctx context.Context, ids []int) (map[int]string, error) {
-	return scanStates(s.query(ctx, sqlf.Sprintf(`
-		SELECT id, state FROM lsif_uploads_with_repository_name
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	return scanStates(s.Store.Query(ctx, sqlf.Sprintf(`
+		SELECT id, state FROM lsif_uploads
 		WHERE id IN (%s)
 	`, sqlf.Join(intsToQueries(ids), ", "))))
 }
@@ -420,10 +445,11 @@ func (s *store) DeleteUploadByID(ctx context.Context, id int) (_ bool, err error
 	}
 	defer func() { err = tx.Done(err) }()
 
-	repositoryID, deleted, err := scanFirstInt(tx.query(
+	repositoryID, deleted, err := basestore.ScanFirstInt(tx.Store.Query(
 		ctx,
 		sqlf.Sprintf(`
-			DELETE FROM lsif_uploads
+			UPDATE lsif_uploads
+			SET state = 'deleted'
 			WHERE id = %s
 			RETURNING repository_id
 		`, id),
@@ -453,7 +479,7 @@ func (s *store) DeleteUploadsWithoutRepository(ctx context.Context, now time.Tim
 	// TODO(efritz) - this would benefit from an index on repository_id. We currently have
 	// a similar one on this index, but only for uploads that are  completed or visible at tip.
 
-	return scanCounts(s.query(ctx, sqlf.Sprintf(`
+	return scanCounts(s.Store.Query(ctx, sqlf.Sprintf(`
 		WITH deleted_repos AS (
 			SELECT r.id AS id FROM repo r
 			WHERE
@@ -461,11 +487,27 @@ func (s *store) DeleteUploadsWithoutRepository(ctx context.Context, now time.Tim
 				EXISTS (SELECT 1 from lsif_uploads u WHERE u.repository_id = r.id)
 		),
 		deleted_uploads AS (
-			DELETE FROM lsif_uploads u WHERE repository_id IN (SELECT id FROM deleted_repos)
+			UPDATE lsif_uploads u
+			SET state = 'deleted'
+			WHERE u.repository_id IN (SELECT id FROM deleted_repos)
 			RETURNING u.id, u.repository_id
 		)
 		SELECT d.repository_id, COUNT(*) FROM deleted_uploads d GROUP BY d.repository_id
 	`, now.UTC(), DeletedRepositoryGracePeriod/time.Second)))
+}
+
+// HardDeleteUploadByID deletes the upload record with the given identifier.
+func (s *store) HardDeleteUploadByID(ctx context.Context, ids ...int) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	var idQueries []*sqlf.Query
+	for _, id := range ids {
+		idQueries = append(idQueries, sqlf.Sprintf("%s", id))
+	}
+
+	return s.Store.Exec(ctx, sqlf.Sprintf(`DELETE FROM lsif_uploads WHERE id IN (%s)`, sqlf.Join(idQueries, ", ")))
 }
 
 // StalledUploadMaxAge is the maximum allowable duration between updating the state of an

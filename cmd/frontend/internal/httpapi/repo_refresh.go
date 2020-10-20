@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/pkg/handlerutil"
+	"github.com/tetrafolium/sourcegraph/cmd/frontend/internal/handlerutil"
 	"github.com/tetrafolium/sourcegraph/internal/gitserver"
 	"github.com/tetrafolium/sourcegraph/internal/repoupdater"
 	"github.com/tetrafolium/sourcegraph/internal/repoupdater/protocol"

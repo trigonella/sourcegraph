@@ -141,7 +141,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _frontend: 2s+ 90th percentile blob load latency over 10m_
+- _frontend: 5s+ 90th percentile blob load latency over 10m_
 
 **Possible solutions:**
 
@@ -411,11 +411,11 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 ]
 ```
 
-## frontend: 99th_percentile_precise_code_intel_store_duration
+## frontend: code_intel_frontend_db_store_99th_percentile_duration
 
 **Descriptions:**
 
-- _frontend: 20s+ 99th percentile successful precise code intel database query duration over 5m_
+- _frontend: 20s+ 99th percentile successful frontend database query duration over 5m_
 
 **Possible solutions:**
 
@@ -423,15 +423,15 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 ```json
 "observability.silenceAlerts": [
-  "warning_frontend_99th_percentile_precise_code_intel_store_duration"
+  "warning_frontend_code_intel_frontend_db_store_99th_percentile_duration"
 ]
 ```
 
-## frontend: precise_code_intel_store_errors
+## frontend: code_intel_frontend_db_store_errors
 
 **Descriptions:**
 
-- _frontend: 5+ precise code intel database errors every 5m for 15m0s_
+- _frontend: 20+ frontend database errors every 5m_
 
 **Possible solutions:**
 
@@ -439,7 +439,71 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 ```json
 "observability.silenceAlerts": [
-  "warning_frontend_precise_code_intel_store_errors"
+  "warning_frontend_code_intel_frontend_db_store_errors"
+]
+```
+
+## frontend: code_intel_codeintel_db_store_99th_percentile_duration
+
+**Descriptions:**
+
+- _frontend: 20s+ 99th percentile successful codeintel database query duration over 5m_
+
+**Possible solutions:**
+
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_frontend_code_intel_codeintel_db_store_99th_percentile_duration"
+]
+```
+
+## frontend: code_intel_codeintel_db_store_errors
+
+**Descriptions:**
+
+- _frontend: 20+ codeintel database every 5m_
+
+**Possible solutions:**
+
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_frontend_code_intel_codeintel_db_store_errors"
+]
+```
+
+## frontend: code_intel_bundle_store_99th_percentile_duration
+
+**Descriptions:**
+
+- _frontend: 20s+ 99th percentile successful bundle database store operation duration over 5m_
+
+**Possible solutions:**
+
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_frontend_code_intel_bundle_store_99th_percentile_duration"
+]
+```
+
+## frontend: code_intel_bundle_store_errors
+
+**Descriptions:**
+
+- _frontend: 20+ bundle store errors every 5m_
+
+**Possible solutions:**
+
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_frontend_code_intel_bundle_store_errors"
 ]
 ```
 
@@ -571,22 +635,6 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 ```json
 "observability.silenceAlerts": [
   "warning_frontend_gitserver_error_responses"
-]
-```
-
-## frontend: 90th_percentile_updatecheck_requests
-
-**Descriptions:**
-
-- _frontend: 0.1s+ 90th percentile successful update-check requests (sourcegraph.com only)_
-
-**Possible solutions:**
-
-- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
-
-```json
-"observability.silenceAlerts": [
-  "warning_frontend_90th_percentile_updatecheck_requests"
 ]
 ```
 
@@ -744,7 +792,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _frontend: 90%+ container cpu usage total (5m maximum) across all cores by instance_
+- _frontend: 90%+ container cpu usage total (5m maximum) across all cores by instance for 30m0s_
 
 **Possible solutions:**
 
@@ -780,7 +828,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _frontend: 10000+ maximum active goroutines for 10m for 10m0s_
+- _frontend: 10000+ maximum active goroutines for 10m0s_
 
 **Possible solutions:**
 
@@ -812,7 +860,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _frontend: less than 90% percentage pods available for 10m for 10m0s_
+- _frontend: less than 90% percentage pods available for 10m0s_
 
 **Possible solutions:**
 
@@ -848,9 +896,9 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _gitserver: 50+ running git commands (signals load)_
+- _gitserver: 50+ running git commands (signals load) for 2m0s_
 
-- _gitserver: 100+ running git commands (signals load)_
+- _gitserver: 100+ running git commands (signals load) for 5m0s_
 
 **Possible solutions:**
 
@@ -929,7 +977,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _gitserver: 5+ frontend-internal API error responses every 5m by route_
+- _gitserver: 2%+ frontend-internal API error responses every 5m by route for 5m0s_
 
 **Possible solutions:**
 
@@ -1024,6 +1072,22 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 ]
 ```
 
+## gitserver: fs_io_operations
+
+**Descriptions:**
+
+- _gitserver: 5000+ filesystem reads and writes rate by instance over 1h_
+
+**Possible solutions:**
+
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_gitserver_fs_io_operations"
+]
+```
+
 ## gitserver: provisioning_container_cpu_usage_long_term
 
 **Descriptions:**
@@ -1068,7 +1132,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _gitserver: 90%+ container cpu usage total (5m maximum) across all cores by instance_
+- _gitserver: 90%+ container cpu usage total (5m maximum) across all cores by instance for 30m0s_
 
 **Possible solutions:**
 
@@ -1086,7 +1150,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _gitserver: 10000+ maximum active goroutines for 10m for 10m0s_
+- _gitserver: 10000+ maximum active goroutines for 10m0s_
 
 **Possible solutions:**
 
@@ -1118,7 +1182,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _gitserver: less than 90% percentage pods available for 10m for 10m0s_
+- _gitserver: less than 90% percentage pods available for 10m0s_
 
 **Possible solutions:**
 
@@ -1134,7 +1198,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _github-proxy: less than 1000 remaining calls to GitHub before hitting the rate limit_
+- _github-proxy: less than 500 remaining calls to GitHub before hitting the rate limit for 5m0s_
 
 **Possible solutions:**
 
@@ -1284,7 +1348,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _github-proxy: 90%+ container cpu usage total (5m maximum) across all cores by instance_
+- _github-proxy: 90%+ container cpu usage total (5m maximum) across all cores by instance for 30m0s_
 
 **Possible solutions:**
 
@@ -1320,7 +1384,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _github-proxy: 10000+ maximum active goroutines for 10m for 10m0s_
+- _github-proxy: 10000+ maximum active goroutines for 10m0s_
 
 **Possible solutions:**
 
@@ -1352,7 +1416,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _github-proxy: less than 90% percentage pods available for 10m for 10m0s_
+- _github-proxy: less than 90% percentage pods available for 10m0s_
 
 **Possible solutions:**
 
@@ -1364,11 +1428,11 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 ]
 ```
 
-## precise-code-intel-bundle-manager: 99th_percentile_bundle_database_duration
+## precise-code-intel-bundle-manager: code_intel_frontend_db_store_99th_percentile_duration
 
 **Descriptions:**
 
-- _precise-code-intel-bundle-manager: 20s+ 99th percentile successful bundle database query duration over 5m_
+- _precise-code-intel-bundle-manager: 20s+ 99th percentile successful frontend database query duration over 5m_
 
 **Possible solutions:**
 
@@ -1376,15 +1440,15 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 ```json
 "observability.silenceAlerts": [
-  "warning_precise-code-intel-bundle-manager_99th_percentile_bundle_database_duration"
+  "warning_precise-code-intel-bundle-manager_code_intel_frontend_db_store_99th_percentile_duration"
 ]
 ```
 
-## precise-code-intel-bundle-manager: bundle_database_errors
+## precise-code-intel-bundle-manager: code_intel_frontend_db_store_errors
 
 **Descriptions:**
 
-- _precise-code-intel-bundle-manager: 20+ bundle database errors every 5m_
+- _precise-code-intel-bundle-manager: 20+ frontend database errors every 5m_
 
 **Possible solutions:**
 
@@ -1392,15 +1456,15 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 ```json
 "observability.silenceAlerts": [
-  "warning_precise-code-intel-bundle-manager_bundle_database_errors"
+  "warning_precise-code-intel-bundle-manager_code_intel_frontend_db_store_errors"
 ]
 ```
 
-## precise-code-intel-bundle-manager: 99th_percentile_bundle_reader_duration
+## precise-code-intel-bundle-manager: code_intel_codeintel_db_store_99th_percentile_duration
 
 **Descriptions:**
 
-- _precise-code-intel-bundle-manager: 20s+ 99th percentile successful bundle reader query duration over 5m_
+- _precise-code-intel-bundle-manager: 20s+ 99th percentile successful codeintel database query duration over 5m_
 
 **Possible solutions:**
 
@@ -1408,15 +1472,15 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 ```json
 "observability.silenceAlerts": [
-  "warning_precise-code-intel-bundle-manager_99th_percentile_bundle_reader_duration"
+  "warning_precise-code-intel-bundle-manager_code_intel_codeintel_db_store_99th_percentile_duration"
 ]
 ```
 
-## precise-code-intel-bundle-manager: bundle_reader_errors
+## precise-code-intel-bundle-manager: code_intel_codeintel_db_store_errors
 
 **Descriptions:**
 
-- _precise-code-intel-bundle-manager: 20+ bundle reader errors every 5m_
+- _precise-code-intel-bundle-manager: 20+ codeintel database every 5m_
 
 **Possible solutions:**
 
@@ -1424,7 +1488,39 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 ```json
 "observability.silenceAlerts": [
-  "warning_precise-code-intel-bundle-manager_bundle_reader_errors"
+  "warning_precise-code-intel-bundle-manager_code_intel_codeintel_db_store_errors"
+]
+```
+
+## precise-code-intel-bundle-manager: code_intel_bundle_store_99th_percentile_duration
+
+**Descriptions:**
+
+- _precise-code-intel-bundle-manager: 20s+ 99th percentile successful bundle database store operation duration over 5m_
+
+**Possible solutions:**
+
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_precise-code-intel-bundle-manager_code_intel_bundle_store_99th_percentile_duration"
+]
+```
+
+## precise-code-intel-bundle-manager: code_intel_bundle_store_errors
+
+**Descriptions:**
+
+- _precise-code-intel-bundle-manager: 20+ bundle store errors every 5m_
+
+**Possible solutions:**
+
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_precise-code-intel-bundle-manager_code_intel_bundle_store_errors"
 ]
 ```
 
@@ -1438,7 +1534,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Possible solutions:**
 
-- **Provision more disk space:** Sourcegraph will begin deleting the oldest uploaded bundle files at 10% disk space remaining.
+- 	- **Provision more disk space:** Sourcegraph will begin deleting the oldest uploaded bundle files at 10% disk space remaining.
 - **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
 
 ```json
@@ -1464,7 +1560,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 ]
 ```
 
-## precise-code-intel-bundle-manager: janitor_old_uploads_removed
+## precise-code-intel-bundle-manager: janitor_upload_files_removed
 
 **Descriptions:**
 
@@ -1476,15 +1572,15 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 ```json
 "observability.silenceAlerts": [
-  "warning_precise-code-intel-bundle-manager_janitor_old_uploads_removed"
+  "warning_precise-code-intel-bundle-manager_janitor_upload_files_removed"
 ]
 ```
 
-## precise-code-intel-bundle-manager: janitor_old_parts_removed
+## precise-code-intel-bundle-manager: janitor_upload_part_files_removed
 
 **Descriptions:**
 
-- _precise-code-intel-bundle-manager: 20+ upload and database part files removed (due to age) every 5m_
+- _precise-code-intel-bundle-manager: 20+ upload part files removed (due to age) every 5m_
 
 **Possible solutions:**
 
@@ -1492,43 +1588,11 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 ```json
 "observability.silenceAlerts": [
-  "warning_precise-code-intel-bundle-manager_janitor_old_parts_removed"
+  "warning_precise-code-intel-bundle-manager_janitor_upload_part_files_removed"
 ]
 ```
 
-## precise-code-intel-bundle-manager: janitor_old_dumps_removed
-
-**Descriptions:**
-
-- _precise-code-intel-bundle-manager: 20+ bundle files removed (due to low disk space) every 5m_
-
-**Possible solutions:**
-
-- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
-
-```json
-"observability.silenceAlerts": [
-  "warning_precise-code-intel-bundle-manager_janitor_old_dumps_removed"
-]
-```
-
-## precise-code-intel-bundle-manager: janitor_orphans
-
-**Descriptions:**
-
-- _precise-code-intel-bundle-manager: 20+ bundle and upload files removed (with no corresponding database entry) every 5m_
-
-**Possible solutions:**
-
-- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
-
-```json
-"observability.silenceAlerts": [
-  "warning_precise-code-intel-bundle-manager_janitor_orphans"
-]
-```
-
-## precise-code-intel-bundle-manager: janitor_uploads_removed
+## precise-code-intel-bundle-manager: janitor_upload_records_removed
 
 **Descriptions:**
 
@@ -1540,7 +1604,23 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 ```json
 "observability.silenceAlerts": [
-  "warning_precise-code-intel-bundle-manager_janitor_uploads_removed"
+  "warning_precise-code-intel-bundle-manager_janitor_upload_records_removed"
+]
+```
+
+## precise-code-intel-bundle-manager: janitor_data_rows_removed
+
+**Descriptions:**
+
+- _precise-code-intel-bundle-manager: 20+ codeintel database rows removed (due to deleted upload) every 5m_
+
+**Possible solutions:**
+
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_precise-code-intel-bundle-manager_janitor_data_rows_removed"
 ]
 ```
 
@@ -1548,7 +1628,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _precise-code-intel-bundle-manager: 5+ frontend-internal API error responses every 5m by route_
+- _precise-code-intel-bundle-manager: 2%+ frontend-internal API error responses every 5m by route for 5m0s_
 
 **Possible solutions:**
 
@@ -1687,7 +1767,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _precise-code-intel-bundle-manager: 90%+ container cpu usage total (5m maximum) across all cores by instance_
+- _precise-code-intel-bundle-manager: 90%+ container cpu usage total (5m maximum) across all cores by instance for 30m0s_
 
 **Possible solutions:**
 
@@ -1723,7 +1803,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _precise-code-intel-bundle-manager: 10000+ maximum active goroutines for 10m for 10m0s_
+- _precise-code-intel-bundle-manager: 10000+ maximum active goroutines for 10m0s_
 
 **Possible solutions:**
 
@@ -1755,7 +1835,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _precise-code-intel-bundle-manager: less than 90% percentage pods available for 10m for 10m0s_
+- _precise-code-intel-bundle-manager: less than 90% percentage pods available for 10m0s_
 
 **Possible solutions:**
 
@@ -1815,11 +1895,11 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 ]
 ```
 
-## precise-code-intel-worker: 99th_percentile_store_duration
+## precise-code-intel-worker: code_intel_frontend_db_store_99th_percentile_duration
 
 **Descriptions:**
 
-- _precise-code-intel-worker: 20s+ 99th percentile successful database query duration over 5m_
+- _precise-code-intel-worker: 20s+ 99th percentile successful frontend database query duration over 5m_
 
 **Possible solutions:**
 
@@ -1827,15 +1907,15 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 ```json
 "observability.silenceAlerts": [
-  "warning_precise-code-intel-worker_99th_percentile_store_duration"
+  "warning_precise-code-intel-worker_code_intel_frontend_db_store_99th_percentile_duration"
 ]
 ```
 
-## precise-code-intel-worker: store_errors
+## precise-code-intel-worker: code_intel_frontend_db_store_errors
 
 **Descriptions:**
 
-- _precise-code-intel-worker: 20+ database errors every 5m_
+- _precise-code-intel-worker: 20+ frontend database errors every 5m_
 
 **Possible solutions:**
 
@@ -1843,7 +1923,39 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 ```json
 "observability.silenceAlerts": [
-  "warning_precise-code-intel-worker_store_errors"
+  "warning_precise-code-intel-worker_code_intel_frontend_db_store_errors"
+]
+```
+
+## precise-code-intel-worker: code_intel_codeintel_db_store_99th_percentile_duration
+
+**Descriptions:**
+
+- _precise-code-intel-worker: 20s+ 99th percentile successful codeintel database query duration over 5m_
+
+**Possible solutions:**
+
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_precise-code-intel-worker_code_intel_codeintel_db_store_99th_percentile_duration"
+]
+```
+
+## precise-code-intel-worker: code_intel_codeintel_db_store_errors
+
+**Descriptions:**
+
+- _precise-code-intel-worker: 20+ codeintel database errors every 5m_
+
+**Possible solutions:**
+
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_precise-code-intel-worker_code_intel_codeintel_db_store_errors"
 ]
 ```
 
@@ -1947,7 +2059,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _precise-code-intel-worker: 5+ gitserver error responses every 5m_
+- _precise-code-intel-worker: 5%+ gitserver error responses every 5m for 15m0s_
 
 **Possible solutions:**
 
@@ -1963,7 +2075,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _precise-code-intel-worker: 5+ frontend-internal API error responses every 5m by route_
+- _precise-code-intel-worker: 2%+ frontend-internal API error responses every 5m by route for 5m0s_
 
 **Possible solutions:**
 
@@ -2102,7 +2214,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _precise-code-intel-worker: 90%+ container cpu usage total (5m maximum) across all cores by instance_
+- _precise-code-intel-worker: 90%+ container cpu usage total (5m maximum) across all cores by instance for 30m0s_
 
 **Possible solutions:**
 
@@ -2138,7 +2250,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _precise-code-intel-worker: 10000+ maximum active goroutines for 10m for 10m0s_
+- _precise-code-intel-worker: 10000+ maximum active goroutines for 10m0s_
 
 **Possible solutions:**
 
@@ -2170,7 +2282,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _precise-code-intel-worker: less than 90% percentage pods available for 10m for 10m0s_
+- _precise-code-intel-worker: less than 90% percentage pods available for 10m0s_
 
 **Possible solutions:**
 
@@ -2230,11 +2342,11 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 ]
 ```
 
-## precise-code-intel-indexer: 99th_percentile_store_duration
+## precise-code-intel-indexer: code_intel_frontend_db_store_99th_percentile_duration
 
 **Descriptions:**
 
-- _precise-code-intel-indexer: 20s+ 99th percentile successful database query duration over 5m_
+- _precise-code-intel-indexer: 20s+ 99th percentile successful frontend database query duration over 5m_
 
 **Possible solutions:**
 
@@ -2242,15 +2354,15 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 ```json
 "observability.silenceAlerts": [
-  "warning_precise-code-intel-indexer_99th_percentile_store_duration"
+  "warning_precise-code-intel-indexer_code_intel_frontend_db_store_99th_percentile_duration"
 ]
 ```
 
-## precise-code-intel-indexer: store_errors
+## precise-code-intel-indexer: code_intel_frontend_db_store_errors
 
 **Descriptions:**
 
-- _precise-code-intel-indexer: 20+ database errors every 5m_
+- _precise-code-intel-indexer: 20+ frontend database errors every 5m_
 
 **Possible solutions:**
 
@@ -2258,7 +2370,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 ```json
 "observability.silenceAlerts": [
-  "warning_precise-code-intel-indexer_store_errors"
+  "warning_precise-code-intel-indexer_code_intel_frontend_db_store_errors"
 ]
 ```
 
@@ -2394,7 +2506,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _precise-code-intel-indexer: 5+ gitserver error responses every 5m_
+- _precise-code-intel-indexer: 5%+ gitserver error responses every 5m for 15m0s_
 
 **Possible solutions:**
 
@@ -2410,7 +2522,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _precise-code-intel-indexer: 5+ frontend-internal API error responses every 5m by route_
+- _precise-code-intel-indexer: 2%+ frontend-internal API error responses every 5m by route for 5m0s_
 
 **Possible solutions:**
 
@@ -2549,7 +2661,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _precise-code-intel-indexer: 90%+ container cpu usage total (5m maximum) across all cores by instance_
+- _precise-code-intel-indexer: 90%+ container cpu usage total (5m maximum) across all cores by instance for 30m0s_
 
 **Possible solutions:**
 
@@ -2585,7 +2697,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _precise-code-intel-indexer: 10000+ maximum active goroutines for 10m for 10m0s_
+- _precise-code-intel-indexer: 10000+ maximum active goroutines for 10m0s_
 
 **Possible solutions:**
 
@@ -2617,7 +2729,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _precise-code-intel-indexer: less than 90% percentage pods available for 10m for 10m0s_
+- _precise-code-intel-indexer: less than 90% percentage pods available for 10m0s_
 
 **Possible solutions:**
 
@@ -2633,7 +2745,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _query-runner: 5+ frontend-internal API error responses every 5m by route_
+- _query-runner: 2%+ frontend-internal API error responses every 5m by route for 5m0s_
 
 **Possible solutions:**
 
@@ -2772,7 +2884,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _query-runner: 90%+ container cpu usage total (5m maximum) across all cores by instance_
+- _query-runner: 90%+ container cpu usage total (5m maximum) across all cores by instance for 30m0s_
 
 **Possible solutions:**
 
@@ -2808,7 +2920,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _query-runner: 10000+ maximum active goroutines for 10m for 10m0s_
+- _query-runner: 10000+ maximum active goroutines for 10m0s_
 
 **Possible solutions:**
 
@@ -2840,7 +2952,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _query-runner: less than 90% percentage pods available for 10m for 10m0s_
+- _query-runner: less than 90% percentage pods available for 10m0s_
 
 **Possible solutions:**
 
@@ -2856,7 +2968,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _repo-updater: 5+ frontend-internal API error responses every 5m by route_
+- _repo-updater: 2%+ frontend-internal API error responses every 5m by route for 5m0s_
 
 **Possible solutions:**
 
@@ -2872,6 +2984,469 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 ```json
 "observability.silenceAlerts": [
   "warning_repo-updater_frontend_internal_api_error_responses"
+]
+```
+
+## repo-updater: syncer_sync_last_time
+
+**Descriptions:**
+
+- _repo-updater: 3600s+ time since last sync for 5m0s_
+
+**Possible solutions:**
+
+- Make sure there are external services added with valid tokens
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_repo-updater_syncer_sync_last_time"
+]
+```
+
+## repo-updater: src_repoupdater_max_sync_backoff
+
+**Descriptions:**
+
+- _repo-updater: 32400s+ time since oldest sync for 10m0s_
+
+**Possible solutions:**
+
+- Make sure there are external services added with valid tokens
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "critical_repo-updater_src_repoupdater_max_sync_backoff"
+]
+```
+
+## repo-updater: syncer_sync_start
+
+**Descriptions:**
+
+- _repo-updater: less than 0 sync was started for 9h0m0s_
+
+**Possible solutions:**
+
+- Check repo-updater logs for errors.
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_repo-updater_syncer_sync_start"
+]
+```
+
+## repo-updater: syncer_sync_duration
+
+**Descriptions:**
+
+- _repo-updater: 30s+ 95th repositories sync duration for 5m0s_
+
+**Possible solutions:**
+
+- Check the network latency is reasonable (<50ms) between the Sourcegraph and the code host
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_repo-updater_syncer_sync_duration"
+]
+```
+
+## repo-updater: source_duration
+
+**Descriptions:**
+
+- _repo-updater: 30s+ 95th repositories source duration for 5m0s_
+
+**Possible solutions:**
+
+- Check the network latency is reasonable (<50ms) between the Sourcegraph and the code host
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_repo-updater_source_duration"
+]
+```
+
+## repo-updater: syncer_synced_repos
+
+**Descriptions:**
+
+- _repo-updater: less than 0 repositories synced for 9h0m0s_
+
+**Possible solutions:**
+
+- Check network connectivity to code hosts
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_repo-updater_syncer_synced_repos"
+]
+```
+
+## repo-updater: sourced_repos
+
+**Descriptions:**
+
+- _repo-updater: less than 0 repositories sourced for 9h0m0s_
+
+**Possible solutions:**
+
+- Check network connectivity to code hosts
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_repo-updater_sourced_repos"
+]
+```
+
+## repo-updater: user_added_repos
+
+**Descriptions:**
+
+- _repo-updater: 180000+ total number of user added repos for 5m0s_
+
+**Possible solutions:**
+
+- Check for unusual spikes in user added repos. Each user is only allowed to add 2000
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "critical_repo-updater_user_added_repos"
+]
+```
+
+## repo-updater: purge_failed
+
+**Descriptions:**
+
+- _repo-updater: 0+ repositories purge failed for 5m0s_
+
+**Possible solutions:**
+
+- Check repo-updater`s connectivity with gitserver and gitserver logs
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_repo-updater_purge_failed"
+]
+```
+
+## repo-updater: sched_auto_fetch
+
+**Descriptions:**
+
+- _repo-updater: less than 0 repositories scheduled due to hitting a deadline for 9h0m0s_
+
+**Possible solutions:**
+
+- Check repo-updater logs. This is expected to fire if there are no user added code hosts
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_repo-updater_sched_auto_fetch"
+]
+```
+
+## repo-updater: sched_manual_fetch
+
+**Descriptions:**
+
+- _repo-updater: less than 0 repositories scheduled due to user traffic for 9h0m0s_
+
+**Possible solutions:**
+
+- Check repo-updater logs. This is expected to fire if there are no user added code hosts
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_repo-updater_sched_manual_fetch"
+]
+```
+
+## repo-updater: sched_known_repos
+
+**Descriptions:**
+
+- _repo-updater: less than 0 repositories managed by the scheduler for 10m0s_
+
+**Possible solutions:**
+
+- Check repo-updater logs. This is expected to fire if there are no user added code hosts
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_repo-updater_sched_known_repos"
+]
+```
+
+## repo-updater: sched_update_queue_length
+
+**Descriptions:**
+
+- _repo-updater: 0+ rate of growth of update queue length over 5 minutes for 30m0s_
+
+**Possible solutions:**
+
+- Check repo-updater logs for indications that the queue is not being processed. The queue length should trend downwards over time as items are sent to GitServer
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "critical_repo-updater_sched_update_queue_length"
+]
+```
+
+## repo-updater: sched_loops
+
+**Descriptions:**
+
+- _repo-updater: less than 0 scheduler loops for 9h0m0s_
+
+**Possible solutions:**
+
+- Check repo-updater logs for errors. This is expected to fire if there are no user added code hosts
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_repo-updater_sched_loops"
+]
+```
+
+## repo-updater: sched_error
+
+**Descriptions:**
+
+- _repo-updater: 1+ repositories schedule error rate for 1m0s_
+
+**Possible solutions:**
+
+- Check repo-updater logs for errors
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "critical_repo-updater_sched_error"
+]
+```
+
+## repo-updater: perms_syncer_perms
+
+**Descriptions:**
+
+- _repo-updater: 259200s+ time gap between least and most up to date permissions for 5m0s_
+
+**Possible solutions:**
+
+- Increase the API rate limit to [GitHub](https://docs.sourcegraph.com/admin/external_service/github#github-com-rate-limits), [GitLab](https://docs.sourcegraph.com/admin/external_service/gitlab#internal-rate-limits) or [Bitbucket Server](https://docs.sourcegraph.com/admin/external_service/bitbucket_server#internal-rate-limits).
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_repo-updater_perms_syncer_perms"
+]
+```
+
+## repo-updater: perms_syncer_stale_perms
+
+**Descriptions:**
+
+- _repo-updater: 100+ number of entities with stale permissions for 5m0s_
+
+**Possible solutions:**
+
+- Increase the API rate limit to [GitHub](https://docs.sourcegraph.com/admin/external_service/github#github-com-rate-limits), [GitLab](https://docs.sourcegraph.com/admin/external_service/gitlab#internal-rate-limits) or [Bitbucket Server](https://docs.sourcegraph.com/admin/external_service/bitbucket_server#internal-rate-limits).
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_repo-updater_perms_syncer_stale_perms"
+]
+```
+
+## repo-updater: perms_syncer_no_perms
+
+**Descriptions:**
+
+- _repo-updater: 100+ number of entities with no permissions for 5m0s_
+
+**Possible solutions:**
+
+- **Enabled permissions for the first time:** Wait for few minutes and see if the number goes down.
+- **Otherwise:** Increase the API rate limit to [GitHub](https://docs.sourcegraph.com/admin/external_service/github#github-com-rate-limits), [GitLab](https://docs.sourcegraph.com/admin/external_service/gitlab#internal-rate-limits) or [Bitbucket Server](https://docs.sourcegraph.com/admin/external_service/bitbucket_server#internal-rate-limits).
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_repo-updater_perms_syncer_no_perms"
+]
+```
+
+## repo-updater: perms_syncer_sync_duration
+
+**Descriptions:**
+
+- _repo-updater: 30s+ 95th permissions sync duration for 5m0s_
+
+**Possible solutions:**
+
+- Check the network latency is reasonable (<50ms) between the Sourcegraph and the code host.
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_repo-updater_perms_syncer_sync_duration"
+]
+```
+
+## repo-updater: perms_syncer_queue_size
+
+**Descriptions:**
+
+- _repo-updater: 100+ permissions sync queued items for 5m0s_
+
+**Possible solutions:**
+
+- **Enabled permissions for the first time:** Wait for few minutes and see if the number goes down.
+- **Otherwise:** Increase the API rate limit to [GitHub](https://docs.sourcegraph.com/admin/external_service/github#github-com-rate-limits), [GitLab](https://docs.sourcegraph.com/admin/external_service/gitlab#internal-rate-limits) or [Bitbucket Server](https://docs.sourcegraph.com/admin/external_service/bitbucket_server#internal-rate-limits).
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_repo-updater_perms_syncer_queue_size"
+]
+```
+
+## repo-updater: authz_filter_duration
+
+**Descriptions:**
+
+- _repo-updater: 1s+ 95th authorization duration for 1m0s_
+
+**Possible solutions:**
+
+- Check if database is overloaded.
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "critical_repo-updater_authz_filter_duration"
+]
+```
+
+## repo-updater: perms_syncer_sync_errors
+
+**Descriptions:**
+
+- _repo-updater: 1+ permissions sync error rate for 1m0s_
+
+**Possible solutions:**
+
+- Check the network connectivity the Sourcegraph and the code host.
+- Check if API rate limit quota is exhausted on the code host.
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "critical_repo-updater_perms_syncer_sync_errors"
+]
+```
+
+## repo-updater: src_repoupdater_external_services_total
+
+**Descriptions:**
+
+- _repo-updater: 20000+ the total number of external services for 1h0m0s_
+
+**Possible solutions:**
+
+- Check for spikes in external services, could be abuse
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "critical_repo-updater_src_repoupdater_external_services_total"
+]
+```
+
+## repo-updater: src_repoupdater_user_external_services_total
+
+**Descriptions:**
+
+- _repo-updater: 20000+ the total number of user added external services for 1h0m0s_
+
+**Possible solutions:**
+
+- Check for spikes in external services, could be abuse
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_repo-updater_src_repoupdater_user_external_services_total"
+]
+```
+
+## repo-updater: repoupdater_queued_sync_jobs_total
+
+**Descriptions:**
+
+- _repo-updater: 100+ the total number of queued sync jobs for 1h0m0s_
+
+**Possible solutions:**
+
+- **Check if jobs are failing to sync:** "SELECT * FROM external_service_sync_jobs WHERE state = `errored`";
+- **Increase the number of workers** using the `repoConcurrentExternalServiceSyncers` site config.
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_repo-updater_repoupdater_queued_sync_jobs_total"
+]
+```
+
+## repo-updater: repoupdater_completed_sync_jobs_total
+
+**Descriptions:**
+
+- _repo-updater: 100000+ the total number of completed sync jobs for 1h0m0s_
+
+**Possible solutions:**
+
+- Check repo-updater logs. Jobs older than 1 day should have been removed.
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_repo-updater_repoupdater_completed_sync_jobs_total"
+]
+```
+
+## repo-updater: repoupdater_errored_sync_jobs_total
+
+**Descriptions:**
+
+- _repo-updater: 100+ the total number of errored sync jobs for 1h0m0s_
+
+**Possible solutions:**
+
+- Check repo-updater logs. Check code host connectivity
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_repo-updater_repoupdater_errored_sync_jobs_total"
 ]
 ```
 
@@ -2995,7 +3570,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _repo-updater: 90%+ container cpu usage total (5m maximum) across all cores by instance_
+- _repo-updater: 90%+ container cpu usage total (5m maximum) across all cores by instance for 30m0s_
 
 **Possible solutions:**
 
@@ -3031,7 +3606,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _repo-updater: 10000+ maximum active goroutines for 10m for 10m0s_
+- _repo-updater: 10000+ maximum active goroutines for 10m0s_
 
 **Possible solutions:**
 
@@ -3063,7 +3638,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _repo-updater: less than 90% percentage pods available for 10m for 10m0s_
+- _repo-updater: less than 90% percentage pods available for 10m0s_
 
 **Possible solutions:**
 
@@ -3079,7 +3654,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _searcher: 5+ unindexed search request errors every 5m by code_
+- _searcher: 5%+ unindexed search request errors every 5m by code for 5m0s_
 
 **Possible solutions:**
 
@@ -3111,7 +3686,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _searcher: 5+ frontend-internal API error responses every 5m by route_
+- _searcher: 2%+ frontend-internal API error responses every 5m by route for 5m0s_
 
 **Possible solutions:**
 
@@ -3250,7 +3825,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _searcher: 90%+ container cpu usage total (5m maximum) across all cores by instance_
+- _searcher: 90%+ container cpu usage total (5m maximum) across all cores by instance for 30m0s_
 
 **Possible solutions:**
 
@@ -3286,7 +3861,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _searcher: 10000+ maximum active goroutines for 10m for 10m0s_
+- _searcher: 10000+ maximum active goroutines for 10m0s_
 
 **Possible solutions:**
 
@@ -3318,7 +3893,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _searcher: less than 90% percentage pods available for 10m for 10m0s_
+- _searcher: less than 90% percentage pods available for 10m0s_
 
 **Possible solutions:**
 
@@ -3366,7 +3941,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _symbols: 5+ frontend-internal API error responses every 5m by route_
+- _symbols: 2%+ frontend-internal API error responses every 5m by route for 5m0s_
 
 **Possible solutions:**
 
@@ -3505,7 +4080,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _symbols: 90%+ container cpu usage total (5m maximum) across all cores by instance_
+- _symbols: 90%+ container cpu usage total (5m maximum) across all cores by instance for 30m0s_
 
 **Possible solutions:**
 
@@ -3541,7 +4116,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _symbols: 10000+ maximum active goroutines for 10m for 10m0s_
+- _symbols: 10000+ maximum active goroutines for 10m0s_
 
 **Possible solutions:**
 
@@ -3573,7 +4148,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _symbols: less than 90% percentage pods available for 10m for 10m0s_
+- _symbols: less than 90% percentage pods available for 10m0s_
 
 **Possible solutions:**
 
@@ -3769,7 +4344,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _syntect-server: 90%+ container cpu usage total (5m maximum) across all cores by instance_
+- _syntect-server: 90%+ container cpu usage total (5m maximum) across all cores by instance for 30m0s_
 
 **Possible solutions:**
 
@@ -3805,7 +4380,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _syntect-server: less than 90% percentage pods available for 10m for 10m0s_
+- _syntect-server: less than 90% percentage pods available for 10m0s_
 
 **Possible solutions:**
 
@@ -3912,6 +4487,22 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 ]
 ```
 
+## zoekt-indexserver: fs_io_operations
+
+**Descriptions:**
+
+- _zoekt-indexserver: 5000+ filesystem reads and writes rate by instance over 1h_
+
+**Possible solutions:**
+
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_zoekt-indexserver_fs_io_operations"
+]
+```
+
 ## zoekt-indexserver: provisioning_container_cpu_usage_long_term
 
 **Descriptions:**
@@ -3956,7 +4547,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _zoekt-indexserver: 90%+ container cpu usage total (5m maximum) across all cores by instance_
+- _zoekt-indexserver: 90%+ container cpu usage total (5m maximum) across all cores by instance for 30m0s_
 
 **Possible solutions:**
 
@@ -3992,7 +4583,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _zoekt-indexserver: less than 90% percentage pods available for 10m for 10m0s_
+- _zoekt-indexserver: less than 90% percentage pods available for 10m0s_
 
 **Possible solutions:**
 
@@ -4008,7 +4599,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _zoekt-webserver: 50s+ indexed search request errors every 5m by code_
+- _zoekt-webserver: 5%+ indexed search request errors every 5m by code for 5m0s_
 
 **Possible solutions:**
 
@@ -4096,6 +4687,22 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 ]
 ```
 
+## zoekt-webserver: fs_io_operations
+
+**Descriptions:**
+
+- _zoekt-webserver: 5000+ filesystem reads and writes by instance rate over 1h_
+
+**Possible solutions:**
+
+- **Silence this alert:** If you are aware of this alert and want to silence notifications for it, add the following to your site configuration and set a reminder to re-evaluate the alert:
+
+```json
+"observability.silenceAlerts": [
+  "warning_zoekt-webserver_fs_io_operations"
+]
+```
+
 ## zoekt-webserver: provisioning_container_cpu_usage_long_term
 
 **Descriptions:**
@@ -4140,7 +4747,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _zoekt-webserver: 90%+ container cpu usage total (5m maximum) across all cores by instance_
+- _zoekt-webserver: 90%+ container cpu usage total (5m maximum) across all cores by instance for 30m0s_
 
 **Possible solutions:**
 
@@ -4325,7 +4932,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _prometheus: 90%+ container cpu usage total (5m maximum) across all cores by instance_
+- _prometheus: 90%+ container cpu usage total (5m maximum) across all cores by instance for 30m0s_
 
 **Possible solutions:**
 
@@ -4361,7 +4968,7 @@ To learn more about Sourcegraph's alerting, see [our alerting documentation](htt
 
 **Descriptions:**
 
-- _prometheus: less than 90% percentage pods available for 10m for 10m0s_
+- _prometheus: less than 90% percentage pods available for 10m0s_
 
 **Possible solutions:**
 

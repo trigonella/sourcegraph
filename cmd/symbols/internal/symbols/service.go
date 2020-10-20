@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/tetrafolium/sourcegraph/cmd/symbols/internal/pkg/ctags"
+	ctags "github.com/sourcegraph/go-ctags"
 	"github.com/tetrafolium/sourcegraph/internal/api"
 	"github.com/tetrafolium/sourcegraph/internal/diskcache"
 	"github.com/tetrafolium/sourcegraph/internal/gitserver"

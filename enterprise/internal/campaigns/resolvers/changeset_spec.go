@@ -7,12 +7,14 @@ import (
 
 	"github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
+	"github.com/sourcegraph/go-diff/diff"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/types"
 	ee "github.com/tetrafolium/sourcegraph/enterprise/internal/campaigns"
 	"github.com/tetrafolium/sourcegraph/internal/campaigns"
 	"github.com/tetrafolium/sourcegraph/internal/errcode"
 	"github.com/tetrafolium/sourcegraph/internal/httpcli"
+	"github.com/tetrafolium/sourcegraph/internal/vcs/git"
 )
 
 func marshalChangesetSpecRandID(id string) graphql.ID {
@@ -92,6 +94,7 @@ func (r *changesetSpecResolver) Description(ctx context.Context) (graphqlbackend
 	descriptionResolver := &changesetDescriptionResolver{
 		desc:         r.changesetSpec.Spec,
 		repoResolver: repo,
+		diffStat:     r.changesetSpec.DiffStat(),
 	}
 
 	return descriptionResolver, nil
@@ -147,6 +150,7 @@ var _ graphqlbackend.ChangesetDescription = &changesetDescriptionResolver{}
 type changesetDescriptionResolver struct {
 	repoResolver *graphqlbackend.RepositoryResolver
 	desc         *campaigns.ChangesetSpecDescription
+	diffStat     diff.Stat
 }
 
 func (r *changesetDescriptionResolver) ToExistingChangesetReference() (graphqlbackend.ExistingChangesetReferenceResolver, bool) {
@@ -166,15 +170,21 @@ func (r *changesetDescriptionResolver) BaseRepository() *graphqlbackend.Reposito
 	return r.repoResolver
 }
 func (r *changesetDescriptionResolver) ExternalID() string { return r.desc.ExternalID }
-func (r *changesetDescriptionResolver) BaseRef() string    { return r.desc.BaseRef }
+func (r *changesetDescriptionResolver) BaseRef() string    { return git.AbbreviateRef(r.desc.BaseRef) }
 func (r *changesetDescriptionResolver) BaseRev() string    { return r.desc.BaseRev }
 func (r *changesetDescriptionResolver) HeadRepository() *graphqlbackend.RepositoryResolver {
 	return r.repoResolver
 }
-func (r *changesetDescriptionResolver) HeadRef() string { return r.desc.HeadRef }
+func (r *changesetDescriptionResolver) HeadRef() string { return git.AbbreviateRef(r.desc.HeadRef) }
 func (r *changesetDescriptionResolver) Title() string   { return r.desc.Title }
 func (r *changesetDescriptionResolver) Body() string    { return r.desc.Body }
-func (r *changesetDescriptionResolver) Published() bool { return r.desc.Published }
+func (r *changesetDescriptionResolver) Published() campaigns.PublishedValue {
+	return r.desc.Published
+}
+
+func (r *changesetDescriptionResolver) DiffStat() *graphqlbackend.DiffStat {
+	return graphqlbackend.NewDiffStat(r.diffStat)
+}
 
 func (r *changesetDescriptionResolver) Diff(ctx context.Context) (graphqlbackend.PreviewRepositoryComparisonResolver, error) {
 	diff, err := r.desc.Diff()
@@ -188,8 +198,10 @@ func (r *changesetDescriptionResolver) Commits() []graphqlbackend.GitCommitDescr
 	var resolvers []graphqlbackend.GitCommitDescriptionResolver
 	for _, c := range r.desc.Commits {
 		resolvers = append(resolvers, &gitCommitDescriptionResolver{
-			message: c.Message,
-			diff:    c.Diff,
+			message:     c.Message,
+			diff:        c.Diff,
+			authorName:  c.AuthorName,
+			authorEmail: c.AuthorEmail,
 		})
 	}
 	return resolvers
@@ -198,9 +210,29 @@ func (r *changesetDescriptionResolver) Commits() []graphqlbackend.GitCommitDescr
 var _ graphqlbackend.GitCommitDescriptionResolver = &gitCommitDescriptionResolver{}
 
 type gitCommitDescriptionResolver struct {
-	message string
-	diff    string
+	message     string
+	diff        string
+	authorName  string
+	authorEmail string
 }
 
+func (r *gitCommitDescriptionResolver) Author() *graphqlbackend.PersonResolver {
+	return graphqlbackend.NewPersonResolver(
+		r.authorName,
+		r.authorEmail,
+		// Try to find the corresponding Sourcegraph user.
+		true,
+	)
+}
 func (r *gitCommitDescriptionResolver) Message() string { return r.message }
-func (r *gitCommitDescriptionResolver) Diff() string    { return r.diff }
+func (r *gitCommitDescriptionResolver) Subject() string {
+	return graphqlbackend.GitCommitSubject(r.message)
+}
+func (r *gitCommitDescriptionResolver) Body() *string {
+	body := graphqlbackend.GitCommitBody(r.message)
+	if body == "" {
+		return nil
+	}
+	return &body
+}
+func (r *gitCommitDescriptionResolver) Diff() string { return r.diff }

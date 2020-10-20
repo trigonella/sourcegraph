@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/types"
+	"github.com/tetrafolium/sourcegraph/internal/db/basestore"
 	"github.com/tetrafolium/sourcegraph/internal/db/dbconn"
 	"github.com/tetrafolium/sourcegraph/internal/db/dbtesting"
 )
@@ -54,6 +55,7 @@ func TestGetPackage(t *testing.T) {
 		FinishedAt:     expected.FinishedAt,
 		ProcessAfter:   expected.ProcessAfter,
 		NumResets:      expected.NumResets,
+		NumFailures:    expected.NumFailures,
 		RepositoryID:   expected.RepositoryID,
 		RepositoryName: expected.RepositoryName,
 		Indexer:        expected.Indexer,
@@ -101,7 +103,7 @@ func TestUpdatePackages(t *testing.T) {
 		t.Fatalf("unexpected error updating packages: %s", err)
 	}
 
-	count, _, err := scanFirstInt(dbconn.Global.Query("SELECT COUNT(*) FROM lsif_packages"))
+	count, _, err := basestore.ScanFirstInt(dbconn.Global.Query("SELECT COUNT(*) FROM lsif_packages"))
 	if err != nil {
 		t.Fatalf("unexpected error checking package count: %s", err)
 	}
@@ -121,7 +123,7 @@ func TestUpdatePackagesEmpty(t *testing.T) {
 		t.Fatalf("unexpected error updating packages: %s", err)
 	}
 
-	count, _, err := scanFirstInt(dbconn.Global.Query("SELECT COUNT(*) FROM lsif_packages"))
+	count, _, err := basestore.ScanFirstInt(dbconn.Global.Query("SELECT COUNT(*) FROM lsif_packages"))
 	if err != nil {
 		t.Fatalf("unexpected error checking package count: %s", err)
 	}

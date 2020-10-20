@@ -15,6 +15,7 @@ import (
 	"github.com/inconshreveable/log15"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/envvar"
 	"github.com/tetrafolium/sourcegraph/cmd/repo-updater/repos"
 	"github.com/tetrafolium/sourcegraph/cmd/repo-updater/repoupdater"
@@ -27,7 +28,9 @@ import (
 	"github.com/tetrafolium/sourcegraph/internal/extsvc"
 	"github.com/tetrafolium/sourcegraph/internal/gitserver"
 	"github.com/tetrafolium/sourcegraph/internal/httpcli"
+	"github.com/tetrafolium/sourcegraph/internal/logging"
 	"github.com/tetrafolium/sourcegraph/internal/ratelimit"
+	"github.com/tetrafolium/sourcegraph/internal/secret"
 	"github.com/tetrafolium/sourcegraph/internal/trace"
 	"github.com/tetrafolium/sourcegraph/internal/tracer"
 	"github.com/tetrafolium/sourcegraph/schema"
@@ -43,7 +46,14 @@ func Main(enterpriseInit EnterpriseInit) {
 	ctx := context.Background()
 	env.Lock()
 	env.HandleHelpFlag()
+	logging.Init()
 	tracer.Init()
+	trace.Init(true)
+
+	err := secret.Init()
+	if err != nil {
+		log.Fatalf("Failed to initialize secrets encryption: %v", err)
+	}
 
 	clock := func() time.Time { return time.Now().UTC() }
 
@@ -69,10 +79,13 @@ func Main(enterpriseInit EnterpriseInit) {
 			log.Fatalf("Detected repository DSN change, restarting to take effect: %q", newDSN)
 		}
 	})
+
 	db, err := dbutil.NewDB(dsn, "repo-updater")
 	if err != nil {
 		log.Fatalf("failed to initialize db store: %v", err)
 	}
+
+	repos.MustRegisterMetrics(db)
 
 	var store repos.Store
 	{
@@ -123,7 +136,9 @@ func Main(enterpriseInit EnterpriseInit) {
 		server.SourcegraphDotComMode = true
 
 		es, err := store.ListExternalServices(ctx, repos.StoreListExternalServicesArgs{
-			Kinds: []string{extsvc.KindGitHub, extsvc.KindGitLab},
+			// On Cloud we want to fetch our admin owned external service only here
+			NamespaceUserID: -1,
+			Kinds:           []string{extsvc.KindGitHub, extsvc.KindGitLab},
 		})
 
 		if err != nil {
@@ -161,23 +176,30 @@ func Main(enterpriseInit EnterpriseInit) {
 		}
 	}
 
-	gps := repos.NewGitolitePhabricatorMetadataSyncer(store)
-
 	syncer := &repos.Syncer{
-		Store:   store,
 		Sourcer: src,
-		Logger:  log15.Root(),
-		Now:     clock,
+		Store:   store,
+		// We always want to listen on the Synced channel since external service syncing
+		// happens on both Cloud and non Cloud instances.
+		Synced:     make(chan repos.Diff),
+		Logger:     log15.Root(),
+		Now:        clock,
+		Registerer: prometheus.DefaultRegisterer,
 	}
 
-	if envvar.SourcegraphDotComMode() {
-		syncer.FailFullSync = true
-	} else {
-		syncer.Synced = make(chan repos.Diff)
+	var gps *repos.GitolitePhabricatorMetadataSyncer
+	if !envvar.SourcegraphDotComMode() {
+		gps = repos.NewGitolitePhabricatorMetadataSyncer(store)
 		syncer.SubsetSynced = make(chan repos.Diff)
-		go watchSyncer(ctx, syncer, scheduler, gps)
-		go func() { log.Fatal(syncer.Run(ctx, repos.GetUpdateInterval)) }()
 	}
+
+	go watchSyncer(ctx, syncer, scheduler, gps)
+	go func() {
+		log.Fatal(syncer.Run(ctx, db, store, repos.RunOptions{
+			EnqueueInterval: repos.ConfRepoListUpdateInterval,
+			IsCloud:         envvar.SourcegraphDotComMode(),
+		}))
+	}()
 	server.Syncer = syncer
 
 	go syncCloned(ctx, scheduler, gitserver.DefaultClient, store)
@@ -288,11 +310,15 @@ func watchSyncer(ctx context.Context, syncer *repos.Syncer, sched scheduler, gps
 
 	for {
 		select {
+		case <-ctx.Done():
+			return
 		case diff := <-syncer.Synced:
 			if !conf.Get().DisableAutoGitUpdates {
 				sched.UpdateFromDiff(diff)
 			}
-
+			if gps == nil {
+				continue
+			}
 			go func() {
 				if err := gps.Sync(ctx, diff.Repos()); err != nil {
 					log15.Error("GitolitePhabricatorMetadataSyncer", "error", err)

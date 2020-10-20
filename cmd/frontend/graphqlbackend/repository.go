@@ -11,16 +11,19 @@ import (
 	"github.com/graph-gophers/graphql-go/relay"
 	"github.com/inconshreveable/log15"
 	"github.com/pkg/errors"
+
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/backend"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend/externallink"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/types"
 	"github.com/tetrafolium/sourcegraph/internal/api"
 	"github.com/tetrafolium/sourcegraph/internal/db"
+	"github.com/tetrafolium/sourcegraph/internal/extsvc"
 	"github.com/tetrafolium/sourcegraph/internal/extsvc/phabricator"
 	"github.com/tetrafolium/sourcegraph/internal/gitserver"
 	"github.com/tetrafolium/sourcegraph/internal/gitserver/protocol"
 	"github.com/tetrafolium/sourcegraph/internal/vcs"
 	"github.com/tetrafolium/sourcegraph/internal/vcs/git"
+	"github.com/tetrafolium/sourcegraph/schema"
 )
 
 type RepositoryResolverCache map[api.RepoName]*RepositoryResolver
@@ -29,9 +32,8 @@ type RepositoryResolver struct {
 	hydration sync.Once
 	err       error
 
-	repo    *types.Repo
-	icon    string
-	matches []*searchResultMatchResolver
+	repo *types.Repo
+	icon string
 
 	defaultBranchOnce sync.Once
 	defaultBranch     *GitRefResolver
@@ -255,7 +257,11 @@ func (r *RepositoryResolver) Icon() string {
 	return r.icon
 }
 
-func (r *RepositoryResolver) Label() (*markdownResolver, error) {
+func (r *RepositoryResolver) Rev() string {
+	return r.rev
+}
+
+func (r *RepositoryResolver) Label() (Markdown, error) {
 	var label string
 	if r.rev != "" {
 		label = string(r.repo.Name) + "@" + r.rev
@@ -263,20 +269,20 @@ func (r *RepositoryResolver) Label() (*markdownResolver, error) {
 		label = string(r.repo.Name)
 	}
 	text := "[" + label + "](/" + label + ")"
-	return &markdownResolver{text: text}, nil
+	return Markdown(text), nil
 }
 
-func (r *RepositoryResolver) Detail() *markdownResolver {
-	return &markdownResolver{text: "Repository name match"}
+func (r *RepositoryResolver) Detail() Markdown {
+	return Markdown("Repository name match")
 }
 
 func (r *RepositoryResolver) Matches() []*searchResultMatchResolver {
-	return r.matches
+	return nil
 }
 
 func (r *RepositoryResolver) ToRepository() (*RepositoryResolver, bool) { return r, true }
 func (r *RepositoryResolver) ToFileMatch() (*FileMatchResolver, bool)   { return nil, false }
-func (r *RepositoryResolver) ToCommitSearchResult() (*commitSearchResultResolver, bool) {
+func (r *RepositoryResolver) ToCommitSearchResult() (*CommitSearchResultResolver, bool) {
 	return nil, false
 }
 
@@ -481,21 +487,51 @@ func (*schemaResolver) ResolvePhabricatorDiff(ctx context.Context, args *struct 
 }
 
 func makePhabClientForOrigin(ctx context.Context, origin string) (*phabricator.Client, error) {
-	phabs, err := db.ExternalServices.ListPhabricatorConnections(ctx)
-	if err != nil {
-		return nil, err
+	opt := db.ExternalServicesListOptions{
+		Kinds: []string{extsvc.KindPhabricator},
+		LimitOffset: &db.LimitOffset{
+			Limit: 500, // The number is randomly chosen
+		},
 	}
+	for {
+		svcs, err := db.ExternalServices.List(ctx, opt)
+		if err != nil {
+			return nil, errors.Wrap(err, "list")
+		}
+		if len(svcs) == 0 {
+			break // No more results, exiting
+		}
+		opt.AfterID = svcs[len(svcs)-1].ID // Advance the cursor
 
-	for _, phab := range phabs {
-		if phab.Url != origin {
-			continue
+		for _, svc := range svcs {
+			cfg, err := extsvc.ParseConfig(svc.Kind, svc.Config)
+			if err != nil {
+				return nil, errors.Wrap(err, "parse config")
+			}
+
+			var conn *schema.PhabricatorConnection
+			switch c := cfg.(type) {
+			case *schema.PhabricatorConnection:
+				conn = c
+			default:
+				log15.Error("makePhabClientForOrigin", "error", errors.Errorf("want *schema.PhabricatorConnection but got %T", cfg))
+				continue
+			}
+
+			if conn.Url != origin {
+				continue
+			}
+
+			if conn.Token == "" {
+				return nil, errors.Errorf("no phabricator token was given for: %s", origin)
+			}
+
+			return phabricator.NewClient(ctx, conn.Url, conn.Token, nil)
 		}
 
-		if phab.Token == "" {
-			return nil, errors.Errorf("no phabricator token was given for: %s", origin)
+		if len(svcs) < opt.Limit {
+			break // Less results than limit means we've reached end
 		}
-
-		return phabricator.NewClient(ctx, phab.Url, phab.Token, nil)
 	}
 
 	return nil, errors.Errorf("no phabricator was configured for: %s", origin)

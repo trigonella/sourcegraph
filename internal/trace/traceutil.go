@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync/atomic"
 
 	"github.com/keegancsmith/sqlf"
 	"github.com/opentracing/opentracing-go"
@@ -14,12 +15,25 @@ import (
 	nettrace "golang.org/x/net/trace"
 )
 
-var NoopSpanURL = func(span opentracing.Span) string {
-	return "#tracer-not-enabled"
-}
+var spanURL atomic.Value
 
 // SpanURL returns the URL to the tracing UI for the given span. The span must be non-nil.
-var SpanURL = NoopSpanURL
+func SpanURL(span opentracing.Span) string {
+	v := spanURL.Load()
+	if v == nil {
+		return "#tracer-not-enabled"
+	}
+	f := v.(func(span opentracing.Span) string)
+	if f == nil {
+		return "#tracer-not-enabled"
+	}
+	return f(span)
+}
+
+// SetSpanURLFunc sets the function that SpanURL sets.
+func SetSpanURLFunc(f func(span opentracing.Span) string) {
+	spanURL.Store(f)
+}
 
 // New returns a new Trace with the specified family and title.
 func New(ctx context.Context, family, title string, tags ...Tag) (*Trace, context.Context) {
@@ -51,16 +65,17 @@ func (t Tracer) New(ctx context.Context, family, title string, tags ...Tag) (*Tr
 	for _, t := range tags {
 		tr.LazyPrintf("%s: %s", t.Key, t.Value)
 	}
-	return trace, ContextWithTrace(ctx, trace)
+	return trace, contextWithTrace(ctx, trace)
 }
 
 type traceContextKey string
 
 const traceKey = traceContextKey("trace")
 
-// ContextWithTrace returns a new context.Context that holds a reference to
-// trace's SpanContext.
-func ContextWithTrace(ctx context.Context, tr *Trace) context.Context {
+// contextWithTrace returns a new context.Context that holds a reference to trace's
+// SpanContext. External callers should likely use CopyContext, as this properly propagates all
+// tracing context from one context to another.
+func contextWithTrace(ctx context.Context, tr *Trace) context.Context {
 	ctx = opentracing.ContextWithSpan(ctx, tr.span)
 	ctx = context.WithValue(ctx, traceKey, tr)
 	return ctx
@@ -71,6 +86,18 @@ func ContextWithTrace(ctx context.Context, tr *Trace) context.Context {
 func TraceFromContext(ctx context.Context) *Trace {
 	tr, _ := ctx.Value(traceKey).(*Trace)
 	return tr
+}
+
+// CopyContext copies the tracing-related context items from one context to another and returns that
+// context.
+func CopyContext(ctx context.Context, from context.Context) context.Context {
+	if tr := TraceFromContext(from); tr != nil {
+		ctx = contextWithTrace(ctx, tr)
+	}
+	if shouldTrace := ot.ShouldTrace(from); shouldTrace {
+		ctx = ot.WithShouldTrace(ctx, shouldTrace)
+	}
+	return ctx
 }
 
 // Trace is a combined version of golang.org/x/net/trace.Trace and

@@ -21,7 +21,6 @@ import (
 	"github.com/tetrafolium/sourcegraph/internal/db/dbconn"
 	"github.com/tetrafolium/sourcegraph/internal/db/dbtesting"
 	"github.com/tetrafolium/sourcegraph/internal/extsvc"
-	"github.com/tetrafolium/sourcegraph/internal/extsvc/github"
 	"github.com/tetrafolium/sourcegraph/internal/httptestutil"
 	"github.com/tetrafolium/sourcegraph/internal/rcache"
 	"github.com/tetrafolium/sourcegraph/internal/repoupdater/protocol"
@@ -29,108 +28,39 @@ import (
 )
 
 func TestChangesetCountsOverTimeResolver(t *testing.T) {
-	if testing.Short() {
-		t.Skip()
+	counts := &ee.ChangesetCounts{
+		Time:                 time.Now(),
+		Total:                10,
+		Merged:               9,
+		Closed:               8,
+		Open:                 7,
+		OpenApproved:         6,
+		OpenChangesRequested: 5,
+		OpenPending:          4,
 	}
 
-	ctx := backend.WithAuthzBypass(context.Background())
-	dbtesting.SetupGlobalTestDB(t)
+	resolver := changesetCountsResolver{counts: counts}
 
-	userID := insertTestUser(t, dbconn.Global, "changeset-count-resolver", true)
-
-	now := time.Now().UTC().Truncate(time.Microsecond)
-	clock := func() time.Time {
-		return now.UTC().Truncate(time.Microsecond)
-	}
-	store := ee.NewStoreWithClock(dbconn.Global, clock)
-	rstore := repos.NewDBStore(dbconn.Global, sql.TxOptions{})
-
-	repo := newGitHubTestRepo("github.com/sourcegraph/sourcegraph", 1)
-	if err := rstore.UpsertRepos(ctx, repo); err != nil {
-		t.Fatal(err)
-	}
-
-	campaign := &campaigns.Campaign{
-		Name:            "my-unique-name",
-		NamespaceUserID: userID,
-		AuthorID:        userID,
-	}
-	if err := store.CreateCampaign(ctx, campaign); err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		name   string
+		method func() int32
+		want   int32
+	}{
+		{name: "Total", method: resolver.Total, want: counts.Total},
+		{name: "Merged", method: resolver.Merged, want: counts.Merged},
+		{name: "Closed", method: resolver.Closed, want: counts.Closed},
+		{name: "Open", method: resolver.Open, want: counts.Open},
+		{name: "OpenApproved", method: resolver.OpenApproved, want: counts.OpenApproved},
+		{name: "OpenChangesRequested", method: resolver.OpenChangesRequested, want: counts.OpenChangesRequested},
+		{name: "OpenPending", method: resolver.OpenPending, want: counts.OpenPending},
 	}
 
-	changeset1 := createChangeset(t, ctx, store, testChangesetOpts{
-		repo:                repo.ID,
-		externalServiceType: "github",
-		// Unpublished changesets should not be considered.
-		publicationState: campaigns.ChangesetPublicationStateUnpublished,
-		ownedByCampaign:  campaign.ID,
-		campaign:         campaign.ID,
-	})
-	changeset2 := createChangeset(t, ctx, store, testChangesetOpts{
-		repo:                repo.ID,
-		externalServiceType: "github",
-		externalState:       campaigns.ChangesetExternalStateOpen,
-		publicationState:    campaigns.ChangesetPublicationStatePublished,
-		ownedByCampaign:     campaign.ID,
-		campaign:            campaign.ID,
-		metadata: &github.PullRequest{
-			CreatedAt: now.Add(-1 * 24 * time.Hour),
-			TimelineItems: []github.TimelineItem{
-				{Type: "MergedEvent", Item: &github.LabelEvent{
-					CreatedAt: now,
-				}},
-			},
-		},
-	})
-
-	addChangeset(t, ctx, store, campaign, changeset1.ID)
-	addChangeset(t, ctx, store, campaign, changeset2.ID)
-
-	s, err := graphqlbackend.NewSchema(&Resolver{store: store}, nil, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	campaignAPIID := string(campaigns.MarshalCampaignID(campaign.ID))
-	input := map[string]interface{}{"campaign": campaignAPIID}
-	var response struct{ Node apitest.Campaign }
-	apitest.MustExec(actor.WithActor(context.Background(), actor.FromUser(userID)), t, s, input, &response, queryChangesetCountsConnection)
-
-	wantCounts := []apitest.ChangesetCounts{
-		{Date: marshalDateTime(t, now.Add(-7*24*time.Hour))},
-		{Date: marshalDateTime(t, now.Add(-6*24*time.Hour))},
-		{Date: marshalDateTime(t, now.Add(-5*24*time.Hour))},
-		{Date: marshalDateTime(t, now.Add(-4*24*time.Hour))},
-		{Date: marshalDateTime(t, now.Add(-3*24*time.Hour))},
-		{Date: marshalDateTime(t, now.Add(-2*24*time.Hour))},
-		{Date: marshalDateTime(t, now.Add(-1*24*time.Hour)), Total: 1, Open: 1, OpenPending: 1},
-		{Date: marshalDateTime(t, now), Total: 1, Merged: 1},
-	}
-
-	if diff := cmp.Diff(wantCounts, response.Node.ChangesetCountsOverTime); diff != "" {
-		t.Fatalf("wrong changesets response (-want +got):\n%s", diff)
+	for _, tc := range tests {
+		if have := tc.method(); have != tc.want {
+			t.Errorf("resolver.%s wrong. want=%d, have=%d", tc.name, tc.want, have)
+		}
 	}
 }
-
-const queryChangesetCountsConnection = `
-query($campaign: ID!) {
-  node(id: $campaign) {
-    ... on Campaign {
-      changesetCountsOverTime {
-        date
-        total
-        merged
-        closed
-        open
-        openApproved
-        openChangesRequested
-        openPending
-      }
-    }
-  }
-}
-`
 
 func TestChangesetCountsOverTimeIntegration(t *testing.T) {
 	if testing.Short() {
@@ -172,18 +102,29 @@ func TestChangesetCountsOverTimeIntegration(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = repoStore.UpsertRepos(ctx, githubRepo)
+	err = repoStore.InsertRepos(ctx, githubRepo)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	store := ee.NewStore(dbconn.Global)
 
-	campaign := &campaigns.Campaign{
-		Name:            "Test campaign",
-		Description:     "Testing changeset counts",
-		AuthorID:        userID,
+	spec := &campaigns.CampaignSpec{
 		NamespaceUserID: userID,
+		UserID:          userID,
+	}
+	if err := store.CreateCampaignSpec(ctx, spec); err != nil {
+		t.Fatal(err)
+	}
+
+	campaign := &campaigns.Campaign{
+		Name:             "Test campaign",
+		Description:      "Testing changeset counts",
+		InitialApplierID: userID,
+		NamespaceUserID:  userID,
+		LastApplierID:    userID,
+		LastAppliedAt:    time.Now(),
+		CampaignSpecID:   spec.ID,
 	}
 
 	err = store.CreateCampaign(ctx, campaign)
@@ -222,12 +163,18 @@ func TestChangesetCountsOverTimeIntegration(t *testing.T) {
 	})
 	defer mockState.Unmock()
 
-	err = ee.SyncChangesets(ctx, repoStore, store, cf, changesets...)
+	sourcer := repos.NewSourcer(cf)
+	err = ee.SyncChangesets(ctx, repoStore, store, sourcer, changesets...)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	err = store.UpdateCampaign(ctx, campaign)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	s, err := graphqlbackend.NewSchema(&Resolver{store: store}, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -243,31 +190,45 @@ func TestChangesetCountsOverTimeIntegration(t *testing.T) {
 		return end.AddDate(0, 0, -days)
 	}
 
-	r := &campaignResolver{store: store, Campaign: campaign}
-	rs, err := r.ChangesetCountsOverTime(ctx, &graphqlbackend.ChangesetCountsArgs{
-		From: &graphqlbackend.DateTime{Time: start},
-		To:   &graphqlbackend.DateTime{Time: end},
-	})
-	if err != nil {
-		t.Fatalf("ChangsetCountsOverTime failed with error: %s", err)
+	input := map[string]interface{}{
+		"campaign": string(marshalCampaignID(campaign.ID)),
+		"from":     start,
+		"to":       end,
 	}
 
-	have := make([]*ee.ChangesetCounts, 0, len(rs))
-	for _, cr := range rs {
-		r := cr.(*changesetCountsResolver)
-		have = append(have, r.counts)
+	var response struct{ Node apitest.Campaign }
+
+	apitest.MustExec(actor.WithActor(context.Background(), actor.FromUser(userID)), t, s, input, &response, queryChangesetCountsConnection)
+
+	wantCounts := []apitest.ChangesetCounts{
+		{Date: marshalDateTime(t, daysBeforeEnd(5)), Total: 0, Open: 0},
+		{Date: marshalDateTime(t, daysBeforeEnd(4)), Total: 1, Open: 1, OpenPending: 1},
+		{Date: marshalDateTime(t, daysBeforeEnd(3)), Total: 2, Open: 1, OpenPending: 1, Merged: 1},
+		{Date: marshalDateTime(t, daysBeforeEnd(2)), Total: 2, Open: 1, OpenPending: 1, Merged: 1},
+		{Date: marshalDateTime(t, daysBeforeEnd(1)), Total: 2, Open: 1, OpenPending: 1, Merged: 1},
+		{Date: marshalDateTime(t, end), Total: 2, Merged: 2},
 	}
 
-	want := []*ee.ChangesetCounts{
-		{Time: daysBeforeEnd(5), Total: 0, Open: 0},
-		{Time: daysBeforeEnd(4), Total: 1, Open: 1, OpenPending: 1},
-		{Time: daysBeforeEnd(3), Total: 2, Open: 1, OpenPending: 1, Merged: 1},
-		{Time: daysBeforeEnd(2), Total: 2, Open: 1, OpenPending: 1, Merged: 1},
-		{Time: daysBeforeEnd(1), Total: 2, Open: 1, OpenPending: 1, Merged: 1},
-		{Time: end, Total: 2, Merged: 2},
-	}
-
-	if !reflect.DeepEqual(have, want) {
-		t.Errorf("wrong counts listed. diff=%s", cmp.Diff(have, want))
+	if !reflect.DeepEqual(response.Node.ChangesetCountsOverTime, wantCounts) {
+		t.Errorf("wrong counts listed. diff=%s", cmp.Diff(response.Node.ChangesetCountsOverTime, wantCounts))
 	}
 }
+
+const queryChangesetCountsConnection = `
+query($campaign: ID!, $from: DateTime!, $to: DateTime!) {
+  node(id: $campaign) {
+    ... on Campaign {
+	  changesetCountsOverTime(from: $from, to: $to) {
+        date
+        total
+        merged
+        closed
+        open
+        openApproved
+        openChangesRequested
+        openPending
+      }
+    }
+  }
+}
+`

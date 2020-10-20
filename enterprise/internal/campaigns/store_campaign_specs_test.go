@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/sourcegraph/campaignutils/overridable"
 	"github.com/tetrafolium/sourcegraph/cmd/repo-updater/repos"
 	"github.com/tetrafolium/sourcegraph/internal/campaigns"
 	cmpgn "github.com/tetrafolium/sourcegraph/internal/campaigns"
@@ -28,7 +29,7 @@ func testStoreCampaignSpecs(t *testing.T, ctx context.Context, s *Store, _ repos
 						Commit: campaigns.CommitTemplate{
 							Message: "commit message",
 						},
-						Published: false,
+						Published: overridable.FromBoolOrString(false),
 					},
 				},
 				UserID: int32(i + 1234),
@@ -86,36 +87,31 @@ func testStoreCampaignSpecs(t *testing.T, ctx context.Context, s *Store, _ repos
 
 	t.Run("List", func(t *testing.T) {
 		t.Run("NoLimit", func(t *testing.T) {
-			opts := []ListCampaignSpecsOpts{
-				{},          // Empty limit should return default limit
-				{Limit: -1}, // -1 should return all entries
+			// Empty should return all entries
+			opts := ListCampaignSpecsOpts{}
+
+			ts, next, err := s.ListCampaignSpecs(ctx, opts)
+			if err != nil {
+				t.Fatal(err)
 			}
 
-			for _, o := range opts {
-				ts, next, err := s.ListCampaignSpecs(ctx, o)
-				if err != nil {
-					t.Fatal(err)
-				}
-
-				if have, want := next, int64(0); have != want {
-					t.Fatalf("opts: %+v: have next %v, want %v", opts, have, want)
-				}
-
-				have, want := ts, campaignSpecs
-				if len(have) != len(want) {
-					t.Fatalf("listed %d campaignSpecs, want: %d", len(have), len(want))
-				}
-
-				if diff := cmp.Diff(have, want); diff != "" {
-					t.Fatalf("opts: %+v, diff: %s", opts, diff)
-				}
+			if have, want := next, int64(0); have != want {
+				t.Fatalf("opts: %+v: have next %v, want %v", opts, have, want)
 			}
 
+			have, want := ts, campaignSpecs
+			if len(have) != len(want) {
+				t.Fatalf("listed %d campaignSpecs, want: %d", len(have), len(want))
+			}
+
+			if diff := cmp.Diff(have, want); diff != "" {
+				t.Fatalf("opts: %+v, diff: %s", opts, diff)
+			}
 		})
 
 		t.Run("WithLimit", func(t *testing.T) {
 			for i := 1; i <= len(campaignSpecs); i++ {
-				cs, next, err := s.ListCampaignSpecs(ctx, ListCampaignSpecsOpts{Limit: i})
+				cs, next, err := s.ListCampaignSpecs(ctx, ListCampaignSpecsOpts{LimitOpts: LimitOpts{Limit: i}})
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -148,7 +144,7 @@ func testStoreCampaignSpecs(t *testing.T, ctx context.Context, s *Store, _ repos
 		t.Run("WithLimitAndCursor", func(t *testing.T) {
 			var cursor int64
 			for i := 1; i <= len(campaignSpecs); i++ {
-				opts := ListCampaignSpecsOpts{Cursor: cursor, Limit: 1}
+				opts := ListCampaignSpecsOpts{Cursor: cursor, LimitOpts: LimitOpts{Limit: 1}}
 				have, next, err := s.ListCampaignSpecs(ctx, opts)
 				if err != nil {
 					t.Fatal(err)
@@ -268,10 +264,12 @@ func testStoreCampaignSpecs(t *testing.T, ctx context.Context, s *Store, _ repos
 
 			if tc.hasCampaign {
 				campaign := &cmpgn.Campaign{
-					Name:            "not-blank",
-					AuthorID:        1,
-					NamespaceUserID: 1,
-					CampaignSpecID:  campaignSpec.ID,
+					Name:             "not-blank",
+					InitialApplierID: 1,
+					NamespaceUserID:  1,
+					CampaignSpecID:   campaignSpec.ID,
+					LastApplierID:    1,
+					LastAppliedAt:    time.Now(),
 				}
 				if err := s.CreateCampaign(ctx, campaign); err != nil {
 					t.Fatal(err)

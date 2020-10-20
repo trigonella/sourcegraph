@@ -3,23 +3,13 @@ package apitest
 import (
 	"github.com/sourcegraph/go-diff/diff"
 	"github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
+	"github.com/tetrafolium/sourcegraph/internal/campaigns"
 )
 
 type GitTarget struct {
 	OID            string
 	AbbreviatedOID string
 	TargetType     string `json:"type"`
-}
-
-type GitRef struct {
-	Name        string
-	AbbrevName  string
-	DisplayName string
-	Prefix      string
-	RefType     string `json:"type"`
-	Repository  struct{ ID string }
-	URL         string
-	Target      GitTarget
 }
 
 type DiffRange struct{ StartLine, Lines int }
@@ -49,12 +39,9 @@ type FileDiff struct {
 }
 
 type FileDiffs struct {
-	RawDiff  string
-	DiffStat DiffStat
-	PageInfo struct {
-		HasNextPage bool
-		EndCursor   string
-	}
+	RawDiff    string
+	DiffStat   DiffStat
+	PageInfo   PageInfo
 	Nodes      []FileDiff
 	TotalCount int
 }
@@ -85,11 +72,15 @@ type Campaign struct {
 	ID                      string
 	Name                    string
 	Description             string
-	Author                  User
+	SpecCreator             *User
+	InitialApplier          *User
+	LastApplier             *User
+	LastAppliedAt           string
 	ViewerCanAdminister     bool
 	Namespace               UserOrg
 	CreatedAt               string
 	UpdatedAt               string
+	ClosedAt                string
 	URL                     string
 	Changesets              ChangesetConnection
 	ChangesetCountsOverTime []ChangesetCounts
@@ -136,18 +127,19 @@ type Changeset struct {
 	Body             string
 	PublicationState string
 	ReconcilerState  string
+	Error            string
 	ExternalState    string
 	ExternalID       string
 	ExternalURL      ExternalURL
 	ReviewState      string
 	CheckState       string
 	Events           ChangesetEventConnection
-	Head             GitRef
-	Base             GitRef
 
 	Diff Comparison
 
 	Labels []Label
+
+	CurrentSpec ChangesetSpec
 }
 
 type Comparison struct {
@@ -170,9 +162,11 @@ type ChangesetConnection struct {
 
 type ChangesetConnectionStats struct {
 	Unpublished int
+	Draft       int
 	Open        int
 	Merged      int
 	Closed      int
+	Deleted     int
 	Total       int
 }
 
@@ -197,7 +191,7 @@ type CampaignSpec struct {
 	ApplyURL string
 
 	Namespace UserOrg
-	Creator   User
+	Creator   *User
 
 	ChangesetSpecs ChangesetSpecConnection
 
@@ -223,10 +217,7 @@ type ChangesetSpec struct {
 type ChangesetSpecConnection struct {
 	Nodes      []ChangesetSpec
 	TotalCount int
-	PageInfo   struct {
-		HasNextPage bool
-		EndCursor   *string
-	}
+	PageInfo   PageInfo
 }
 
 type ChangesetSpecDescription struct {
@@ -244,18 +235,29 @@ type ChangesetSpecDescription struct {
 
 	Commits []GitCommitDescription
 
-	Published bool
+	Published campaigns.PublishedValue
 
 	Diff struct {
 		FileDiffs FileDiffs
 	}
+	DiffStat DiffStat
 }
 
 type GitCommitDescription struct {
+	Author  Person
 	Message string
+	Subject string
+	Body    string
 	Diff    string
 }
 
 type PageInfo struct {
 	HasNextPage bool
+	EndCursor   *string
+}
+
+type Person struct {
+	Name  string
+	Email string
+	User  *User
 }
