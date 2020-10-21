@@ -21,13 +21,14 @@ import (
 	"github.com/graphql-go/graphql/language/parser"
 	"github.com/graphql-go/graphql/language/visitor"
 	"github.com/pkg/errors"
+	"golang.org/x/time/rate"
+
 	"github.com/tetrafolium/sourcegraph/internal/env"
 	"github.com/tetrafolium/sourcegraph/internal/httpcli"
 	"github.com/tetrafolium/sourcegraph/internal/metrics"
 	"github.com/tetrafolium/sourcegraph/internal/ratelimit"
 	"github.com/tetrafolium/sourcegraph/internal/rcache"
 	"github.com/tetrafolium/sourcegraph/internal/trace/ot"
-	"golang.org/x/time/rate"
 )
 
 var (
@@ -131,7 +132,7 @@ func NewClient(apiURL *url.URL, token string, cli httpcli.Doer) *Client {
 		cli = disabledClient{}
 	}
 	if cli == nil {
-		cli = http.DefaultClient
+		cli = httpcli.ExternalDoer()
 	}
 
 	cli = requestCounter.Doer(cli, func(u *url.URL) string {

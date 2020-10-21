@@ -119,7 +119,7 @@ inspecode:
       thresholds: {num-issues: 775}   ## Skipped
 
     staticcheck:
-      thresholds: {num-issues: 78}
+      thresholds: {num-issues: 73}
 
     tslint:
       auto-fix: true
