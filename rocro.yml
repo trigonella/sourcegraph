@@ -77,13 +77,14 @@ inspecode:
 
     golint:
     - input: 'cmd/'
+      # auto-fix: true    # stop ... time-outed
       thresholds: {num-issues: 609}
     - input: 'internal/'
       auto-fix: true
       thresholds: {num-issues: 626}
     - ignore: ['cmd/', 'internal/']
       auto-fix: true
-      thresholds: {num-issues: 511s}
+      thresholds: {num-issues: 511}
 
     gosec:
       thresholds: {num-issues: 213}
