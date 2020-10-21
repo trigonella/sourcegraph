@@ -77,7 +77,6 @@ inspecode:
 
     golint:
     - input: 'cmd/'
-      auto-fix: false   # temporary disabled ... timed-out occured
       thresholds: {num-issues: 609}
     - input: 'internal/'
       auto-fix: true
