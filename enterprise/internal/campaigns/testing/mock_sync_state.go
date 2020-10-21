@@ -6,18 +6,11 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-<<<<<<< HEAD
-	"github.com/tetrafolium/sourcegraph/internal/api"
-	"github.com/tetrafolium/sourcegraph/internal/repoupdater"
-	"github.com/tetrafolium/sourcegraph/internal/repoupdater/protocol"
-	"github.com/tetrafolium/sourcegraph/internal/vcs/git"
-=======
 	"github.com/sourcegraph/go-diff/diff"
 	"github.com/tetrafolium/sourcegraph/internal/api"
 	"github.com/tetrafolium/sourcegraph/internal/repoupdater"
 	"github.com/tetrafolium/sourcegraph/internal/repoupdater/protocol"
 	"github.com/tetrafolium/sourcegraph/internal/vcs/git"
->>>>>>> main
 )
 
 type MockedChangesetSyncState struct {
