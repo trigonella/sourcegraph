@@ -24,7 +24,7 @@ type Member struct {
 	} `json:"group_saml_identity"`
 }
 
-// ListMembers returns a list of members parsed from reponse of given URL.
+// ListMembers returns a list of members parsed from response of given URL.
 func (c *Client) ListMembers(ctx context.Context, urlStr string) (members []*Member, nextPageURL *string, err error) {
 	req, err := http.NewRequest("GET", urlStr, nil)
 	if err != nil {

@@ -1369,7 +1369,7 @@ declare module 'sourcegraph' {
           /**
            * Text content to be shown on hovers. Since the alert is displayed
            * inline, multiparagraph content will be rendered on one line. It's
-           * recommended to provide a brief message here, and place futher
+           * recommended to provide a brief message here, and place further
            * details in the badge or provide a link.
            */
           summary: MarkupContent

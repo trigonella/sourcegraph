@@ -66,7 +66,7 @@ var defaultTransport = &ot.Transport{
 	}),
 }
 
-// NewClient creates a new Client with the given unique name targetting hte given external frontend API.
+// NewClient creates a new Client with the given unique name targeting hte given external frontend API.
 func NewClient(indexerName, frontendURL, authToken string) Client {
 	return &client{
 		indexerName: indexerName,

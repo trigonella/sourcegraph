@@ -56,13 +56,13 @@ func NewRecorderOpt(rec *recorder.Recorder) httpcli.Opt {
 // github-proxy to github.com and records all HTTP requests in "testdata/vcr/{name}"
 // with {name} being the name that's passed in.
 // If update is true, the HTTP requests are recorded, otherwise they're
-// replayed from the recorded cassete.
+// replayed from the recorded cassette.
 func NewGitHubRecorderFactory(t testing.TB, update bool, name string) (*httpcli.Factory, func()) {
 	t.Helper()
 
-	cassete := filepath.Join("testdata/vcr/", strings.Replace(name, " ", "-", -1))
+	cassette := filepath.Join("testdata/vcr/", strings.Replace(name, " ", "-", -1))
 
-	rec, err := NewRecorder(cassete, update, func(i *cassette.Interaction) error {
+	rec, err := NewRecorder(cassette, update, func(i *cassette.Interaction) error {
 		return nil
 	})
 	if err != nil {

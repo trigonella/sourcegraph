@@ -19,7 +19,7 @@ type Endpoint struct {
 	// Addr:port, so hostname part of a URL (ip address ok)
 	Addr string
 	// Hostname of the endpoint, if set. Only use this for display purposes,
-	// it doesn't include the port nor is it gaurenteed to be resolvable.
+	// it doesn't include the port nor is it guaranteed to be resolvable.
 	Hostname string
 }
 

@@ -4,7 +4,7 @@ This directory contains GraphQL-based integration tests in the form of standard 
 
 ## How to set up credentials
 
-Tests use environment variables to accept credentials of different external services involved, suggest to use [direnv](https://direnv.net/) to presistent those credentials for your convenience. Here is a comperhensive example `.envrc` file (you're free to use any other means, e.g. `.profile` or `.bashrc`):
+Tests use environment variables to accept credentials of different external services involved, suggest to use [direnv](https://direnv.net/) to persistent those credentials for your convenience. Here is a comperhensive example `.envrc` file (you're free to use any other means, e.g. `.profile` or `.bashrc`):
 
 ```sh
 # Your GitHub personal access token, this token needs to have scope to access private

@@ -237,7 +237,7 @@ describe("Extension Registry", () => {
         await driver.page.$(
           '[data-test="extension-toggle-sourcegraph/typescript"]'
         ),
-        "Expected langauge extensions to be displayed after clicking 'Show more extensions'"
+        "Expected language extensions to be displayed after clicking 'Show more extensions'"
       );
     });
 

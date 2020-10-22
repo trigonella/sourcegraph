@@ -89,7 +89,7 @@ func Get(name, defaultValue, description string) string {
 	}
 
 	// os.LookupEnv is a syscall. We use Get a lot on startup in many
-	// packages. This leads to it being the main contributer to init being
+	// packages. This leads to it being the main contributor to init being
 	// slow. So we avoid the constant syscalls by checking env once.
 	if environ == nil {
 		environ = environMap(os.Environ())

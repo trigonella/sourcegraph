@@ -36,7 +36,7 @@ func NewMockGitserverClient() *MockGitserverClient {
 // surrogateMockGitserverClient is a copy of the gitserverClient interface
 // (from the package
 // github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/api). It
-// is redefined here as it is unexported in the source packge.
+// is redefined here as it is unexported in the source package.
 type surrogateMockGitserverClient interface {
 	CommitGraph(context.Context, store.Store, int, gitserver.CommitGraphOptions) (map[string][]string, error)
 }

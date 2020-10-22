@@ -7,7 +7,7 @@ type ChangesetSyncState struct {
 	HeadRefOid string
 
 	// This is essentially the result of c.ExternalState != CampaignStateOpen
-	// the last time a sync occured. We use this to short circuit computing the
+	// the last time a sync occurred. We use this to short circuit computing the
 	// sync state if the changeset remains closed.
 	IsComplete bool
 }

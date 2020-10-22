@@ -564,7 +564,7 @@ func ScanValue(buf []byte, allowDanglingParens bool) (string, int, bool) {
 
 // TryParseDelimiter tries to parse a delimited string, returning the
 // interpreted (i.e., unquoted) value if it succeeds, the delimiter that
-// suceeded parsing, and whether it succeeded.
+// succeeded parsing, and whether it succeeded.
 func (p *parser) TryParseDelimiter() (string, rune, bool) {
 	delimited := func(delimiter rune) (string, bool) {
 		start := p.pos

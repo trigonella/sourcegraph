@@ -11,7 +11,7 @@ type Mapper interface {
 }
 
 // The BaseMapper is a mapper that recursively visits each node in a query and
-// maps it to itself. A BaseMapper's methods may be overriden by embedding it a
+// maps it to itself. A BaseMapper's methods may be overridden by embedding it a
 // custom mapper's definition. See ParameterMapper for an example. If the
 // methods return nil, the respective node is removed.
 type BaseMapper struct{}

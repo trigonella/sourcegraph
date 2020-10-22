@@ -11,7 +11,7 @@ export const SignInButton: React.FunctionComponent<{
   sourcegraphURL: string;
   /**
    * Gets called when the user closed the sign in tab.
-   * Does not guarantee the sign in was sucessful.
+   * Does not guarantee the sign in was successful.
    */
   onSignInClose?: () => void;
 }> = ({ className, iconClassName, sourcegraphURL, onSignInClose }) => {

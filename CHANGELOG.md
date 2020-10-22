@@ -385,7 +385,7 @@ All notable changes to Sourcegraph are documented in this file.
 - Users and site administrators can now view a log of their actions/events in the user settings. [#9141](https://github.com/sourcegraph/sourcegraph/pull/9141)
 - With the new `visibility:` filter search results can now be filtered based on a repository's visibility (possible filter values: `any`, `public` or `private`). [#8344](https://github.com/sourcegraph/sourcegraph/issues/8344)
 - [`sourcegraph/git-extras`](https://sourcegraph.com/extensions/sourcegraph/git-extras) is now enabled by default on new instances [#3501](https://github.com/sourcegraph/sourcegraph/issues/3501)
-- The Sourcegraph Docker image will now copy `/etc/sourcegraph/gitconfig` to `$HOME/.gitconfig`. This is a convenience similiar to what we provide for [repositories that need HTTP(S) or SSH authentication](https://docs.sourcegraph.com/admin/repo/auth). [#658](https://github.com/sourcegraph/sourcegraph/issues/658)
+- The Sourcegraph Docker image will now copy `/etc/sourcegraph/gitconfig` to `$HOME/.gitconfig`. This is a convenience similar to what we provide for [repositories that need HTTP(S) or SSH authentication](https://docs.sourcegraph.com/admin/repo/auth). [#658](https://github.com/sourcegraph/sourcegraph/issues/658)
 - Permissions background syncing is now supported for GitHub via site configuration `"permissions.backgroundSync": {"enabled": true}`. [#8890](https://github.com/sourcegraph/sourcegraph/issues/8890)
 - Search: Adding `stable:true` to a query ensures a deterministic search result order. This is an experimental parameter. It applies only to file contents, and is limited to at max 5,000 results (consider using [the paginated search API](https://docs.sourcegraph.com/api/graphql/search#sourcegraph-3-9-experimental-paginated-search) if you need more than that.). [#9681](https://github.com/sourcegraph/sourcegraph/pull/9681).
 - After completing the Sourcegraph user feedback survey, a button may appear for tweeting this feedback at [@srcgraph](https://twitter.com/srcgraph). [#9728](https://github.com/sourcegraph/sourcegraph/pull/9728)
@@ -942,7 +942,7 @@ This is `3.12.8` release with internal infrastructure fixes to publish the docke
 
 ### Changed
 
-- A `hardTTL` setting was added to the [Bitbucket Server `authorization` config](https://docs.sourcegraph.com/admin/external_service/bitbucketserver#configuration). This setting specifies a duration after which a user's cached permissions must be updated before any user action is authorized. This contrasts with the already existing `ttl` setting which defines a duration after which a user's cached permissions will get updated in the background, but the previously cached (and now stale) permissions are used to authorize any user action occuring before the update concludes. If your previous `ttl` value is larger than the default of the new `hardTTL` setting (i.e. **3 days**), you must change the `ttl` to be smaller or, `hardTTL` to be larger.
+- A `hardTTL` setting was added to the [Bitbucket Server `authorization` config](https://docs.sourcegraph.com/admin/external_service/bitbucketserver#configuration). This setting specifies a duration after which a user's cached permissions must be updated before any user action is authorized. This contrasts with the already existing `ttl` setting which defines a duration after which a user's cached permissions will get updated in the background, but the previously cached (and now stale) permissions are used to authorize any user action occurring before the update concludes. If your previous `ttl` value is larger than the default of the new `hardTTL` setting (i.e. **3 days**), you must change the `ttl` to be smaller or, `hardTTL` to be larger.
 
 ### Fixed
 
@@ -1248,7 +1248,7 @@ This is `3.12.8` release with internal infrastructure fixes to publish the docke
 - Fixed an issue where Sourcegraph would add deleted repositories to the external service configuration. https://github.com/sourcegraph/sourcegraph/issues/3588
 - Fixed an issue where a repo-updater migration would hit code host rate limits. https://github.com/sourcegraph/sourcegraph/issues/3582
 - The required `bitbucketserver.username` field of a [Bitbucket Server external service configuration](https://docs.sourcegraph.com/admin/external_service/bitbucketserver#configuration), if unset or empty, is automatically migrated to match the user part of the `url` (if defined). https://github.com/sourcegraph/sourcegraph/issues/3592
-- Fixed a panic that would occur in indexed search / the frontend when a search error ocurred. https://github.com/sourcegraph/sourcegraph/issues/3579
+- Fixed a panic that would occur in indexed search / the frontend when a search error occurred. https://github.com/sourcegraph/sourcegraph/issues/3579
 - Fixed an issue where the repo-updater service could become deadlocked while performing a migration. https://github.com/sourcegraph/sourcegraph/issues/3590
 
 ## 3.3.1
@@ -1595,7 +1595,7 @@ See the changelog entries for 3.0.0 beta releases and our [3.0](doc/admin/migrat
 
 ### Fixed
 
-- We use GitHub's REST API to query affliated repositories. This API has wider support on older GitHub enterprise versions.
+- We use GitHub's REST API to query affiliated repositories. This API has wider support on older GitHub enterprise versions.
 - Fixed an issue that prevented users without email addresses from signing in (https://github.com/sourcegraph/sourcegraph/issues/426).
 
 ## 2.12.0
@@ -1868,7 +1868,7 @@ See the changelog entries for 3.0.0 beta releases and our [3.0](doc/admin/migrat
 - Fixed the default hostnames of the C# and R language servers
 - Fixed an issue where deleting an organization prevented the creation of organizations with the name of the deleted organization.
 - Non-UTF8 encoded files (e.g. ISO-8859-1/Latin1, UTF16, etc) are now displayed as text properly rather than being detected as binary files.
-- Improved error message when lsp-proxy's initalize timeout occurs
+- Improved error message when lsp-proxy's initialize timeout occurs
 - Fixed compatibility issues and added [instructions for using Microsoft ADFS 2.1 and 3.0 for SAML authentication](https://docs.sourcegraph.com/admin/auth/saml_with_microsoft_adfs).
 - Fixed an issue where external accounts associated with deleted user accounts would still be returned by the GraphQL API. This caused the site admin external accounts page to fail to render in some cases.
 - Significantly reduced the number of code host requests for non github.com or gitlab.com repositories.
@@ -1903,7 +1903,7 @@ See the changelog entries for 3.0.0 beta releases and our [3.0](doc/admin/migrat
 - User data on the site admin Analytics page is now paginated, filterable by a user's recent activity, and searchable.
 - The link to the root of a repository in the repository header now preserves the revision you're currently viewing.
 - When using the `http-header` auth provider, signin/signup/signout links are now hidden.
-- Repository paths beginning with `go/` are no longer reservered by Sourcegraph.
+- Repository paths beginning with `go/` are no longer reserved by Sourcegraph.
 - Interpret `X-Forwarded-Proto` HTTP header when `httpToHttpsRedirect` is set to `load-balanced`.
 - Deleting a user account no longer prevents the creation of a new user account with the same username and/or association with authentication provider account (SAML/OpenID/etc.)
 - It is now possible for a user to verify an email address that was previously associated with now-deleted user account.

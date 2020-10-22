@@ -35,7 +35,7 @@ func NewMockGitserverClient() *MockGitserverClient {
 // surrogateMockGitserverClient is a copy of the gitserverClient interface
 // (from the package
 // github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-worker/internal/worker).
-// It is redefined here as it is unexported in the source packge.
+// It is redefined here as it is unexported in the source package.
 type surrogateMockGitserverClient interface {
 	DirectoryChildren(context.Context, store.Store, int, string, []string) (map[string][]string, error)
 }

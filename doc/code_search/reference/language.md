@@ -934,7 +934,7 @@ synonymous with the <img class="r" src=../img/case.png>toggle button.
 </div>
 
 Set to `yes` if repository forks should be included or `only` if only forks
-should be searched. Respository forks are excluded by default.
+should be searched. Repository forks are excluded by default.
 
 **Example:** `fork:yes repo:sourcegraph` [↗](https://sourcegraph.com/search?q=fork:yes+repo:sourcegraph&patternType=regexp)
 

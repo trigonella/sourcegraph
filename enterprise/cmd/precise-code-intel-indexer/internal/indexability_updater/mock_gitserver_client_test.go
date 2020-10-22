@@ -44,7 +44,7 @@ func NewMockGitserverClient() *MockGitserverClient {
 // surrogateMockGitserverClient is a copy of the gitserverClient interface
 // (from the package
 // github.com/tetrafolium/sourcegraph/enterprise/cmd/precise-code-intel-indexer/internal/indexability_updater).
-// It is redefined here as it is unexported in the source packge.
+// It is redefined here as it is unexported in the source package.
 type surrogateMockGitserverClient interface {
 	Head(context.Context, store.Store, int) (string, error)
 	ListFiles(context.Context, store.Store, int, string, *regexp.Regexp) ([]string, error)

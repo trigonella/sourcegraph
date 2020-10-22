@@ -88,9 +88,9 @@ export function observeOptionFlag(key: OptionFlagKey): Observable<boolean> {
 }
 
 /**
- * Determine if the sendTelemetry option flag should be overriden.
+ * Determine if the sendTelemetry option flag should be overridden.
  *
- * This function encapsulates the logic of when telemetry should be overriden.
+ * This function encapsulates the logic of when telemetry should be overridden.
  */
 export function shouldOverrideSendTelemetry(
   isFirefox: boolean,

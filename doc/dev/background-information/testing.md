@@ -282,7 +282,7 @@ Once you approve all of the changes, the Percy check will turn green ✅
 
 #### Adding a new visual snapshot test
 
-Open an existing appropiate browser-based test file (end-to-end or integration) or create a new one.
+Open an existing appropriate browser-based test file (end-to-end or integration) or create a new one.
 You can take screenshot in any test by calling `percySnapshot()`:
 
 ```TypeScript

@@ -559,7 +559,7 @@ func substituteConcat(callback func([]Pattern) Pattern) func(nodes []Node) []Nod
 // 2. If the pattern ends with a trailing and unescaped (, it is escaped.
 // Normally, a pattern like foo.*bar( would be an invalid regexp, and we would
 // show no results. But, it is a common and convenient syntax to search for, so
-// we convert thsi pattern to interpret a trailing parenthesis literally.
+// we convert this pattern to interpret a trailing parenthesis literally.
 //
 // Any other forms are ignored, for example, foo.*(bar is unchanged. In the
 // parser pipeline, such unchanged and invalid patterns are rejected by the

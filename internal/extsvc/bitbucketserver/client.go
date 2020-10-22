@@ -1224,7 +1224,7 @@ type Task struct {
 type PermittedOperations struct {
 	Editable       bool `json:"editable,omitempty"`
 	Deletable      bool `json:"deletable,omitempty"`
-	Transitionable bool `json:"transitionable,omitempty"`
+	Transitional bool `json:"transitional,omitempty"`
 }
 
 // A Commit in a Repository.

@@ -14,7 +14,7 @@ import (
 func GetenvTestBitbucketCloudUsername() string {
 	username := os.Getenv("BITBUCKET_CLOUD_USERNAME")
 	if username == "" {
-		username = "unknwon"
+		username = "unknown"
 	}
 	return username
 }
@@ -24,8 +24,8 @@ func GetenvTestBitbucketCloudUsername() string {
 func NewTestClient(t testing.TB, name string, update bool, apiURL *url.URL) (*Client, func()) {
 	t.Helper()
 
-	cassete := filepath.Join("testdata/vcr/", normalize(name))
-	rec, err := httptestutil.NewRecorder(cassete, update)
+	cassette := filepath.Join("testdata/vcr/", normalize(name))
+	rec, err := httptestutil.NewRecorder(cassette, update)
 	if err != nil {
 		t.Fatal(err)
 	}

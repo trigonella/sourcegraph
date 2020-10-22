@@ -27,7 +27,7 @@ go build \
 # We copy just the monitoring directory and the root go.mod/go.sum so that we
 # do not need to send the entire repository as build context to Docker. Additionally,
 # we do not use a separate go.mod/go.sum in the monitoring/ directory because
-# editor tooling would occassionally include and not include it in the root
+# editor tooling would occasionally include and not include it in the root
 # go.mod/go.sum.
 cp -R . "$BUILDDIR"
 cp -R ../../monitoring "$BUILDDIR"/

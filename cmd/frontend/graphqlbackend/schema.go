@@ -6162,7 +6162,7 @@ type Site implements SettingsSubject {
     Monitoring overview for this site.
     Note: This is primarily used for displaying recently-fired alerts in the web app. If your intent
     is to monitor Sourcegraph, it is better to configure alerting or query Prometheus directly in
-    order to ensure that if the frontend goes down you still recieve alerts:
+    order to ensure that if the frontend goes down you still receive alerts:
     Configure alerting: https://docs.sourcegraph.com/admin/observability/alerting
     Query Prometheus directly: https://docs.sourcegraph.com/admin/observability/alerting_custom_consumption
     """

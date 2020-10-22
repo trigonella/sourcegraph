@@ -24,7 +24,7 @@ export interface WebIntegrationTestContext
 }
 
 /**
- * Creates the intergation test context for integration tests testing the web
+ * Creates the integration test context for integration tests testing the web
  * app. This should be called in a `beforeEach()` hook and assigned to a
  * variable `testContext` in the test scope.
  */

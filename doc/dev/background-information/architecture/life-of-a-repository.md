@@ -20,9 +20,9 @@ Our guiding principle is to ensure all repositories configured by a site adminis
 
 `repo-updater` is responsible for communicating with code host APIs and co-ordinating the state we synchronise from them. It is a singleton service. It is responsible for maintaining the `repo` table which other services read. It is also responsible for scheduling clones/fetches on `gitserver`. It is also responsible for anything which communicates with a code host API. So our campaigns and background permissions syncers also live in `repo-updater`.
 
-`gitserver` is a scaleable stateful service which clones git repositories and can run git commands against them. All data maintained on this service is from cloning an upstream repository. We shard the set of repositories across the gitserver replicas. The main RPC gitserver supports is `exec` which returns the output of the specified git command.
+`gitserver` is a scalable stateful service which clones git repositories and can run git commands against them. All data maintained on this service is from cloning an upstream repository. We shard the set of repositories across the gitserver replicas. The main RPC gitserver supports is `exec` which returns the output of the specified git command.
 
->NOTE: The name `repo-updater` does not accurately capture what the service does. This is a historical artifact. We have not updated it due to the unneccessary operational burden it would put on our customers.
+>NOTE: The name `repo-updater` does not accurately capture what the service does. This is a historical artifact. We have not updated it due to the unnecessary operational burden it would put on our customers.
 
 ## Discovery
 

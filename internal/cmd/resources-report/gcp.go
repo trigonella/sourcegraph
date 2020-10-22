@@ -14,7 +14,7 @@ import (
 	gcp_ct "google.golang.org/api/container/v1"
 )
 
-// for resources that require enumerating over regions, it is not very partical to
+// for resources that require enumerating over regions, it is not very particular to
 // make queries for regions that will either not work or will never have Sourcegraph
 // resources - define relevant regions here.
 //

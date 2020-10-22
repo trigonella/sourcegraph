@@ -10,7 +10,7 @@ type Visitor interface {
 }
 
 // BaseVisitor is a visitor that recursively visits each node in a query. A
-// BaseVisitor's methods may be overriden by embedding it a custom visitor's
+// BaseVisitor's methods may be overridden by embedding it a custom visitor's
 // definition. See OperatorVisitor for an example.
 type BaseVisitor struct{}
 

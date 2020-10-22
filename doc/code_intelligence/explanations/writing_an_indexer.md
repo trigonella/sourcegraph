@@ -130,7 +130,7 @@ Finally, we fill out the relationships in the opposite direction. The definition
 {"id": "22", "type": "edge", "label": "item", "outV": "18", "inVs": ["5"], "document": "3", "property": "references"}
 ```
 
-Each item edge has a _document_ property that specifies the document that contains **all** of the `inVs` ranges. In cases where multiple ranges reference the same definiton from separate documents, multiple _item_ edges are necessary.
+Each item edge has a _document_ property that specifies the document that contains **all** of the `inVs` ranges. In cases where multiple ranges reference the same definition from separate documents, multiple _item_ edges are necessary.
 
 Our LSIF output can now be visualized as follows.
 

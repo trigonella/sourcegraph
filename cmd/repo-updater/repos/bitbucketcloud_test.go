@@ -43,9 +43,9 @@ func TestBitbucketCloudSource_ListRepos(t *testing.T) {
 		{
 			name: "found",
 			assert: assertAllReposListed([]string{
-				"bitbucket.org/Unknwon/boilerdb",
-				"bitbucket.org/Unknwon/scripts",
-				"bitbucket.org/Unknwon/wxvote",
+				"bitbucket.org/Unknown/boilerdb",
+				"bitbucket.org/Unknown/scripts",
+				"bitbucket.org/Unknown/wxvote",
 			}),
 			conf: &schema.BitbucketCloudConnection{
 				Url:         "https://bitbucket.org",
@@ -57,9 +57,9 @@ func TestBitbucketCloudSource_ListRepos(t *testing.T) {
 		{
 			name: "with teams",
 			assert: assertAllReposListed([]string{
-				"bitbucket.org/Unknwon/boilerdb",
-				"bitbucket.org/Unknwon/scripts",
-				"bitbucket.org/Unknwon/wxvote",
+				"bitbucket.org/Unknown/boilerdb",
+				"bitbucket.org/Unknown/scripts",
+				"bitbucket.org/Unknown/wxvote",
 				"bitbucket.org/sglocal/mux",
 				"bitbucket.org/sglocal/go-langserver",
 				"bitbucket.org/sglocal/python-langserver",

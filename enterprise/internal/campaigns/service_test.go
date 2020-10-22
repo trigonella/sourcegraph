@@ -516,7 +516,7 @@ func TestService(t *testing.T) {
 		t.Run("no side-effects if no changeset spec IDs are given", func(t *testing.T) {
 			// We already have ChangesetSpecs in the database. Here we
 			// want to make sure that the new CampaignSpec is created,
-			// without accidently attaching the existing ChangesetSpecs.
+			// without accidentally attaching the existing ChangesetSpecs.
 			opts := CreateCampaignSpecOpts{
 				NamespaceUserID:      admin.ID,
 				RawSpec:              ct.TestRawCampaignSpec,

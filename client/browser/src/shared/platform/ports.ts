@@ -11,7 +11,7 @@ const RELEASE_MESSAGE_TYPE: MessageType.RELEASE = 5
  * `browser.runtime.Port` so that it can be used as an endpoint with comlink
  * over browser extension script boundaries.
  *
- * `browser.runtime.Port` objects do not support transfering `MessagePort`
+ * `browser.runtime.Port` objects do not support transferring `MessagePort`
  * objects, which comlink relies on. A new `browser.runtime.Port`, with an
  * associated unique ID, will be created for each `MessagePort` transfer. The ID
  * is added to the message and the original `MessagePort` is removed from it.

@@ -19,8 +19,8 @@ import (
 func NewTestClient(t testing.TB, name string, update bool) (*Client, func()) {
 	t.Helper()
 
-	cassete := filepath.Join("testdata/vcr/", normalize(name))
-	rec, err := httptestutil.NewRecorder(cassete, update)
+	cassette := filepath.Join("testdata/vcr/", normalize(name))
+	rec, err := httptestutil.NewRecorder(cassette, update)
 	if err != nil {
 		t.Fatal(err)
 	}

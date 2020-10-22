@@ -203,7 +203,7 @@ Please contact [support@sourcegraph.com](mailto:support@sourcegraph.com) if you 
 
 ### Complete sync vs incremental sync
 
-A complete sync means a repository or user has done a repository-centric or user-centric syncing respectively, which presists the most accurate permissions from code hosts to Sourcegraph.
+A complete sync means a repository or user has done a repository-centric or user-centric syncing respectively, which persists the most accurate permissions from code hosts to Sourcegraph.
 
 An incremental sync is in fact a side effect of a complete sync because a user may grant or lose access to repositories and we react to such changes as soon as we know to improve permissions accuracy.
 
