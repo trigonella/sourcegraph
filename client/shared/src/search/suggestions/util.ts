@@ -1,6 +1,6 @@
-import {FilterType} from '../interactive/util'
+import { FilterType } from "../interactive/util";
 
-export type SuggestionType = FilterType|NonFilterSuggestionType
+export type SuggestionType = FilterType | NonFilterSuggestionType;
 
 /**
  * NonFilterSuggestionType represents the types of suggestion results that do
@@ -10,7 +10,7 @@ export type SuggestionType = FilterType|NonFilterSuggestionType
  * results.
  */
 export enum NonFilterSuggestionType {
-  Filters = 'filters',
-  Directory = 'dir',
-  Symbol = 'symbol',
+  Filters = "filters",
+  Directory = "dir",
+  Symbol = "symbol"
 }

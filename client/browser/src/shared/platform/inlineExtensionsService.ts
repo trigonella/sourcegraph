@@ -1,15 +1,13 @@
-import {from, Subscribable} from 'rxjs'
+import { from, Subscribable } from "rxjs";
 
 import {
   ExecutableExtension,
   IExtensionsService
-} from '../../../../shared/src/api/client/services/extensionsService'
-import {checkOk} from '../../../../shared/src/backend/fetch'
-import {
-  ExtensionManifest
-} from '../../../../shared/src/extensions/extensionManifest'
-import {isExtension} from '../context'
-import {isFirefox} from '../util/context'
+} from "../../../../shared/src/api/client/services/extensionsService";
+import { checkOk } from "../../../../shared/src/backend/fetch";
+import { ExtensionManifest } from "../../../../shared/src/extensions/extensionManifest";
+import { isExtension } from "../context";
+import { isFirefox } from "../util/context";
 
 /**
  * Determine if inline extensions should be loaded.
@@ -19,38 +17,42 @@ import {isFirefox} from '../util/context'
  * `shouldBuildWithInlineExtensions`.
  */
 export const shouldUseInlineExtensions = (): boolean =>
-    isExtension && isFirefox()
+  isExtension && isFirefox();
 
 /**
  * Get the manifest URL and script URL for a Sourcegraph extension which is
  * inline (bundled with the browser add-on).
  */
-function getURLsForInlineExtension(extensionName: string):
-    {manifestURL: string; scriptURL : string} {
+function getURLsForInlineExtension(
+  extensionName: string
+): { manifestURL: string; scriptURL: string } {
   return {
-    manifestURL:
-        browser.extension.getURL(`extensions/${extensionName}/package.json`),
-        scriptURL: browser.extension.getURL(
-            `extensions/${extensionName}/extension.js`),
-  }
+    manifestURL: browser.extension.getURL(
+      `extensions/${extensionName}/package.json`
+    ),
+    scriptURL: browser.extension.getURL(
+      `extensions/${extensionName}/extension.js`
+    )
+  };
 }
 
 export function getInlineExtensions(): Subscribable<ExecutableExtension[]> {
-  const extensionName = 'template'
-  const {manifestURL, scriptURL} = getURLsForInlineExtension('template')
-  const requestPromise =
-      fetch(manifestURL)
-          .then(response => checkOk(response).json())
-          .then(
-              (manifest:
-                   ExtensionManifest) => [{
-                                           id : `sourcegraph/${extensionName}`,
-                                           manifest,
-                                           scriptURL,
-                                         },
-  ] as ExecutableExtension[])
+  const extensionName = "template";
+  const { manifestURL, scriptURL } = getURLsForInlineExtension("template");
+  const requestPromise = fetch(manifestURL)
+    .then(response => checkOk(response).json())
+    .then(
+      (manifest: ExtensionManifest) =>
+        [
+          {
+            id: `sourcegraph/${extensionName}`,
+            manifest,
+            scriptURL
+          }
+        ] as ExecutableExtension[]
+    );
 
-  return from(requestPromise)
+  return from(requestPromise);
 }
 
 /**
@@ -62,6 +64,6 @@ export function getInlineExtensions(): Subscribable<ExecutableExtension[]> {
  */
 export class InlineExtensionsService implements IExtensionsService {
   public get activeExtensions(): Subscribable<ExecutableExtension[]> {
-    return getInlineExtensions()
+    return getInlineExtensions();
   }
 }

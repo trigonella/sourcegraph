@@ -1,17 +1,18 @@
-import {isObservable, Observable, of, throwError} from 'rxjs'
+import { isObservable, Observable, of, throwError } from "rxjs";
 
 /**
  * Calls a function and returns the result as an Observable.
  */
-export function asObservable<T>(function_: () =>
-                                    Observable<T>| T): Observable<T> {
+export function asObservable<T>(
+  function_: () => Observable<T> | T
+): Observable<T> {
   try {
-    const value = function_()
+    const value = function_();
     if (isObservable(value)) {
-      return value
+      return value;
     }
-    return of(value)
+    return of(value);
   } catch (error) {
-    return throwError(error)
+    return throwError(error);
   }
 }

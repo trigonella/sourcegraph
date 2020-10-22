@@ -1,11 +1,11 @@
-import configure from 'core-js/configurator'
+import configure from "core-js/configurator";
 
 configure({
-  usePolyfill : [
+  usePolyfill: [
     // Polyfill URL because Chrome and Firefox are not spec-compliant
     // Hostnames of URIs with custom schemes (e.g. git) are not parsed out
-    'URL',
+    "URL",
     // URLSearchParams.prototype.keys() is not iterable in Firefox
-    'URLSearchParams',
-  ],
-})
+    "URLSearchParams"
+  ]
+});

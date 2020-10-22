@@ -1,44 +1,47 @@
 enum AppEnvironment {
   Extension,
-  Page,
+  Page
 }
 
 enum ScriptEnvironment {
   Content,
   Background,
-  Options,
+  Options
 }
 
 interface AppContext {
-  appEnvironment: AppEnvironment
-  scriptEnvironment: ScriptEnvironment
+  appEnvironment: AppEnvironment;
+  scriptEnvironment: ScriptEnvironment;
 }
 
 function getContext(): AppContext {
-  const appEnvironment = window.SG_ENV === 'EXTENSION'
-                             ? AppEnvironment.Extension
-                             : AppEnvironment.Page
+  const appEnvironment =
+    window.SG_ENV === "EXTENSION"
+      ? AppEnvironment.Extension
+      : AppEnvironment.Page;
 
-  let scriptEnvironment: ScriptEnvironment = ScriptEnvironment.Content
+  let scriptEnvironment: ScriptEnvironment = ScriptEnvironment.Content;
   if (appEnvironment === AppEnvironment.Extension) {
-    if (window.location.pathname.includes('options.html')) {
-      scriptEnvironment = ScriptEnvironment.Options
+    if (window.location.pathname.includes("options.html")) {
+      scriptEnvironment = ScriptEnvironment.Options;
     } else if (globalThis.browser && browser.runtime.getBackgroundPage) {
-      scriptEnvironment = ScriptEnvironment.Background
+      scriptEnvironment = ScriptEnvironment.Background;
     }
   }
 
-  return { appEnvironment, scriptEnvironment, }
+  return { appEnvironment, scriptEnvironment };
 }
 
-const context = getContext()
+const context = getContext();
 
 export const isBackground =
-    context.scriptEnvironment === ScriptEnvironment.Background
-export const isOptions = context.scriptEnvironment === ScriptEnvironment.Options
+  context.scriptEnvironment === ScriptEnvironment.Background;
+export const isOptions =
+  context.scriptEnvironment === ScriptEnvironment.Options;
 
-export const isExtension = context.appEnvironment === AppEnvironment.Extension
-export const isInPage = !isExtension
+export const isExtension = context.appEnvironment === AppEnvironment.Extension;
+export const isInPage = !isExtension;
 
-export const isPhabricator =
-    Boolean(document.querySelector('.phabricator-wordmark'))
+export const isPhabricator = Boolean(
+  document.querySelector(".phabricator-wordmark")
+);

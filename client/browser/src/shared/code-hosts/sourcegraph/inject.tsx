@@ -1,13 +1,14 @@
-import { PlatformName, getPlatformName } from '../../util/context'
+import { PlatformName, getPlatformName } from "../../util/context";
 
-export const EXTENSION_MARKER_ID = 'sourcegraph-app-background'
+export const EXTENSION_MARKER_ID = "sourcegraph-app-background";
 
 /**
  * A custom native integration <-> browser extension event used to free
  * browser extension subscriptions when the native integration gets activated
  * on the page, so as to avoid conflicts such as duplicate UI elements.
  */
-export const NATIVE_INTEGRATION_ACTIVATED = 'sourcegraph:native-integration-activated'
+export const NATIVE_INTEGRATION_ACTIVATED =
+  "sourcegraph:native-integration-activated";
 
 /**
  * Injects a `#sourcegraph-app-background` hidden element.
@@ -19,11 +20,11 @@ export const NATIVE_INTEGRATION_ACTIVATED = 'sourcegraph:native-integration-acti
  * Not idempotent.
  */
 export function injectExtensionMarker(): void {
-    const extensionMarker = document.createElement('div')
-    extensionMarker.id = EXTENSION_MARKER_ID
-    extensionMarker.dataset.platform = getPlatformName()
-    extensionMarker.style.display = 'none'
-    document.body.append(extensionMarker)
+  const extensionMarker = document.createElement("div");
+  extensionMarker.id = EXTENSION_MARKER_ID;
+  extensionMarker.dataset.platform = getPlatformName();
+  extensionMarker.style.display = "none";
+  document.body.append(extensionMarker);
 }
 
 /**
@@ -31,26 +32,32 @@ export function injectExtensionMarker(): void {
  * that the browser extension is installed.
  */
 export function signalBrowserExtensionInstalled(): void {
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        dispatchSourcegraphEvents()
-    } else {
-        window.addEventListener('load', dispatchSourcegraphEvents, { once: true })
-    }
+  if (
+    document.readyState === "complete" ||
+    document.readyState === "interactive"
+  ) {
+    dispatchSourcegraphEvents();
+  } else {
+    window.addEventListener("load", dispatchSourcegraphEvents, { once: true });
+  }
 }
 
 function dispatchSourcegraphEvents(): void {
-    // Send custom webapp <-> extension registration event in case webapp listener is attached first.
-    document.dispatchEvent(
-        new CustomEvent<{ platform: PlatformName }>('sourcegraph:browser-extension-registration', {
-            detail: { platform: getPlatformName() },
-        })
+  // Send custom webapp <-> extension registration event in case webapp listener is attached first.
+  document.dispatchEvent(
+    new CustomEvent<{ platform: PlatformName }>(
+      "sourcegraph:browser-extension-registration",
+      {
+        detail: { platform: getPlatformName() }
+      }
     )
+  );
 }
 
 export const checkIsSourcegraph = (
-    sourcegraphServerUrl: string,
-    { origin, href }: Pick<Location, 'origin' | 'href'> = window.location
+  sourcegraphServerUrl: string,
+  { origin, href }: Pick<Location, "origin" | "href"> = window.location
 ): boolean =>
-    origin === sourcegraphServerUrl ||
-    /^https?:\/\/(www\.)?sourcegraph\.com/.test(href) ||
-    !!document.querySelector('#sourcegraph-chrome-webstore-item')
+  origin === sourcegraphServerUrl ||
+  /^https?:\/\/(www\.)?sourcegraph\.com/.test(href) ||
+  !!document.querySelector("#sourcegraph-chrome-webstore-item");

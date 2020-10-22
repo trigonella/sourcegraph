@@ -4,7 +4,7 @@ $media-md: 768px;
 $media-lg: 992px;
 $media-xl: 1200px;
 
-@import './colors.scss';
+@import "./colors.scss";
 
 // Bootstrap configuration before Bootstrap is imported
 $border-radius: 2px;
@@ -19,7 +19,7 @@ $grid-gutter-width: 1.5rem;
 
 // No max width except for xl.
 $container-max-widths: (
-    xl: 1140px,
+  xl: 1140px
 );
 
 $body-color: var(--body-color);
@@ -112,60 +112,60 @@ $hr-margin-y: 0.25rem;
 
 $code-bg: var(--body-bg);
 
-@import 'bootstrap/scss/functions';
-@import 'bootstrap/scss/variables';
-@import 'bootstrap/scss/mixins';
-@import 'bootstrap/scss/reboot';
-@import 'bootstrap/scss/utilities';
-@import 'bootstrap/scss/grid';
-@import 'bootstrap/scss/progress';
-@import 'bootstrap/scss/tooltip';
-@import 'bootstrap/scss/transitions';
-@import '../../../shared/src/global-styles/icons';
-@import './background';
-@import './badge';
-@import './card';
-@import './dropdown';
-@import './modal';
-@import './popover';
-@import './nav';
-@import './type';
-@import './list-group';
-@import './tables';
-@import './code';
-@import './buttons';
-@import './alert';
-@import './forms';
-@import './highlight';
-@import './web-content';
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/reboot";
+@import "bootstrap/scss/utilities";
+@import "bootstrap/scss/grid";
+@import "bootstrap/scss/progress";
+@import "bootstrap/scss/tooltip";
+@import "bootstrap/scss/transitions";
+@import "../../../shared/src/global-styles/icons";
+@import "./background";
+@import "./badge";
+@import "./card";
+@import "./dropdown";
+@import "./modal";
+@import "./popover";
+@import "./nav";
+@import "./type";
+@import "./list-group";
+@import "./tables";
+@import "./code";
+@import "./buttons";
+@import "./alert";
+@import "./forms";
+@import "./highlight";
+@import "./web-content";
 
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 html {
-    // Base for layout rem values
-    font-size: 16px;
+  // Base for layout rem values
+  font-size: 16px;
 }
 
 // Our simple popovers only need these styles. We don't want the caret or special font sizes from
 // Bootstrap's popover CSS.
 .popover-inner {
-    background-color: var(--body-bg);
-    border: solid 1px var(--border-color);
-    border-radius: $border-radius;
+  background-color: var(--body-bg);
+  border: solid 1px var(--border-color);
+  border-radius: $border-radius;
 }
 
 // Show a focus ring when performing keyboard navigation. Uses the polyfill at
 // https://github.com/WICG/focus-visible because few browsers support :focus-visible.
 :focus:not(:focus-visible) {
-    outline: none;
+  outline: none;
 }
 :focus-visible {
-    outline: 0;
-    box-shadow: $btn-focus-box-shadow;
+  outline: 0;
+  box-shadow: $btn-focus-box-shadow;
 }
 
 .cursor-pointer {
-    cursor: pointer;
+  cursor: pointer;
 }

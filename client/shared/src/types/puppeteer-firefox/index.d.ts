@@ -1,2 +1,2 @@
-import puppeteer from 'puppeteer'
-export default puppeteer
+import puppeteer from "puppeteer";
+export default puppeteer;

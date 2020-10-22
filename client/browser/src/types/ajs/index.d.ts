@@ -3,7 +3,7 @@ interface AJS {
    * The AJS.contextPath() function returns the "path" to the application,
    * which is needed when creating absolute urls within the application.
    */
-  contextPath(): string
+  contextPath(): string;
 }
 
 interface Window {
@@ -12,5 +12,5 @@ interface Window {
    * the UI of Atlassian products. It is only defined when executing in the
    * Bitbucket Server native integration.
    */
-  AJS?: AJS
+  AJS?: AJS;
 }

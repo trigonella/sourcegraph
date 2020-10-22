@@ -1,1 +1,1 @@
-window.EXTENSION_ENV = 'CONTENT'
+window.EXTENSION_ENV = "CONTENT";

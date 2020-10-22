@@ -4,34 +4,38 @@
  * @param patterns Patterns to match in the string.
  */
 export function count(string: string, ...patterns: RegExp[]): number {
-  let count = 0
+  let count = 0;
   for (const pattern of patterns) {
     if (!pattern.global) {
       throw new Error(
-          'expected RegExp to be global (or else count is inaccurate)')
+        "expected RegExp to be global (or else count is inaccurate)"
+      );
     }
-    const match = string.match(pattern)
+    const match = string.match(pattern);
     if (match) {
-      count += match.length
+      count += match.length;
     }
   }
-  return count
+  return count;
 }
 
-export function numberWithCommas(number: string|number): string {
-  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+export function numberWithCommas(number: string | number): string {
+  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-export function pluralize(string: string, count: number,
-                          plural = string + 's'): string {
-  return count === 1 ? string : plural
+export function pluralize(
+  string: string,
+  count: number,
+  plural = string + "s"
+): string {
+  return count === 1 ? string : plural;
 }
 
 /**
  * Replaces all non alphabetic characters with `-` and lowercases the result.
  */
 export function sanitizeClass(value: string): string {
-  return value.replace(/[^A-Za-z]/g, '-').toLowerCase()
+  return value.replace(/[^A-Za-z]/g, "-").toLowerCase();
 }
 
 /**
@@ -39,7 +43,7 @@ export function sanitizeClass(value: string): string {
  * E.g: " a  b  c  " => " a b c "
  */
 export function dedupeWhitespace(value: string): string {
-  return value.replace(/\s+/g, ' ')
+  return value.replace(/\s+/g, " ");
 }
 
 /**
@@ -48,7 +52,7 @@ export function dedupeWhitespace(value: string): string {
  * @param value string to check against
  */
 export function isQuoted(value: string): boolean {
-  return value.startsWith('"') && value.endsWith('"') && value !== '"'
+  return value.startsWith('"') && value.endsWith('"') && value !== '"';
 }
 
 /**
@@ -58,8 +62,10 @@ export function isQuoted(value: string): boolean {
  * @param range The range in of the substring to be replaced
  * @param replacement an optional replacement string
  */
-export function replaceRange(string: string,
-                             {start, end}: {start: number; end : number},
-                             replacement = ''): string {
-  return string.slice(0, start) + replacement + string.slice(end)
+export function replaceRange(
+  string: string,
+  { start, end }: { start: number; end: number },
+  replacement = ""
+): string {
+  return string.slice(0, start) + replacement + string.slice(end);
 }

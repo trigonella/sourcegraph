@@ -1,5 +1,5 @@
-import {WorkspaceRoot} from '@sourcegraph/extension-api-types'
-import {BehaviorSubject, NextObserver, Subscribable} from 'rxjs'
+import { WorkspaceRoot } from "@sourcegraph/extension-api-types";
+import { BehaviorSubject, NextObserver, Subscribable } from "rxjs";
 
 // TODO (simon) This is essentially global mutable object that is proxied to
 // extensions try to rework this pattern later
@@ -23,7 +23,7 @@ export interface WorkspaceRootWithMetadata extends WorkspaceRoot {
    * such as "HEAD" in Git) and is distinct from undefined. If undefined, the
    * Git commit SHA from {@link WorkspaceRoot#uri} should be used.
    */
-  inputRevision?: string
+  inputRevision?: string;
 }
 
 /**
@@ -33,22 +33,22 @@ export interface WorkspaceService {
   /**
    * An observable whose value is the list of workspace root folder URIs.
    */
-  readonly roots: Subscribable<readonly WorkspaceRootWithMetadata[]>&
-      {readonly value : readonly WorkspaceRootWithMetadata[]}&
-      NextObserver<readonly WorkspaceRootWithMetadata[]>
+  readonly roots: Subscribable<readonly WorkspaceRootWithMetadata[]> & {
+    readonly value: readonly WorkspaceRootWithMetadata[];
+  } & NextObserver<readonly WorkspaceRootWithMetadata[]>;
 
-          /**
-           * An observable whose value is the current version context.
-           */
-          readonly versionContext: Subscribable<string|undefined>&
-      NextObserver<string|undefined>
+  /**
+   * An observable whose value is the current version context.
+   */
+  readonly versionContext: Subscribable<string | undefined> &
+    NextObserver<string | undefined>;
 }
 
 /**
  * Creates a {@link WorkspaceService} instance.
  */
 export function createWorkspaceService(): WorkspaceService {
-  const roots = new BehaviorSubject<readonly WorkspaceRootWithMetadata[]>([])
-  const versionContext = new BehaviorSubject<string|undefined>(undefined)
-  return { roots, versionContext, }
+  const roots = new BehaviorSubject<readonly WorkspaceRootWithMetadata[]>([]);
+  const versionContext = new BehaviorSubject<string | undefined>(undefined);
+  return { roots, versionContext };
 }

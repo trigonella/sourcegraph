@@ -1,23 +1,22 @@
-import {BehaviorSubject, Observable, Subscription} from 'rxjs'
-import {map} from 'rxjs/operators'
-import {getModeFromPath} from '../../../languages'
-import {parseRepoURI} from '../../../util/url'
-import {TextDocumentRegistrationOptions} from '../../protocol'
-import {match, TextDocumentIdentifier} from '../types/textDocument'
+import { BehaviorSubject, Observable, Subscription } from "rxjs";
+import { map } from "rxjs/operators";
+import { getModeFromPath } from "../../../languages";
+import { parseRepoURI } from "../../../util/url";
+import { TextDocumentRegistrationOptions } from "../../protocol";
+import { match, TextDocumentIdentifier } from "../types/textDocument";
 
 /** A registry entry for a registered provider. */
 export interface Entry<O, P> {
-  registrationOptions: O
-  provider: P
+  registrationOptions: O;
+  provider: P;
 }
 
 /** Base class for provider registries for features. */
 export abstract class FeatureProviderRegistry<O, P> {
-  protected entries = new BehaviorSubject<Entry<O, P>[]>([])
+  protected entries = new BehaviorSubject<Entry<O, P>[]>([]);
 
-      public registerProvider(registrationOptions: O, provider: P):
-          Subscription {
-    return this.registerProviders([ {registrationOptions, provider} ])
+  public registerProvider(registrationOptions: O, provider: P): Subscription {
+    return this.registerProviders([{ registrationOptions, provider }]);
   }
 
   /**
@@ -26,17 +25,20 @@ export abstract class FeatureProviderRegistry<O, P> {
    * from {@link FeatureProviderRegistry#entries} (instead of one per entry).
    */
   public registerProviders(entries: Entry<O, P>[]): Subscription {
-    this.entries.next([...this.entries.value, ...entries ])
-    return new Subscription(
-        () => {this.entries.next([...this.entries.value.filter(
-            entry => !entries.includes(entry)) ])})
+    this.entries.next([...this.entries.value, ...entries]);
+    return new Subscription(() => {
+      this.entries.next([
+        ...this.entries.value.filter(entry => !entries.includes(entry))
+      ]);
+    });
   }
 
   /**
    * All providers, emitted whenever the set of registered providers changed.
    */
-  public readonly providers: Observable<P[]> =
-      this.entries.pipe(map(entries => entries.map(({provider}) => provider)))
+  public readonly providers: Observable<P[]> = this.entries.pipe(
+    map(entries => entries.map(({ provider }) => provider))
+  );
 }
 
 /**
@@ -50,9 +52,9 @@ export abstract class FeatureProviderRegistry<O, P> {
  * used for the hover provider registry.
  */
 export abstract class DocumentFeatureProviderRegistry<
-    P, O extends TextDocumentRegistrationOptions =
-                     TextDocumentRegistrationOptions> extends
-    FeatureProviderRegistry<O, P> {
+  P,
+  O extends TextDocumentRegistrationOptions = TextDocumentRegistrationOptions
+> extends FeatureProviderRegistry<O, P> {
   /**
    * @param document The text document to find applicable providers for.
    * @param filter An optional function to filter providers based on their
@@ -62,19 +64,25 @@ export abstract class DocumentFeatureProviderRegistry<
    * initially and whenever the set changes (due to a provider being registered
    * or unregistered).
    */
-  public providersForDocument(document: TextDocumentIdentifier,
-                              filter?: (registrationOptions: O) => boolean):
-      Observable<P[]> {
-    return this.entries.pipe(map(
-        entries =>
-            entries
-                .filter(({registrationOptions}) =>
-                            (filter ? filter(registrationOptions) : true) &&
-                            match(registrationOptions.documentSelector, {
-                              uri : document.uri,
-                              languageId : getModeFromPath(
-                                  parseRepoURI(document.uri).filePath || ''),
-                            }))
-                .map(({provider}) => provider)))
+  public providersForDocument(
+    document: TextDocumentIdentifier,
+    filter?: (registrationOptions: O) => boolean
+  ): Observable<P[]> {
+    return this.entries.pipe(
+      map(entries =>
+        entries
+          .filter(
+            ({ registrationOptions }) =>
+              (filter ? filter(registrationOptions) : true) &&
+              match(registrationOptions.documentSelector, {
+                uri: document.uri,
+                languageId: getModeFromPath(
+                  parseRepoURI(document.uri).filePath || ""
+                )
+              })
+          )
+          .map(({ provider }) => provider)
+      )
+    );
   }
 }

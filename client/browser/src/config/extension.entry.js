@@ -1,1 +1,1 @@
-window.SG_ENV = 'EXTENSION'
+window.SG_ENV = "EXTENSION";

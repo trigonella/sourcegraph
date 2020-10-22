@@ -1,5 +1,5 @@
-const shelljs = require('shelljs')
-const signale = require('signale')
+const shelljs = require("shelljs");
+const signale = require("signale");
 
 /**
  * Purpose of this script: create a source code zip that can be used shared and
@@ -18,29 +18,31 @@ const signale = require('signale')
  */
 
 // Configuration
-const commitId = '350764282631014ea24ccd88fda459a4b19a5669'
-const includeCodeIntelExtensions = true
-const rootDirectoryNameForZip = 'sourcegraph-source'
+const commitId = "350764282631014ea24ccd88fda459a4b19a5669";
+const includeCodeIntelExtensions = true;
+const rootDirectoryNameForZip = "sourcegraph-source";
 
-shelljs.rm('-f', 'sourcegraph.zip')
-signale.await(`Downloading sourcegraph/sourcegraph at revision ${commitId}`)
-shelljs.exec(`curl -Ls https://github.com/sourcegraph/sourcegraph/archive/${
-    commitId}.zip -o sourcegraph-downloaded.zip`)
-shelljs.rm('-rf', `sourcegraph-${commitId}/`)
-shelljs.exec('unzip -q sourcegraph-downloaded.zip')
-shelljs.rm('-f', 'sourcegraph-downloaded.zip')
-shelljs.mv(`sourcegraph-${commitId}`, rootDirectoryNameForZip)
-signale.success('Downloaded and unzipped sourcegraph/sourcegraph repository')
+shelljs.rm("-f", "sourcegraph.zip");
+signale.await(`Downloading sourcegraph/sourcegraph at revision ${commitId}`);
+shelljs.exec(
+  `curl -Ls https://github.com/sourcegraph/sourcegraph/archive/${commitId}.zip -o sourcegraph-downloaded.zip`
+);
+shelljs.rm("-rf", `sourcegraph-${commitId}/`);
+shelljs.exec("unzip -q sourcegraph-downloaded.zip");
+shelljs.rm("-f", "sourcegraph-downloaded.zip");
+shelljs.mv(`sourcegraph-${commitId}`, rootDirectoryNameForZip);
+signale.success("Downloaded and unzipped sourcegraph/sourcegraph repository");
 
 if (includeCodeIntelExtensions) {
-  shelljs.pushd(rootDirectoryNameForZip)
-  shelljs.exec('yarn install')
-  shelljs.exec('yarn --cwd browser run fetch-code-intel-extensions')
-  shelljs.popd()
+  shelljs.pushd(rootDirectoryNameForZip);
+  shelljs.exec("yarn install");
+  shelljs.exec("yarn --cwd browser run fetch-code-intel-extensions");
+  shelljs.popd();
 }
 
-signale.await('Producing sourcegraph.zip')
-shelljs.exec(`zip -qr sourcegraph.zip ${rootDirectoryNameForZip} --exclude "${
-    rootDirectoryNameForZip}/node_modules/*"`)
-shelljs.rm('-rf', rootDirectoryNameForZip)
-signale.success('Done producing sourcegraph.zip')
+signale.await("Producing sourcegraph.zip");
+shelljs.exec(
+  `zip -qr sourcegraph.zip ${rootDirectoryNameForZip} --exclude "${rootDirectoryNameForZip}/node_modules/*"`
+);
+shelljs.rm("-rf", rootDirectoryNameForZip);
+signale.success("Done producing sourcegraph.zip");

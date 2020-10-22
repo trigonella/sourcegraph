@@ -3,5 +3,5 @@
 // imports are hoisted to the top before application code. It is important
 // though that we configure core-js before it is imported.
 
-import './configure-core-js'
-import './polyfill'
+import "./configure-core-js";
+import "./polyfill";

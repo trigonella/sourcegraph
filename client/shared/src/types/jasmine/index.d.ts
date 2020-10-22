@@ -2,11 +2,12 @@
 // conflict with jest.
 
 declare var jasmine: {
-  getEnv(): {addReporter(
-      reporter: {specDone ? (result: CustomReporterResult) : void})}
-}
+  getEnv(): {
+    addReporter(reporter: { specDone?(result: CustomReporterResult): void });
+  };
+};
 
 interface CustomReporterResult {
-  status: 'passed'|'failed'|'disabled'|'pending'
-  fullName: string
+  status: "passed" | "failed" | "disabled" | "pending";
+  fullName: string;
 }

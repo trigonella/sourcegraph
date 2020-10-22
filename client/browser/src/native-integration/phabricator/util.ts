@@ -6,21 +6,23 @@
  * TODO could this be eliminated with shadow DOM?
  */
 export function metaClickOverride(): void {
-  const javelin = (window as any).JX
+  const javelin = (window as any).JX;
   if (javelin.Stratcom._dispatchProxyPreMeta) {
-    return
+    return;
   }
-  javelin.Stratcom._dispatchProxyPreMeta = javelin.Stratcom._dispatchProxy
-    javelin.Stratcom._dispatchProxy = (proxyEvent: {
-        __auto__type: string
-    __auto__rawEvent: KeyboardEvent
-        __auto__target: HTMLElement
-    }) => {
-    if (proxyEvent.__auto__type === 'click' &&
-        proxyEvent.__auto__rawEvent.metaKey &&
-        proxyEvent.__auto__target.classList.contains('sg-clickable')) {
-      return
+  javelin.Stratcom._dispatchProxyPreMeta = javelin.Stratcom._dispatchProxy;
+  javelin.Stratcom._dispatchProxy = (proxyEvent: {
+    __auto__type: string;
+    __auto__rawEvent: KeyboardEvent;
+    __auto__target: HTMLElement;
+  }) => {
+    if (
+      proxyEvent.__auto__type === "click" &&
+      proxyEvent.__auto__rawEvent.metaKey &&
+      proxyEvent.__auto__target.classList.contains("sg-clickable")
+    ) {
+      return;
     }
-    return javelin.Stratcom._dispatchProxyPreMeta(proxyEvent)
-    }
+    return javelin.Stratcom._dispatchProxyPreMeta(proxyEvent);
+  };
 }

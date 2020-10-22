@@ -1,18 +1,20 @@
-import {Position, Range} from '@sourcegraph/extension-api-classes'
-import * as clientType from '@sourcegraph/extension-api-types'
-import * as sourcegraph from 'sourcegraph'
+import { Position, Range } from "@sourcegraph/extension-api-classes";
+import * as clientType from "@sourcegraph/extension-api-types";
+import * as sourcegraph from "sourcegraph";
 
 /**
  * Firefox does not like URLs being transmitted, so convert them to strings.
  *
  * https://github.com/sourcegraph/sourcegraph/issues/8928
  */
-export function fromDocumentSelector(selector: sourcegraph.DocumentSelector):
-    sourcegraph.DocumentSelector {
-  return selector.map(
-      filter => typeof filter === 'string'
-                    ? filter
-                    : {...filter, baseUri : filter.baseUri?.toString()})
+export function fromDocumentSelector(
+  selector: sourcegraph.DocumentSelector
+): sourcegraph.DocumentSelector {
+  return selector.map(filter =>
+    typeof filter === "string"
+      ? filter
+      : { ...filter, baseUri: filter.baseUri?.toString() }
+  );
 }
 
 /**
@@ -22,7 +24,7 @@ export function fromDocumentSelector(selector: sourcegraph.DocumentSelector):
  * @internal
  */
 export function toPosition(position: clientType.Position): Position {
-  return new Position(position.line, position.character)
+  return new Position(position.line, position.character);
 }
 
 /**
@@ -32,12 +34,13 @@ export function toPosition(position: clientType.Position): Position {
  * @internal
  */
 export function fromLocation(
-    location: sourcegraph.Badged<sourcegraph.Location>):
-    sourcegraph.Badged<clientType.Location> {
+  location: sourcegraph.Badged<sourcegraph.Location>
+): sourcegraph.Badged<clientType.Location> {
   return {
-    uri: location.uri.href, range: fromRange(location.range),
-        badge: location.badge,
-  }
+    uri: location.uri.href,
+    range: fromRange(location.range),
+    badge: location.badge
+  };
 }
 
 /**
@@ -46,12 +49,15 @@ export function fromLocation(
  *
  * @internal
  */
-export function fromHover(hover: sourcegraph.Badged<sourcegraph.Hover>):
-    sourcegraph.Badged<clientType.Hover> {
+export function fromHover(
+  hover: sourcegraph.Badged<sourcegraph.Hover>
+): sourcegraph.Badged<clientType.Hover> {
   return {
-    contents: hover.contents, range: fromRange(hover.range), badge: hover.badge,
-        alerts: hover.alerts,
-  }
+    contents: hover.contents,
+    range: fromRange(hover.range),
+    badge: hover.badge,
+    alerts: hover.alerts
+  };
 }
 
 /**
@@ -60,10 +66,11 @@ export function fromHover(hover: sourcegraph.Badged<sourcegraph.Hover>):
  *
  * @internal
  */
-function fromRange(range: Range|sourcegraph.Range|undefined): clientType.Range|
-    undefined {
+function fromRange(
+  range: Range | sourcegraph.Range | undefined
+): clientType.Range | undefined {
   if (!range) {
-    return undefined
+    return undefined;
   }
-  return range instanceof Range ? range.toJSON() : range
+  return range instanceof Range ? range.toJSON() : range;
 }

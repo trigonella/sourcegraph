@@ -9,5 +9,5 @@ export interface VersionContextProps {
    * version context active. When undefined, we use the default behavior, which
    * allows access to all repos.
    */
-  versionContext: string|undefined
+  versionContext: string | undefined;
 }

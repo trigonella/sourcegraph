@@ -5,5 +5,5 @@
  */
 export interface WorkspaceRoot {
   /** The root URI of the workspace. */
-  readonly uri: string
+  readonly uri: string;
 }

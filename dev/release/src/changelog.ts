@@ -1,4 +1,4 @@
-export const divider = '<!-- START CHANGELOG -->'
+export const divider = "<!-- START CHANGELOG -->";
 
 export const releaseTemplate = `${divider}
 
@@ -18,4 +18,4 @@ export const releaseTemplate = `${divider}
 
 ### Removed
 
--`
+-`;

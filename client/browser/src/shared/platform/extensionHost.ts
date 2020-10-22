@@ -1,62 +1,66 @@
-import {Subscription} from 'rxjs'
-import * as uuid from 'uuid'
+import { Subscription } from "rxjs";
+import * as uuid from "uuid";
 
 import {
   ClosableEndpointPair,
   EndpointPair
-} from '../../../../shared/src/platform/context'
-import {isInPage} from '../context'
+} from "../../../../shared/src/platform/context";
+import { isInPage } from "../context";
 
-import {SourcegraphIntegrationURLs} from './context'
-import {browserPortToMessagePort} from './ports'
+import { SourcegraphIntegrationURLs } from "./context";
+import { browserPortToMessagePort } from "./ports";
 
 function createInPageExtensionHost({
-  assetsURL,
-}: Pick<SourcegraphIntegrationURLs, 'assetsURL'>):
-    Promise<ClosableEndpointPair> {
-    return new Promise(resolve => {
-        // Create an iframe pointing to extensionHostFrame.html,
-        // which will load the extension host worker, and forward it
-        // the client endpoints.
-        const frame: HTMLIFrameElement = document.createElement('iframe')
-    frame.setAttribute('src',
-                       new URL('extensionHostFrame.html', assetsURL).href)
-    frame.setAttribute('style', 'display: none;')
-    document.body.append(frame)
-    const clientAPIChannel = new MessageChannel()
-    const extensionHostAPIChannel = new MessageChannel()
-        const workerEndpoints: EndpointPair = {
-    proxy: clientAPIChannel.port2, expose: extensionHostAPIChannel.port2,
-        }
-        const clientEndpoints = {
-            proxy: extensionHostAPIChannel.port1,
-            expose: clientAPIChannel.port1,
-        }
-        // Subscribe to the load event on the frame
-        frame.addEventListener(
-            'load',
-            () => {
-                frame.contentWindow!.postMessage(
-                    {
-                        type: 'workerInit',
-                        payload: {
-                            endpoints: clientEndpoints,
-                            wrapEndpoints: false,
-                        },
-                    },
-                    new URL(assetsURL).origin,
-                    Object.values(clientEndpoints)
-                )
-                resolve({
-                    endpoints: workerEndpoints,
-                    subscription: new Subscription(() => frame.remove()),
-                })
-            },
-            {
-                once: true,
+  assetsURL
+}: Pick<SourcegraphIntegrationURLs, "assetsURL">): Promise<
+  ClosableEndpointPair
+> {
+  return new Promise(resolve => {
+    // Create an iframe pointing to extensionHostFrame.html,
+    // which will load the extension host worker, and forward it
+    // the client endpoints.
+    const frame: HTMLIFrameElement = document.createElement("iframe");
+    frame.setAttribute(
+      "src",
+      new URL("extensionHostFrame.html", assetsURL).href
+    );
+    frame.setAttribute("style", "display: none;");
+    document.body.append(frame);
+    const clientAPIChannel = new MessageChannel();
+    const extensionHostAPIChannel = new MessageChannel();
+    const workerEndpoints: EndpointPair = {
+      proxy: clientAPIChannel.port2,
+      expose: extensionHostAPIChannel.port2
+    };
+    const clientEndpoints = {
+      proxy: extensionHostAPIChannel.port1,
+      expose: clientAPIChannel.port1
+    };
+    // Subscribe to the load event on the frame
+    frame.addEventListener(
+      "load",
+      () => {
+        frame.contentWindow!.postMessage(
+          {
+            type: "workerInit",
+            payload: {
+              endpoints: clientEndpoints,
+              wrapEndpoints: false
             }
-        )
-    })
+          },
+          new URL(assetsURL).origin,
+          Object.values(clientEndpoints)
+        );
+        resolve({
+          endpoints: workerEndpoints,
+          subscription: new Subscription(() => frame.remove())
+        });
+      },
+      {
+        once: true
+      }
+    );
+  });
 }
 
 /**
@@ -76,31 +80,31 @@ function createInPageExtensionHost({
  * and the extension host worker's endpoints.
  */
 export function createExtensionHost(
-    urls: Pick<SourcegraphIntegrationURLs, 'assetsURL'>):
-    Promise<ClosableEndpointPair> {
+  urls: Pick<SourcegraphIntegrationURLs, "assetsURL">
+): Promise<ClosableEndpointPair> {
   if (isInPage) {
-    return createInPageExtensionHost(urls)
+    return createInPageExtensionHost(urls);
   }
-  const id = uuid.v4()
+  const id = uuid.v4();
 
   // This is run in the content script
-  const subscription = new Subscription()
-  const setup = (role: keyof EndpointPair):
-      MessagePort => {
-        const port = browser.runtime.connect({name : `${role}-${id}`})
-        subscription.add(() => port.disconnect())
+  const subscription = new Subscription();
+  const setup = (role: keyof EndpointPair): MessagePort => {
+    const port = browser.runtime.connect({ name: `${role}-${id}` });
+    subscription.add(() => port.disconnect());
 
-        const link = browserPortToMessagePort(
-            port, `comlink-${role}-`, name => browser.runtime.connect({name}))
-        subscription.add(link.subscription)
-        return link.messagePort
-      }
+    const link = browserPortToMessagePort(port, `comlink-${role}-`, name =>
+      browser.runtime.connect({ name })
+    );
+    subscription.add(link.subscription);
+    return link.messagePort;
+  };
 
-                     return Promise.resolve({
-                       endpoints : {
-                         proxy : setup('proxy'),
-                         expose : setup('expose'),
-                       },
-                       subscription,
-                     })
+  return Promise.resolve({
+    endpoints: {
+      proxy: setup("proxy"),
+      expose: setup("expose")
+    },
+    subscription
+  });
 }

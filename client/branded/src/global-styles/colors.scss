@@ -1,5 +1,5 @@
-@import 'open-color/open-color.scss'; // Sass variables
-@import '~open-color/open-color.css'; // CSS variables
+@import "open-color/open-color.scss"; // Sass variables
+@import "~open-color/open-color.css"; // CSS variables
 
 // General reusable colors from our custom color palette
 
@@ -53,11 +53,11 @@ $merged: $purple;
 
 // Added to bg- and text- utilities because it is commonly needed in our app.
 $theme-colors: (
-    'merged': $merged,
+  "merged": $merged
 );
 
 $theme-colors-light: (
-    'secondary': $secondary-light,
+  "secondary": $secondary-light
 );
 
 $body-color: var(--body-color);
@@ -66,44 +66,44 @@ $body-bg: var(--body-bg);
 $text-muted: var(--text-muted);
 
 :root {
-    --primary: #{$primary};
-    --secondary: #{$secondary-light};
-    --success: #{$success};
-    --info: #{$info};
-    --warning: #{$warning};
-    --danger: #{$danger};
-    --merged: #{$merged};
+  --primary: #{$primary};
+  --secondary: #{$secondary-light};
+  --success: #{$success};
+  --info: #{$info};
+  --warning: #{$warning};
+  --danger: #{$danger};
+  --merged: #{$merged};
 }
 .theme-light {
-    --body-color: #{$gray-19};
-    --body-bg: #fbfdff;
-    --color-bg-1: #ffffff;
-    --color-bg-2: #{$gray-01};
-    --color-bg-3: #{$gray-04};
-    --color-bg-4: #{$gray-02};
-    --color-bg-5: #{$gray-13};
-    --text-muted: #6d727c;
-    --link-color: #{$gray-13};
-    --link-active-color: #{$gray-18};
-    --link-hover-color: #{$gray-21};
-    --border-color: #{$gray-04};
-    --border-color-2: #{$gray-02};
-    --sourcegraph-logo-text-color: #242427;
+  --body-color: #{$gray-19};
+  --body-bg: #fbfdff;
+  --color-bg-1: #ffffff;
+  --color-bg-2: #{$gray-01};
+  --color-bg-3: #{$gray-04};
+  --color-bg-4: #{$gray-02};
+  --color-bg-5: #{$gray-13};
+  --text-muted: #6d727c;
+  --link-color: #{$gray-13};
+  --link-active-color: #{$gray-18};
+  --link-hover-color: #{$gray-21};
+  --border-color: #{$gray-04};
+  --border-color-2: #{$gray-02};
+  --sourcegraph-logo-text-color: #242427;
 }
 .theme-dark {
-    --secondary: #{$secondary};
-    --border-color: #{$gray-19};
-    --border-color-2: #1b1730;
-    --body-color: #ffffff;
-    --body-bg: #04070e;
-    --color-bg-1: #{$gray-22};
-    --color-bg-2: #{$gray-21};
-    --color-bg-3: #{$gray-19};
-    --color-bg-4: #{$gray-23};
-    --color-bg-5: #{$gray-17};
-    --text-muted: #{$gray-07};
-    --link-color: #{$gray-07};
-    --link-active-color: #{$gray-02};
-    --link-hover-color: #ffffff;
-    --sourcegraph-logo-text-color: #ffffff;
+  --secondary: #{$secondary};
+  --border-color: #{$gray-19};
+  --border-color-2: #1b1730;
+  --body-color: #ffffff;
+  --body-bg: #04070e;
+  --color-bg-1: #{$gray-22};
+  --color-bg-2: #{$gray-21};
+  --color-bg-3: #{$gray-19};
+  --color-bg-4: #{$gray-23};
+  --color-bg-5: #{$gray-17};
+  --text-muted: #{$gray-07};
+  --link-color: #{$gray-07};
+  --link-active-color: #{$gray-02};
+  --link-hover-color: #ffffff;
+  --sourcegraph-logo-text-color: #ffffff;
 }
