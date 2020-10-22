@@ -40,13 +40,13 @@ inspecode:
         - from: yamllint-task
           path: "/.reports/yamllint.sarif"
       machine: {cpu: 0.75}
-      thresholds: {num-issues: 55}
+      thresholds: {num-issues: 53}
 
   tools:
 
     clang-format:
       auto-fix: true
-      thresholds: {num-issues: 488}
+      thresholds: {num-issues: 487}
 
     cpd:
       thresholds: {num-issues: 319}
@@ -106,17 +106,14 @@ inspecode:
       thresholds: {num-issues: 91}
 
     prettier:
-    # - options: []       # config-file: './prettier.config.js' (auto-detected)
-    #   auto-fix: false   # failed ... turn-off to avoid skip pipeline
-    #   thresholds: {num-issues: 999}
     - options: [--no-config]  # avoid error in './prettier.config.js'
       ignore: 'client/web/'
       auto-fix: true
-      thresholds: {num-issues: 999}   ## too many issues detected: 1475 > 1000
+      thresholds: {num-issues: 584}
     - options: [--no-config]  # avoid error in './prettier.config.js'
       input: 'client/web/'
       auto-fix: true
-      thresholds: {num-issues: 775}
+      thresholds: {num-issues: 893}
 
     staticcheck:
       thresholds: {num-issues: 72}
