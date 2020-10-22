@@ -4,9 +4,10 @@ package mocks
 
 import (
 	"context"
+	"sync"
+
 	clienttypes "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/client_types"
 	database "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/database"
-	"sync"
 )
 
 // MockDatabase is a mock implementation of the Database interface (from the

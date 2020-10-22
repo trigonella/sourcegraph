@@ -4,9 +4,10 @@ package mocks
 
 import (
 	"context"
+	"sync"
+
 	client "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/queue/client"
 	store "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
-	"sync"
 )
 
 // MockClient is a mock implementation of the Client interface (from the

@@ -4,9 +4,10 @@ package mocks
 
 import (
 	"context"
+	"sync"
+
 	types "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/types"
 	store "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
-	"sync"
 )
 
 // MockReferencePager is a mock implementation of the ReferencePager

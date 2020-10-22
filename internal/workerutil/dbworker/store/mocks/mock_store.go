@@ -4,12 +4,13 @@ package mocks
 
 import (
 	"context"
+	"sync"
+	"time"
+
 	sqlf "github.com/keegancsmith/sqlf"
 	basestore "github.com/tetrafolium/sourcegraph/internal/db/basestore"
 	workerutil "github.com/tetrafolium/sourcegraph/internal/workerutil"
 	store "github.com/tetrafolium/sourcegraph/internal/workerutil/dbworker/store"
-	"sync"
-	"time"
 )
 
 // MockStore is a mock implementation of the Store interface (from the

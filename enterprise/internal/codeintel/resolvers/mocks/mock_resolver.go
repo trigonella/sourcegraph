@@ -4,10 +4,11 @@ package mocks
 
 import (
 	"context"
+	"sync"
+
 	graphqlbackend "github.com/tetrafolium/sourcegraph/cmd/frontend/graphqlbackend"
 	resolvers "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/resolvers"
 	store "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
-	"sync"
 )
 
 // MockResolver is a mock implementation of the Resolver interface (from the

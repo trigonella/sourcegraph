@@ -4,9 +4,10 @@ package mocks
 
 import (
 	"context"
-	client "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/client"
 	"io"
 	"sync"
+
+	client "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/client"
 )
 
 // MockBundleManagerClient is a mock implementation of the

@@ -3,9 +3,10 @@
 package mocks
 
 import (
+	"sync"
+
 	serialization "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/persistence/serialization"
 	types "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/types"
-	"sync"
 )
 
 // MockSerializer is a mock implementation of the Serializer interface (from

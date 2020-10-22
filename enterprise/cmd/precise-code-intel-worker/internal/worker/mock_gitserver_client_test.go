@@ -4,8 +4,9 @@ package worker
 
 import (
 	"context"
-	store "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
 	"sync"
+
+	store "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
 )
 
 // MockGitserverClient is a mock implementation of the gitserverClient

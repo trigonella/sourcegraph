@@ -4,8 +4,9 @@ package mocks
 
 import (
 	"context"
-	lsifstore "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/lsifstore"
 	"sync"
+
+	lsifstore "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/lsifstore"
 )
 
 // MockStore is a mock implementation of the Store interface (from the

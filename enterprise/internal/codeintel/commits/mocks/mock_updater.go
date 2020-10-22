@@ -4,8 +4,9 @@ package mocks
 
 import (
 	"context"
-	commits "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/commits"
 	"sync"
+
+	commits "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/commits"
 )
 
 // MockUpdater is a mock implementation of the Updater interface (from the

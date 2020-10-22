@@ -4,11 +4,12 @@ package mocks
 
 import (
 	"context"
+	"sync"
+	"time"
+
 	types "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/bundles/types"
 	store "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
 	basestore "github.com/tetrafolium/sourcegraph/internal/db/basestore"
-	"sync"
-	"time"
 )
 
 // MockStore is a mock implementation of the Store interface (from the

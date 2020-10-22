@@ -4,9 +4,10 @@ package commits
 
 import (
 	"context"
+	"sync"
+
 	gitserver "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/gitserver"
 	store "github.com/tetrafolium/sourcegraph/enterprise/internal/codeintel/store"
-	"sync"
 )
 
 // MockGitserverClient is a mock implementation of the gitserverClient
