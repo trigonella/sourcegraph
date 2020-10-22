@@ -1,35 +1,42 @@
-import { Endpoint } from 'comlink'
-import { NextObserver, Observable, Subscribable, Subscription } from 'rxjs'
-import { SettingsEdit } from '../api/client/services/settings'
-import { GraphQLResult } from '../graphql/graphql'
+import {DiffPart} from '@sourcegraph/codeintellify'
+import {Endpoint} from 'comlink'
+import {isObject} from 'lodash'
+import {NextObserver, Observable, Subscribable, Subscription} from 'rxjs'
+
+import {IExtensionsService} from '../api/client/services/extensionsService'
+import {ModelService} from '../api/client/services/modelService'
+import {SettingsEdit} from '../api/client/services/settings'
+import {GraphQLResult} from '../graphql/graphql'
 import * as GQL from '../graphql/schema'
-import { Settings, SettingsCascadeOrError } from '../settings/settings'
-import { TelemetryService } from '../telemetry/telemetryService'
-import { FileSpec, UIPositionSpec, RawRepoSpec, RepoSpec, RevisionSpec, ViewStateSpec } from '../util/url'
-import { DiffPart } from '@sourcegraph/codeintellify'
-import { isObject } from 'lodash'
-import { hasProperty } from '../util/types'
-import { IExtensionsService } from '../api/client/services/extensionsService'
-import { ModelService } from '../api/client/services/modelService'
+import {Settings, SettingsCascadeOrError} from '../settings/settings'
+import {TelemetryService} from '../telemetry/telemetryService'
+import {hasProperty} from '../util/types'
+import {
+  FileSpec,
+  RawRepoSpec,
+  RepoSpec,
+  RevisionSpec,
+  UIPositionSpec,
+  ViewStateSpec
+} from '../util/url'
 
 export interface EndpointPair {
-    /** The endpoint to proxy the API of the other thread from */
-    proxy: Endpoint
+  /** The endpoint to proxy the API of the other thread from */
+  proxy: Endpoint
 
-    /** The endpoint to expose the API of this thread to */
-    expose: Endpoint
+  /** The endpoint to expose the API of this thread to */
+  expose: Endpoint
 }
 
 export interface ClosableEndpointPair {
-    endpoints: EndpointPair
+  endpoints: EndpointPair
 
-    /** Destroys worker or iframe depending on the environment. */
-    subscription: Subscription
+  /** Destroys worker or iframe depending on the environment. */
+  subscription: Subscription
 }
 
 const isEndpoint = (value: unknown): value is Endpoint =>
-    isObject(value) &&
-    hasProperty('addEventListener')(value) &&
+    isObject(value) && hasProperty('addEventListener')(value) &&
     hasProperty('removeEventListener')(value) &&
     hasProperty('postMessage')(value) &&
     typeof value.addEventListener === 'function' &&
@@ -37,38 +44,39 @@ const isEndpoint = (value: unknown): value is Endpoint =>
     typeof value.postMessage === 'function'
 
 export const isEndpointPair = (value: unknown): value is EndpointPair =>
-    isObject(value) &&
-    hasProperty('proxy')(value) &&
-    hasProperty('expose')(value) &&
-    isEndpoint(value.proxy) &&
+    isObject(value) && hasProperty('proxy')(value) &&
+    hasProperty('expose')(value) && isEndpoint(value.proxy) &&
     isEndpoint(value.expose)
 
 /**
  * Context information of an invocation of `urlToFile`
  */
 export interface URLToFileContext {
-    /**
-     * If `urlToFile` is called because of a go to definition invocation on a diff,
-     * the part of the diff it was invoked on.
-     */
-    part: DiffPart | undefined
+  /**
+   * If `urlToFile` is called because of a go to definition invocation on a
+   * diff, the part of the diff it was invoked on.
+   */
+  part: DiffPart|undefined
 
-    isWebURL?: boolean
+  isWebURL?: boolean
 }
 
 /**
  * Platform-specific data and methods shared by multiple Sourcegraph components.
  *
- * Whenever shared code (in shared/) needs to perform an action or retrieve data that requires different
- * implementations depending on the platform, the shared code should use this value's fields.
+ * Whenever shared code (in shared/) needs to perform an action or retrieve data
+ * that requires different implementations depending on the platform, the shared
+ * code should use this value's fields.
  */
 export interface PlatformContext {
-    /**
-     * An observable that emits the settings cascade upon subscription and whenever it changes (including when it
-     * changes as a result of a call to {@link PlatformContext#updateSettings}).
-     *
-     * It should be a cold observable so that it does not trigger a network request upon each subscription.
-     */
+  /**
+   * An observable that emits the settings cascade upon subscription and
+   * whenever it changes (including when it changes as a result of a call
+   * to {@link PlatformContext#updateSettings}).
+   *
+   * It should be a cold observable so that it does not trigger a network
+   * request upon each subscription.
+   */
     readonly settings: Subscribable<SettingsCascadeOrError<Settings>>
 
     /**
@@ -101,14 +109,14 @@ export interface PlatformContext {
          * The GraphQL request (query or mutation)
          */
         request: string
-        /**
-         * An object whose properties are GraphQL query name-value variable pairs
-         */
-        variables: V
-        /**
-         * 🚨 SECURITY: Whether or not sending the GraphQL request to Sourcegraph.com
-         * could leak private information such as repository names.
-         */
+    /**
+     * An object whose properties are GraphQL query name-value variable pairs
+     */
+    variables: V
+    /**
+     * 🚨 SECURITY: Whether or not sending the GraphQL request to Sourcegraph.com
+     * could leak private information such as repository names.
+     */
         mightContainPrivateInfo: boolean
     }) => Observable<GraphQLResult<R>>
 
@@ -157,52 +165,62 @@ export interface PlatformContext {
         context: URLToFileContext
     ) => string
 
-    /**
-     * The URL to the Sourcegraph site that the user's session is associated with. This refers to
-     * Sourcegraph.com (`https://sourcegraph.com`) by default, or a self-hosted instance of
-     * Sourcegraph.
-     *
-     * This is available to extensions in `sourcegraph.internal.sourcegraphURL`.
-     *
-     * @todo Consider removing this when https://github.com/sourcegraph/sourcegraph/issues/566 is
-     * fixed.
-     *
-     * @example `https://sourcegraph.com`
-     */
-    sourcegraphURL: string
+        /**
+         * The URL to the Sourcegraph site that the user's session is associated
+         * with. This refers to Sourcegraph.com (`https://sourcegraph.com`) by
+         * default, or a self-hosted instance of Sourcegraph.
+         *
+         * This is available to extensions in
+         * `sourcegraph.internal.sourcegraphURL`.
+         *
+         * @todo Consider removing this when
+         * https://github.com/sourcegraph/sourcegraph/issues/566 is fixed.
+         *
+         * @example `https://sourcegraph.com`
+         */
+        sourcegraphURL: string
 
-    /**
-     * The client application that is running this extension, either 'sourcegraph' for Sourcegraph
-     * or 'other' for all other applications (such as GitHub, GitLab, etc.).
-     *
-     * This is available to extensions in `sourcegraph.internal.clientApplication`.
-     *
-     * @todo Consider removing this when https://github.com/sourcegraph/sourcegraph/issues/566 is
-     * fixed.
-     */
-    clientApplication: 'sourcegraph' | 'other'
+        /**
+         * The client application that is running this extension, either
+         * 'sourcegraph' for Sourcegraph or 'other' for all other applications
+         * (such as GitHub, GitLab, etc.).
+         *
+         * This is available to extensions in
+         * `sourcegraph.internal.clientApplication`.
+         *
+         * @todo Consider removing this when
+         * https://github.com/sourcegraph/sourcegraph/issues/566 is fixed.
+         */
+        clientApplication: 'sourcegraph'|'other'
 
-    /**
-     * The URL to the Parcel dev server for a single extension.
-     * Used for extension development purposes, to run an extension that isn't on the registry.
-     */
-    sideloadedExtensionURL: Subscribable<string | null> & NextObserver<string | null>
+        /**
+         * The URL to the Parcel dev server for a single extension.
+         * Used for extension development purposes, to run an extension that
+         * isn't on the registry.
+         */
+        sideloadedExtensionURL: Subscribable<string|null>&
+            NextObserver<string|null>
 
-    /**
-     * A telemetry service implementation to log events.
-     * Optional because it's currently only used in the web app platform.
-     */
-    telemetryService?: TelemetryService
+                /**
+                 * A telemetry service implementation to log events.
+                 * Optional because it's currently only used in the web app
+                 * platform.
+                 */
+                    telemetryService?: TelemetryService
 
-    /**
-     * Creates an extensions service that provides the list of extensions to be activated.
-     */
-    createExtensionsService?(modelService: Pick<ModelService, 'activeLanguages'>): IExtensionsService
+        /**
+         * Creates an extensions service that provides the list of extensions to
+         * be activated.
+         */
+        createExtensionsService
+            ?(modelService: Pick<ModelService, 'activeLanguages'>):
+                IExtensionsService
 }
 
 /**
  * React partial props for components needing the {@link PlatformContext}.
  */
-export interface PlatformContextProps<K extends keyof PlatformContext = keyof PlatformContext> {
-    platformContext: Pick<PlatformContext, K>
+export interface PlatformContextProps<K extends keyof PlatformContext =
+                                                    keyof PlatformContext> {
+  platformContext: Pick<PlatformContext, K>
 }

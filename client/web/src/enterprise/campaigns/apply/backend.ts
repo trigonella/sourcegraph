@@ -1,23 +1,24 @@
-import { diffStatFields, fileDiffFields } from '../../../backend/diff'
-import { gql, dataOrThrowErrors } from '../../../../../shared/src/graphql/graphql'
+import {Observable} from 'rxjs'
+import {map} from 'rxjs/operators'
+
+import {dataOrThrowErrors, gql} from '../../../../../shared/src/graphql/graphql'
+import {diffStatFields, fileDiffFields} from '../../../backend/diff'
+import {requestGraphQL} from '../../../backend/graphql'
 import {
-    Scalars,
-    CampaignSpecFields,
-    CampaignSpecByIDVariables,
-    CampaignSpecByIDResult,
-    CampaignSpecChangesetSpecsResult,
-    CampaignSpecChangesetSpecsVariables,
-    ChangesetSpecFileDiffsVariables,
-    ChangesetSpecFileDiffsResult,
-    ChangesetSpecFileDiffsFields,
-    CreateCampaignVariables,
-    CreateCampaignResult,
-    ApplyCampaignResult,
-    ApplyCampaignVariables,
+  ApplyCampaignResult,
+  ApplyCampaignVariables,
+  CampaignSpecByIDResult,
+  CampaignSpecByIDVariables,
+  CampaignSpecChangesetSpecsResult,
+  CampaignSpecChangesetSpecsVariables,
+  CampaignSpecFields,
+  ChangesetSpecFileDiffsFields,
+  ChangesetSpecFileDiffsResult,
+  ChangesetSpecFileDiffsVariables,
+  CreateCampaignResult,
+  CreateCampaignVariables,
+  Scalars,
 } from '../../../graphql-operations'
-import { Observable } from 'rxjs'
-import { map } from 'rxjs/operators'
-import { requestGraphQL } from '../../../backend/graphql'
 
 export const campaignSpecFragment = gql`
     fragment CampaignSpecFields on CampaignSpec {
@@ -50,9 +51,10 @@ export const campaignSpecFragment = gql`
     ${diffStatFields}
 `
 
-export const fetchCampaignSpecById = (campaignSpec: Scalars['ID']): Observable<CampaignSpecFields | null> =>
-    requestGraphQL<CampaignSpecByIDResult, CampaignSpecByIDVariables>(
-        gql`
+export const fetchCampaignSpecById =
+    (campaignSpec: Scalars['ID']): Observable<CampaignSpecFields|null> =>
+        requestGraphQL<CampaignSpecByIDResult, CampaignSpecByIDVariables>(
+            gql`
             query CampaignSpecByID($campaignSpec: ID!) {
                 node(id: $campaignSpec) {
                     __typename
@@ -63,19 +65,17 @@ export const fetchCampaignSpecById = (campaignSpec: Scalars['ID']): Observable<C
             }
             ${campaignSpecFragment}
         `,
-        { campaignSpec }
-    ).pipe(
-        map(dataOrThrowErrors),
-        map(({ node }) => {
-            if (!node) {
-                return null
-            }
-            if (node.__typename !== 'CampaignSpec') {
-                throw new Error(`The given ID is a ${node.__typename}, not a CampaignSpec`)
-            }
-            return node
-        })
-    )
+            {campaignSpec})
+            .pipe(map(dataOrThrowErrors), map(({node}) => {
+                    if (!node) {
+                      return null
+                    }
+                    if (node.__typename !== 'CampaignSpec') {
+                      throw new Error(`The given ID is a ${
+                          node.__typename}, not a CampaignSpec`)
+                    }
+                    return node
+                  }))
 
 export const changesetSpecFieldsFragment = gql`
     fragment ChangesetSpecFields on ChangesetSpec {
@@ -148,14 +148,15 @@ export const changesetSpecFieldsFragment = gql`
 `
 
 export const queryChangesetSpecs = ({
-    campaignSpec,
-    first,
-    after,
-}: CampaignSpecChangesetSpecsVariables): Observable<
-    (CampaignSpecChangesetSpecsResult['node'] & { __typename: 'CampaignSpec' })['changesetSpecs']
-> =>
-    requestGraphQL<CampaignSpecChangesetSpecsResult, CampaignSpecChangesetSpecsVariables>(
-        gql`
+  campaignSpec,
+  first,
+  after,
+}: CampaignSpecChangesetSpecsVariables):
+    Observable<(CampaignSpecChangesetSpecsResult['node'] &
+                {__typename : 'CampaignSpec'})['changesetSpecs']> =>
+        requestGraphQL<CampaignSpecChangesetSpecsResult,
+                       CampaignSpecChangesetSpecsVariables>(
+            gql`
             query CampaignSpecChangesetSpecs($campaignSpec: ID!, $first: Int, $after: String) {
                 node(id: $campaignSpec) {
                     __typename
@@ -176,19 +177,18 @@ export const queryChangesetSpecs = ({
 
             ${changesetSpecFieldsFragment}
         `,
-        { campaignSpec, first, after }
-    ).pipe(
-        map(dataOrThrowErrors),
-        map(({ node }) => {
-            if (!node) {
-                throw new Error(`CampaignSpec with ID ${campaignSpec} does not exist`)
-            }
-            if (node.__typename !== 'CampaignSpec') {
-                throw new Error(`The given ID is a ${node.__typename}, not a CampaignSpec`)
-            }
-            return node.changesetSpecs
-        })
-    )
+            {campaignSpec, first, after})
+            .pipe(map(dataOrThrowErrors), map(({node}) => {
+                    if (!node) {
+                      throw new Error(
+                          `CampaignSpec with ID ${campaignSpec} does not exist`)
+                    }
+                    if (node.__typename !== 'CampaignSpec') {
+                      throw new Error(`The given ID is a ${
+                          node.__typename}, not a CampaignSpec`)
+                    }
+                    return node.changesetSpecs
+                  }))
 
 export const changesetSpecFileDiffsFields = gql`
     fragment ChangesetSpecFileDiffsFields on VisibleChangesetSpec {
@@ -215,14 +215,18 @@ export const changesetSpecFileDiffsFields = gql`
 `
 
 export const queryChangesetSpecFileDiffs = ({
-    changesetSpec,
-    first,
-    after,
-    isLightTheme,
-}: ChangesetSpecFileDiffsVariables): Observable<
-    (ChangesetSpecFileDiffsFields['description'] & { __typename: 'GitBranchChangesetDescription' })['diff']
-> =>
-    requestGraphQL<ChangesetSpecFileDiffsResult, ChangesetSpecFileDiffsVariables>(
+  changesetSpec,
+  first,
+  after,
+  isLightTheme,
+}: ChangesetSpecFileDiffsVariables): Observable<(ChangesetSpecFileDiffsFields
+                                                     ['description'] &
+                                                 {
+                                                   __typename :
+                                                       'GitBranchChangesetDescription'
+                                                 })['diff']> =>
+    requestGraphQL<ChangesetSpecFileDiffsResult,
+                   ChangesetSpecFileDiffsVariables>(
         gql`
             query ChangesetSpecFileDiffs($changesetSpec: ID!, $first: Int, $after: String, $isLightTheme: Boolean!) {
                 node(id: $changesetSpec) {
@@ -233,25 +237,27 @@ export const queryChangesetSpecFileDiffs = ({
 
             ${changesetSpecFileDiffsFields}
         `,
-        { changesetSpec, first, after, isLightTheme }
-    ).pipe(
-        map(dataOrThrowErrors),
-        map(({ node }) => {
-            if (!node) {
-                throw new Error(`ChangesetSpec with ID ${changesetSpec} does not exist`)
-            }
-            if (node.__typename !== 'VisibleChangesetSpec') {
-                throw new Error(`The given ID is a ${node.__typename}, not a VisibleChangesetSpec`)
-            }
-            if (node.description.__typename !== 'GitBranchChangesetDescription') {
-                throw new Error('The given ChangesetSpec is no GitBranchChangesetDescription')
-            }
-            return node.description.diff
-        })
-    )
+        {changesetSpec, first, after, isLightTheme})
+        .pipe(
+            map(dataOrThrowErrors), map(({node}) => {
+              if (!node) {
+                throw new Error(
+                    `ChangesetSpec with ID ${changesetSpec} does not exist`)
+              }
+              if (node.__typename !== 'VisibleChangesetSpec') {
+                throw new Error(`The given ID is a ${
+                    node.__typename}, not a VisibleChangesetSpec`)
+              }
+              if (node.description.__typename !==
+                  'GitBranchChangesetDescription') {
+                throw new Error(
+                    'The given ChangesetSpec is no GitBranchChangesetDescription')
+              }
+              return node.description.diff
+            }))
 
 export const createCampaign = ({
-    campaignSpec,
+  campaignSpec,
 }: CreateCampaignVariables): Promise<CreateCampaignResult['createCampaign']> =>
     requestGraphQL<CreateCampaignResult, CreateCampaignVariables>(
         gql`
@@ -262,17 +268,13 @@ export const createCampaign = ({
                 }
             }
         `,
-        { campaignSpec }
-    )
-        .pipe(
-            map(dataOrThrowErrors),
-            map(data => data.createCampaign)
-        )
+        {campaignSpec})
+        .pipe(map(dataOrThrowErrors), map(data => data.createCampaign))
         .toPromise()
 
 export const applyCampaign = ({
-    campaignSpec,
-    campaign,
+  campaignSpec,
+  campaign,
 }: ApplyCampaignVariables): Promise<ApplyCampaignResult['applyCampaign']> =>
     requestGraphQL<ApplyCampaignResult, ApplyCampaignVariables>(
         gql`
@@ -283,10 +285,6 @@ export const applyCampaign = ({
                 }
             }
         `,
-        { campaignSpec, campaign }
-    )
-        .pipe(
-            map(dataOrThrowErrors),
-            map(data => data.applyCampaign)
-        )
+        {campaignSpec, campaign})
+        .pipe(map(dataOrThrowErrors), map(data => data.applyCampaign))
         .toPromise()

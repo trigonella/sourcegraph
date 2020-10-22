@@ -5,7 +5,7 @@ const config = require('./jest.config.base')
 
 /** @type {jest.InitialOptions} */
 module.exports = {
-  projects: [
+  projects : [
     'client/browser/jest.config.js',
     'client/shared/jest.config.js',
     'client/branded/jest.config.js',

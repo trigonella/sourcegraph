@@ -1,5 +1,5 @@
-import { isErrorLike } from '../util/errors'
-import { parseExtensionManifestOrError } from './extensionManifest'
+import {isErrorLike} from '../util/errors'
+import {parseExtensionManifestOrError} from './extensionManifest'
 
 describe('parseExtensionManifestOrError', () => {
     test('parses valid input', () =>

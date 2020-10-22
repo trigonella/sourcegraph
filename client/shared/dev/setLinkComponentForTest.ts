@@ -1,3 +1,3 @@
-import { setLinkComponent, AnchorLink } from '../src/components/Link'
+import {AnchorLink, setLinkComponent} from '../src/components/Link'
 
 setLinkComponent(AnchorLink)

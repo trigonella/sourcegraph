@@ -1,21 +1,24 @@
-import { TestScheduler } from 'rxjs/testing'
-import { RegisteredProvider, callProviders } from './flatExtensionApi'
-import { Observable } from 'rxjs'
-import { LOADING } from '@sourcegraph/codeintellify'
-import { TextDocumentIdentifier } from '../client/types/textDocument'
+import {LOADING} from '@sourcegraph/codeintellify'
+import {Observable} from 'rxjs'
+import {TestScheduler} from 'rxjs/testing'
 
-const scheduler = (): TestScheduler => new TestScheduler((a, b) => expect(a).toEqual(b))
+import {TextDocumentIdentifier} from '../client/types/textDocument'
 
-type Provider = RegisteredProvider<number | Observable<number>>
+import {callProviders, RegisteredProvider} from './flatExtensionApi'
 
-const getResultsFromProviders = (providersObservable: Observable<Provider[]>, document: TextDocumentIdentifier) =>
-    callProviders(
-        providersObservable,
-        document,
-        value => value,
-        results => results,
-        false // < -- logErrors
-    )
+const scheduler = (): TestScheduler =>
+    new TestScheduler((a, b) => expect(a).toEqual(b))
+
+type Provider = RegisteredProvider<number|Observable<number>>
+
+    const getResultsFromProviders =
+        (providersObservable: Observable<Provider[]>,
+         document: TextDocumentIdentifier) =>
+            callProviders(
+                providersObservable, document, value => value,
+                results => results,
+                false // < -- logErrors
+            )
 
 describe('callProviders()', () => {
     const provide = (number: number | Observable<number>, pattern = '*.ts'): Provider => ({
@@ -37,19 +40,17 @@ describe('callProviders()', () => {
             )
         })
 
-        it('returns a result from a provider synchronously with raw values', () => {
-            scheduler().run(({ cold, expectObservable }) =>
-                expectObservable(
-                    getResultsFromProviders(
-                        cold<Provider[]>('-a', { a: [provide(1)] }),
-                        { uri: 'file:///f.ts' }
-                    )
-                ).toBe('-(lr)', {
-                    l: { isLoading: true, result: [LOADING] },
-                    r: { isLoading: false, result: [1] },
-                })
-            )
-        })
+    it('returns a result from a provider synchronously with raw values',
+       () => {scheduler().run(
+           ({cold, expectObservable}) =>
+               expectObservable(
+                   getResultsFromProviders(
+                       cold<Provider[]>('-a', {a : [ provide(1) ]}),
+                       {uri : 'file:///f.ts'}))
+                   .toBe('-(lr)', {
+                     l : {isLoading : true, result : [ LOADING ]},
+                     r : {isLoading : false, result : [ 1 ]},
+                   }))})
 
         it('returns a result from a provider with observables', () => {
             scheduler().run(({ cold, expectObservable }) =>
@@ -81,21 +82,21 @@ describe('callProviders()', () => {
             )
         })
 
-        it('returns LOADING result first if providers return observables', () => {
-            scheduler().run(({ cold, expectObservable }) =>
-                expectObservable(
-                    getResultsFromProviders(
-                        cold<Provider[]>('-a', {
-                            a: [provide(cold('-a', { a: 1 })), provide(cold('-a', { a: 2 }))],
-                        }),
-                        { uri: 'file:///f.ts' }
-                    )
-                ).toBe('-lr', {
-                    l: { isLoading: true, result: [LOADING, LOADING] },
-                    r: { isLoading: false, result: [1, 2] },
-                })
-            )
-        })
+    it('returns LOADING result first if providers return observables',
+       () => {scheduler().run(
+           ({cold, expectObservable}) =>
+               expectObservable(
+                   getResultsFromProviders(cold<Provider[]>('-a', {
+                                             a : [
+                                               provide(cold('-a', {a : 1})),
+                                               provide(cold('-a', {a : 2}))
+                                             ],
+                                           }),
+                                           {uri : 'file:///f.ts'}))
+                   .toBe('-lr', {
+                     l : {isLoading : true, result : [ LOADING, LOADING ]},
+                     r : {isLoading : false, result : [ 1, 2 ]},
+                   }))})
 
         it('replaces errors from a provider with nulls', () => {
             scheduler().run(({ cold, expectObservable }) =>
@@ -114,21 +115,22 @@ describe('callProviders()', () => {
         })
     })
 
-    describe('filtering', () => {
-        it('it can filter out providers', () => {
-            scheduler().run(({ cold, expectObservable }) =>
-                expectObservable(
-                    getResultsFromProviders(
-                        cold<Provider[]>('-a', { a: [provide(1, '*.ts'), provide(2, '*.js')] }),
-                        { uri: 'file:///f.ts' }
-                    )
-                ).toBe('-(lr)', {
-                    l: { isLoading: true, result: [LOADING] },
-                    r: { isLoading: false, result: [1] },
-                })
-            )
-        })
-    })
+        describe(
+            'filtering',
+            () => {it(
+                'it can filter out providers',
+                () => {scheduler().run(
+                    ({cold, expectObservable}) =>
+                        expectObservable(
+                            getResultsFromProviders(
+                                cold<Provider[]>('-a', {
+                                  a : [ provide(1, '*.ts'), provide(2, '*.js') ]
+                                }),
+                                {uri : 'file:///f.ts'}))
+                            .toBe('-(lr)', {
+                              l : {isLoading : true, result : [ LOADING ]},
+                              r : {isLoading : false, result : [ 1 ]},
+                            }))})})
 
     describe('providers change over time', () => {
         it('requeries providers if they changed', () => {

@@ -1,5 +1,5 @@
-import { WorkspaceRoot } from 'sourcegraph'
-import { collectSubscribableValues, integrationTestContext } from './testHelpers'
+import {WorkspaceRoot} from 'sourcegraph'
+import {collectSubscribableValues, integrationTestContext} from './testHelpers'
 
 describe('Workspace roots (integration)', () => {
     describe('workspace.roots', () => {
@@ -14,8 +14,9 @@ describe('Workspace roots (integration)', () => {
                 extensionAPI,
             } = await integrationTestContext()
 
-            workspace.roots.next([{ uri: 'file:///a' }, { uri: 'file:///b' }])
-            await extensionAPI.internal.sync()
+        workspace.roots
+            .next([ {uri : 'file:///a'}, {uri : 'file:///b'} ])
+                await extensionAPI.internal.sync()
 
             expect(extensionAPI.workspace.roots).toEqual([
                 { uri: new URL('file:///a') },
@@ -31,11 +32,11 @@ describe('Workspace roots (integration)', () => {
                 extensionAPI,
             } = await integrationTestContext()
 
-            const values = collectSubscribableValues(extensionAPI.workspace.rootChanges)
-            expect(values).toEqual([] as void[])
+    const values = collectSubscribableValues(extensionAPI.workspace.rootChanges)
+    expect(values).toEqual([] as void[])
 
-            workspace.roots.next([{ uri: 'file:///a' }])
-            await extensionAPI.internal.sync()
+    workspace.roots.next([ {uri : 'file:///a'} ])
+        await extensionAPI.internal.sync()
 
             expect(values).toEqual([undefined])
         })

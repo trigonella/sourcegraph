@@ -1,13 +1,22 @@
 import assert from 'assert'
-import { commonWebGraphQlResults } from './graphQlResults'
-import { Driver, createDriverForTest } from '../../../shared/src/testing/driver'
-import { WebIntegrationTestContext, createWebIntegrationTestContext } from './context'
-import { afterEachSaveScreenshotIfFailed } from '../../../shared/src/testing/screenshotReporter'
-import { SharedGraphQlOperations } from '../../../shared/src/graphql-operations'
-import { WebGraphQlOperations, OrganizationResult } from '../graphql-operations'
-import { emptyResponse } from '../../../shared/src/testing/integration/graphQlResults'
-import { subtypeOf } from '../../../shared/src/util/types'
-import { retry } from '../../../shared/src/testing/utils'
+
+import {SharedGraphQlOperations} from '../../../shared/src/graphql-operations'
+import {createDriverForTest, Driver} from '../../../shared/src/testing/driver'
+import {
+  emptyResponse
+} from '../../../shared/src/testing/integration/graphQlResults'
+import {
+  afterEachSaveScreenshotIfFailed
+} from '../../../shared/src/testing/screenshotReporter'
+import {retry} from '../../../shared/src/testing/utils'
+import {subtypeOf} from '../../../shared/src/util/types'
+import {OrganizationResult, WebGraphQlOperations} from '../graphql-operations'
+
+import {
+  createWebIntegrationTestContext,
+  WebIntegrationTestContext
+} from './context'
+import {commonWebGraphQlResults} from './graphQlResults'
 
 describe('Organizations', () => {
     const testOrg = subtypeOf<OrganizationResult['organization']>()({
@@ -23,21 +32,19 @@ describe('Organizations', () => {
         viewerPendingInvitation: null,
     })
 
-    let driver: Driver
-    before(async () => {
-        driver = await createDriverForTest()
-    })
-    after(() => driver?.close())
-    let testContext: WebIntegrationTestContext
-    beforeEach(async function () {
-        testContext = await createWebIntegrationTestContext({
-            driver,
-            currentTest: this.currentTest!,
-            directory: __dirname,
-        })
-    })
-    afterEachSaveScreenshotIfFailed(() => driver.page)
-    afterEach(() => testContext?.dispose())
+let driver: Driver
+before(async () => {driver = await createDriverForTest()})
+after(() => driver?.close())
+let testContext: WebIntegrationTestContext
+beforeEach(async function() {
+  testContext = await createWebIntegrationTestContext({
+    driver,
+    currentTest : this.currentTest!,
+    directory : __dirname,
+  })
+})
+afterEachSaveScreenshotIfFailed(() => driver.page)
+afterEach(() => testContext?.dispose())
 
     describe('Site admin organizations page', () => {
         it('allows to create new organizations', async () => {
@@ -75,13 +82,13 @@ describe('Organizations', () => {
                 newText: testOrg.displayName,
             })
 
-            const variables = await testContext.waitForGraphQLRequest(async () => {
-                await driver.page.click('.test-create-org-submit-button')
-            }, 'createOrganization')
-            assert.deepStrictEqual(variables, {
-                displayName: testOrg.displayName,
-                name: testOrg.name,
-            })
+    const variables = await testContext.waitForGraphQLRequest(
+        async () => {await driver.page.click('.test-create-org-submit-button')},
+        'createOrganization')
+    assert.deepStrictEqual(variables, {
+      displayName : testOrg.displayName,
+      name : testOrg.name,
+    })
 
             testContext.overrideGraphQL({
                 ...graphQLResults,
@@ -96,46 +103,48 @@ describe('Organizations', () => {
         describe('Settings tab', () => {
             it('allows to change organization-wide settings', async () => {
                 const settingsID = 12345
-                testContext.overrideGraphQL({
-                    ...commonWebGraphQlResults,
-                    Organization: () => ({
-                        organization: testOrg,
-                    }),
-                    SettingsCascade: () => ({
-                        settingsSubject: {
-                            settingsCascade: {
-                                subjects: [
-                                    {
-                                        latestSettings: {
-                                            id: settingsID,
-                                            contents: JSON.stringify({}),
-                                        },
-                                    },
-                                ],
-                            },
-                        },
-                    }),
-                    OverwriteSettings: () => ({
-                        settingsMutation: {
-                            overwriteSettings: {
-                                empty: emptyResponse,
-                            },
-                        },
-                    }),
-                })
-                await driver.page.goto(testContext.driver.sourcegraphBaseUrl + '/organizations/sourcegraph/settings')
-                const updatedSettings = '// updated'
-                await driver.page.waitForSelector('.test-settings-file .monaco-editor')
+    testContext
+        .overrideGraphQL({
+          ...commonWebGraphQlResults,
+          Organization : () => ({
+            organization : testOrg,
+          }),
+          SettingsCascade : () => ({
+            settingsSubject : {
+              settingsCascade : {
+                subjects : [
+                  {
+                    latestSettings : {
+                      id : settingsID,
+                      contents : JSON.stringify({}),
+                    },
+                  },
+                ],
+              },
+            },
+          }),
+          OverwriteSettings : () => ({
+            settingsMutation : {
+              overwriteSettings : {
+                empty : emptyResponse,
+              },
+            },
+          }),
+        }) await driver.page.goto(testContext.driver.sourcegraphBaseUrl +
+                                  '/organizations/sourcegraph/settings')
+    const updatedSettings =
+        '// updated' await driver.page
+            .waitForSelector('.test-settings-file .monaco-editor')
                 await driver.replaceText({
-                    selector: '.test-settings-file .monaco-editor',
-                    newText: updatedSettings,
-                    selectMethod: 'keyboard',
-                    enterTextMethod: 'paste',
+                  selector : '.test-settings-file .monaco-editor',
+                  newText : updatedSettings,
+                  selectMethod : 'keyboard',
+                  enterTextMethod : 'paste',
                 })
 
-                const variables = await testContext.waitForGraphQLRequest(async () => {
-                    await driver.page.click('.test-save-toolbar-save')
-                }, 'OverwriteSettings')
+    const variables = await testContext.waitForGraphQLRequest(
+        async () => {await driver.page.click('.test-save-toolbar-save')},
+        'OverwriteSettings')
 
                 assert.deepStrictEqual(variables, {
                     subject: 'TestOrg',
@@ -147,16 +156,12 @@ describe('Organizations', () => {
         describe('Members tab', () => {
             it('allows to remove a member', async () => {
                 const testMember = {
-                    id: 'TestMember',
-                    displayName: 'Test member',
-                    username: 'testmember',
-                    avatarURL: null,
+  id: 'TestMember', displayName: 'Test member', username: 'testmember',
+      avatarURL: null,
                 }
                 const testMember2 = {
-                    id: 'TestMember2',
-                    displayName: 'Test member 2',
-                    username: 'testmember2',
-                    avatarURL: null,
+  id: 'TestMember2', displayName: 'Test member 2', username: 'testmember2',
+      avatarURL: null,
                 }
                 const graphQlResults: Partial<WebGraphQlOperations & SharedGraphQlOperations> = {
                     ...commonWebGraphQlResults,
@@ -182,49 +187,49 @@ describe('Organizations', () => {
 
                 await driver.page.waitForSelector('.test-remove-org-member')
 
-                assert.strictEqual(
+        assert.strictEqual(
+            await driver.page.evaluate(
+                () => document
+                          .querySelectorAll(
+                              '.test-org-members [data-test-username]')
+                          .length),
+            2, 'Expected members list to show 2 members.')
+
+        // Override for the fetch post-removal
+        testContext.overrideGraphQL({
+          ...graphQlResults,
+          OrganizationMembers : () => ({
+            node : {
+              viewerCanAdminister : true,
+              members : {
+                totalCount : 1,
+                nodes : [ testMember2 ],
+              },
+            },
+          }),
+        })
+
+        const variables = await testContext.waitForGraphQLRequest(
+            async () => {await Promise.all([
+              driver.acceptNextDialog(),
+              driver.page.click(
+                  '[data-test-username="testmember"] .test-remove-org-member'),
+            ])},
+            'removeUserFromOrganization')
+
+        assert.deepStrictEqual(variables, {
+          user : testMember.id,
+          organization : testOrg.id,
+        })
+
+            await retry(
+                async () => {assert.strictEqual(
                     await driver.page.evaluate(
-                        () => document.querySelectorAll('.test-org-members [data-test-username]').length
-                    ),
-                    2,
-                    'Expected members list to show 2 members.'
-                )
-
-                // Override for the fetch post-removal
-                testContext.overrideGraphQL({
-                    ...graphQlResults,
-                    OrganizationMembers: () => ({
-                        node: {
-                            viewerCanAdminister: true,
-                            members: {
-                                totalCount: 1,
-                                nodes: [testMember2],
-                            },
-                        },
-                    }),
-                })
-
-                const variables = await testContext.waitForGraphQLRequest(async () => {
-                    await Promise.all([
-                        driver.acceptNextDialog(),
-                        driver.page.click('[data-test-username="testmember"] .test-remove-org-member'),
-                    ])
-                }, 'removeUserFromOrganization')
-
-                assert.deepStrictEqual(variables, {
-                    user: testMember.id,
-                    organization: testOrg.id,
-                })
-
-                await retry(async () => {
-                    assert.strictEqual(
-                        await driver.page.evaluate(
-                            () => document.querySelectorAll('.test-org-members [data-test-username]').length
-                        ),
-                        1,
-                        'Expected members list to show 1 member.'
-                    )
-                })
+                        () => document
+                                  .querySelectorAll(
+                                      '.test-org-members [data-test-username]')
+                                  .length),
+                    1, 'Expected members list to show 1 member.')})
 
                 assert(
                     await driver.page.evaluate(

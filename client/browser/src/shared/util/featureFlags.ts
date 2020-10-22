@@ -1,5 +1,8 @@
-import { storage } from '../../browser-extension/web-extension-api/storage'
-import { featureFlagDefaults, FeatureFlags } from '../../browser-extension/web-extension-api/types'
+import {storage} from '../../browser-extension/web-extension-api/storage'
+import {
+  featureFlagDefaults,
+  FeatureFlags
+} from '../../browser-extension/web-extension-api/types'
 import { isInPage } from '../context'
 
 interface FeatureFlagsStorage {
@@ -43,31 +46,32 @@ const createFeatureFlagStorage = ({ get, set }: FeatureFlagUtilities): FeatureFl
     },
 })
 
-async function bextGet<K extends keyof FeatureFlags>(key: K): Promise<boolean | undefined> {
-    const { featureFlags = {} } = await storage.sync.get()
+        async function bextGet<K extends keyof FeatureFlags>(key: K):
+            Promise<boolean|undefined>{const {featureFlags = {}} =
+                                           await storage.sync.get()
     return featureFlags[key]
 }
 
 async function bextSet<K extends keyof FeatureFlags>(key: K, value: FeatureFlags[K]): Promise<void> {
-    const { featureFlags } = await storage.sync.get('featureFlags')
-    await storage.sync.set({ featureFlags: { ...featureFlags, [key]: value } })
-}
+      const {featureFlags} =
+          await storage.sync.get('featureFlags') await storage.sync.set(
+              {featureFlags : {...featureFlags, [key] : value}})
+    }
 
-const browserExtensionFeatureFlags = createFeatureFlagStorage({
-    get: bextGet,
-    set: bextSet,
-})
+    const browserExtensionFeatureFlags = createFeatureFlagStorage({
+      get : bextGet,
+      set : bextSet,
+    })
 
-const inPageFeatureFlags = createFeatureFlagStorage({
-    // eslint-disable-next-line @typescript-eslint/require-await
-    get: async key => {
+    const inPageFeatureFlags = createFeatureFlagStorage({
+      // eslint-disable-next-line @typescript-eslint/require-await
+      get : async key => {
         const value = localStorage.getItem(key)
         return value === null ? undefined : value === 'true'
-    },
-    // eslint-disable-next-line @typescript-eslint/require-await
-    set: async (key, value) => {
-        localStorage.setItem(key, String(value))
-    },
-})
+      },
+      // eslint-disable-next-line @typescript-eslint/require-await
+      set : async (key, value) => { localStorage.setItem(key, String(value)) },
+    })
 
-export const featureFlags: FeatureFlagsStorage = isInPage ? inPageFeatureFlags : browserExtensionFeatureFlags
+    export const featureFlags: FeatureFlagsStorage =
+        isInPage ? inPageFeatureFlags : browserExtensionFeatureFlags

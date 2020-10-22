@@ -1,26 +1,31 @@
 import assert from 'assert'
-import { createDriverForTest, Driver } from '../../../shared/src/testing/driver'
-import { commonWebGraphQlResults } from './graphQlResults'
-import { createWebIntegrationTestContext, WebIntegrationTestContext } from './context'
-import { afterEachSaveScreenshotIfFailed } from '../../../shared/src/testing/screenshotReporter'
-import { UserAreaUserFields } from '../graphql-operations'
+
+import {createDriverForTest, Driver} from '../../../shared/src/testing/driver'
+import {
+  afterEachSaveScreenshotIfFailed
+} from '../../../shared/src/testing/screenshotReporter'
+import {UserAreaUserFields} from '../graphql-operations'
+
+import {
+  createWebIntegrationTestContext,
+  WebIntegrationTestContext
+} from './context'
+import {commonWebGraphQlResults} from './graphQlResults'
 
 describe('User profile page', () => {
     let driver: Driver
-    before(async () => {
-        driver = await createDriverForTest()
-    })
-    after(() => driver?.close())
-    let testContext: WebIntegrationTestContext
-    beforeEach(async function () {
-        testContext = await createWebIntegrationTestContext({
-            driver,
-            currentTest: this.currentTest!,
-            directory: __dirname,
-        })
-    })
-    afterEachSaveScreenshotIfFailed(() => driver.page)
-    afterEach(() => testContext?.dispose())
+before(async () => {driver = await createDriverForTest()})
+after(() => driver?.close())
+let testContext: WebIntegrationTestContext
+beforeEach(async function() {
+  testContext = await createWebIntegrationTestContext({
+    driver,
+    currentTest : this.currentTest!,
+    directory : __dirname,
+  })
+})
+afterEachSaveScreenshotIfFailed(() => driver.page)
+afterEach(() => testContext?.dispose())
 
     it('updates display name', async () => {
         const USER: UserAreaUserFields = {
@@ -56,9 +61,10 @@ describe('User profile page', () => {
             selectMethod: 'selectall',
         })
 
-        const requestVariables = await testContext.waitForGraphQLRequest(async () => {
-            await driver.page.click('#test-EditUserProfileForm__save')
-        }, 'UpdateUser')
+    const requestVariables = await testContext.waitForGraphQLRequest(
+        async () => {
+            await driver.page.click('#test-EditUserProfileForm__save')},
+        'UpdateUser')
 
         assert.strictEqual(requestVariables.displayName, 'Test2')
     })

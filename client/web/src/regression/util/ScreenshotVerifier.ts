@@ -1,8 +1,12 @@
-import { Driver } from '../../../../shared/src/testing/driver'
-import { BoundingBox } from 'puppeteer'
+import {
+  BoundingBox
+} from 'puppeteer'
 
-interface ExpectedScreenshot {
-    screenshotFile: string
+    interface ExpectedScreenshot {
+      screenshotFile: string
+
+import{Driver} from '../../../../shared/src/testing/driver'
+
     description: string
 }
 
@@ -12,7 +16,7 @@ interface ExpectedScreenshot {
 export class ScreenshotVerifier {
     public screenshots: ExpectedScreenshot[]
     constructor(public driver: Driver) {
-        this.screenshots = []
+  this.screenshots = []
     }
 
     public async verifyScreenshot({
@@ -27,17 +31,17 @@ export class ScreenshotVerifier {
          */
         filename: string
 
-        /**
-         * A short description of what should happen in the screenshot.
-         */
-        description: string
+    /**
+     * A short description of what should happen in the screenshot.
+     */
+    description: string
         clip?: BoundingBox
     }): Promise<void> {
-        await this.driver.page.screenshot({
-            path: filename,
-            clip,
-        })
-        this.screenshots.push({ screenshotFile: filename, description })
+  await this.driver.page
+      .screenshot({
+        path : filename,
+        clip,
+      }) this.screenshots.push({screenshotFile : filename, description})
     }
 
     public async verifySelector(
@@ -46,43 +50,41 @@ export class ScreenshotVerifier {
         selector: string,
         waitForSelectorToBeVisibleTimeout: number = 0
     ): Promise<void> {
-        if (waitForSelectorToBeVisibleTimeout > 0) {
-            await this.driver.page.waitForFunction(
-                selector => {
-                    const element = document.querySelector<Element>(selector)
-                    if (!element) {
-                        return false
-                    }
-                    const { width, height } = element.getBoundingClientRect()
-                    return width > 0 && height > 0
-                },
-                { timeout: waitForSelectorToBeVisibleTimeout },
-                selector
-            )
-        }
+  if (waitForSelectorToBeVisibleTimeout > 0) {
+    await this.driver.page.waitForFunction(selector => {
+      const element = document.querySelector<Element>(selector)
+      if (!element) {
+        return false
+      }
+      const {width, height} = element.getBoundingClientRect()
+      return width > 0 && height > 0
+    }, {timeout : waitForSelectorToBeVisibleTimeout}, selector)
+  }
 
-        const clip: BoundingBox | undefined = await this.driver.page.evaluate(selector => {
+  const clip: BoundingBox|undefined =
+      await this.driver.page
+          .evaluate(selector => {
             const element = document.querySelector<Element>(selector)
             if (!element) {
-                throw new Error(`element with selector ${JSON.stringify(selector)} not found`)
+              throw new Error(
+                  `element with selector ${JSON.stringify(selector)} not found`)
             }
-            const { left, top, width, height } = element.getBoundingClientRect()
+            const {left, top, width, height} = element.getBoundingClientRect()
             return { x: left, y: top, width, height }
-        }, selector)
-        await this.verifyScreenshot({
+          }, selector) await this.verifyScreenshot({
             filename,
             description,
             clip,
-        })
+          })
     }
 
     /**
      * Returns instructions to manually verify each screenshot stored in the to-verify list.
      */
     public verificationInstructions(): string {
-        return this.screenshots.length === 0
-            ? ''
-            : `
+  return this.screenshots.length === 0
+             ? ''
+             : `
 
         @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         @@@@ Manual verification steps required!!! @@@@
@@ -90,9 +92,11 @@ export class ScreenshotVerifier {
 
         Please verify the following screenshots match the corresponding descriptions:
 
-        ${this.screenshots
-            .map(screenshot => `${screenshot.screenshotFile}:\t${JSON.stringify(screenshot.description)}`)
-            .join('\n        ')}
+        ${
+                   this.screenshots
+                       .map(screenshot => `${screenshot.screenshotFile}:\t${
+                                JSON.stringify(screenshot.description)}`)
+                       .join('\n        ')}
 
         `
     }

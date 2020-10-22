@@ -1,53 +1,61 @@
 import assert from 'assert'
-import { createDriverForTest, Driver, percySnapshot } from '../../../shared/src/testing/driver'
-import { commonWebGraphQlResults } from './graphQlResults'
-import { createWebIntegrationTestContext, WebIntegrationTestContext } from './context'
-import {
-    createRepositoryRedirectResult,
-    createResolveRevisionResult,
-    createFileExternalLinksResult,
-    createTreeEntriesResult,
-    createBlobContentResult,
-} from './graphQlResponseHelpers'
-import { afterEachSaveScreenshotIfFailed } from '../../../shared/src/testing/screenshotReporter'
 import * as path from 'path'
-import { DiffHunkLineType } from '../graphql-operations'
+
+import {
+  createDriverForTest,
+  Driver,
+  percySnapshot
+} from '../../../shared/src/testing/driver'
+import {
+  afterEachSaveScreenshotIfFailed
+} from '../../../shared/src/testing/screenshotReporter'
+import {DiffHunkLineType} from '../graphql-operations'
+
+import {
+  createWebIntegrationTestContext,
+  WebIntegrationTestContext
+} from './context'
+import {
+  createBlobContentResult,
+  createFileExternalLinksResult,
+  createRepositoryRedirectResult,
+  createResolveRevisionResult,
+  createTreeEntriesResult,
+} from './graphQlResponseHelpers'
+import {commonWebGraphQlResults} from './graphQlResults'
 
 describe('Repository', () => {
     let driver: Driver
-    before(async () => {
-        driver = await createDriverForTest()
-    })
-    after(() => driver?.close())
-    let testContext: WebIntegrationTestContext
-    beforeEach(async function () {
-        testContext = await createWebIntegrationTestContext({
-            driver,
-            currentTest: this.currentTest!,
-            directory: __dirname,
-        })
-    })
-    afterEachSaveScreenshotIfFailed(() => driver.page)
-    afterEach(() => testContext?.dispose())
+before(async () => {driver = await createDriverForTest()})
+after(() => driver?.close())
+let testContext: WebIntegrationTestContext
+beforeEach(async function() {
+  testContext = await createWebIntegrationTestContext({
+    driver,
+    currentTest : this.currentTest!,
+    directory : __dirname,
+  })
+})
+afterEachSaveScreenshotIfFailed(() => driver.page)
+afterEach(() => testContext?.dispose())
 
     async function assertSelectorHasText(selector: string, text: string) {
-        assert.strictEqual(
-            await driver.page.evaluate(
-                selector => document.querySelector<HTMLButtonElement>(selector)?.textContent,
-                selector
-            ),
-            text
-        )
+  assert.strictEqual(
+      await driver.page.evaluate(
+          selector =>
+              document.querySelector<HTMLButtonElement>(selector)?.textContent,
+          selector),
+      text)
     }
 
     describe('index page', () => {
         it('loads when accessed with a repo url', async () => {
             const shortRepositoryName = 'sourcegraph/jsonrpc2'
-            const repositoryName = `github.com/${shortRepositoryName}`
-            const repositorySourcegraphUrl = `/${repositoryName}`
-            const clickedFileName = 'async.go'
-            const clickedCommit = ''
-            const fileEntries = ['jsonrpc2.go', clickedFileName]
+    const repositoryName = `github.com/${shortRepositoryName}`
+    const repositorySourcegraphUrl = `/${repositoryName}`
+    const clickedFileName = 'async.go'
+    const clickedCommit = ''
+    const fileEntries = [ 'jsonrpc2.go', clickedFileName ]
 
             testContext.overrideGraphQL({
                 ...commonWebGraphQlResults,
@@ -363,27 +371,35 @@ describe('Repository', () => {
             await driver.page.waitForSelector('.test-tree-entries')
             await percySnapshot(driver.page, 'Repository index page')
 
-            const numberOfFileEntries = await driver.page.evaluate(
-                () => document.querySelectorAll<HTMLButtonElement>('.test-tree-entry-file')?.length
-            )
+                const numberOfFileEntries = await driver.page.evaluate(
+                    () => document
+                              .querySelectorAll<HTMLButtonElement>(
+                                  '.test-tree-entry-file')
+                              ?.length)
 
-            assert.strictEqual(numberOfFileEntries, fileEntries.length, 'Number of files in directory listing')
+                assert
+                    .strictEqual(numberOfFileEntries, fileEntries.length,
+                                 'Number of files in directory listing')
 
-            await testContext.waitForGraphQLRequest(async () => {
-                await driver.findElementWithText(clickedFileName, {
-                    selector: '.test-tree-entry-file',
-                    action: 'click',
-                })
-            }, 'Blob')
+                        await testContext
+                    .waitForGraphQLRequest(
+                        async () => {
+                            await driver.findElementWithText(clickedFileName, {
+                              selector : '.test-tree-entry-file',
+                              action : 'click',
+                            })},
+                        'Blob')
 
-            await driver.page.waitForSelector('.test-repo-blob')
-            await driver.assertWindowLocation(`${repositorySourcegraphUrl}/-/blob/${clickedFileName}`)
+                        await driver.page
+                    .waitForSelector('.test-repo-blob') await driver
+                    .assertWindowLocation(
+                        `${repositorySourcegraphUrl}/-/blob/${clickedFileName}`)
 
-            // Assert breadcrumb order
-            await driver.page.waitForSelector('.test-breadcrumb')
-            const breadcrumbTexts = await driver.page.evaluate(() =>
-                [...document.querySelectorAll('.test-breadcrumb')].map(breadcrumb => breadcrumb.textContent)
-            )
+                    // Assert breadcrumb order
+                    await driver.page.waitForSelector('.test-breadcrumb')
+                const breadcrumbTexts = await driver.page.evaluate(
+                    () => [...document.querySelectorAll('.test-breadcrumb')]
+                              .map(breadcrumb => breadcrumb.textContent))
             assert.deepStrictEqual(breadcrumbTexts, [
                 'Home',
                 'Repositories',
@@ -406,126 +422,167 @@ describe('Repository', () => {
 
         it('works with files with spaces in the name', async () => {
             const shortRepositoryName = 'ggilmore/q-test'
-            const fileName = '% token.4288249258.sql'
-            const directoryName = "Geoffrey's random queries.32r242442bf"
-            const filePath = path.posix.join(directoryName, fileName)
+        const fileName = '% token.4288249258.sql'
+        const directoryName = "Geoffrey's random queries.32r242442bf"
+        const filePath = path.posix.join(directoryName, fileName)
 
-            testContext.overrideGraphQL({
-                ...commonWebGraphQlResults,
-                RepositoryRedirect: ({ repoName }) => createRepositoryRedirectResult(repoName),
-                ResolveRev: ({ repoName }) => createResolveRevisionResult(repoName),
-                FileExternalLinks: ({ filePath, repoName, revision }) =>
-                    createFileExternalLinksResult(
-                        `https://${repoName}/blob/${revision}/${filePath.split('/').map(encodeURIComponent).join('/')}`
-                    ),
-                TreeEntries: () => ({
-                    repository: {
-                        commit: {
-                            tree: {
-                                isRoot: false,
-                                url: '/github.com/ggilmore/q-test/-/tree/Geoffrey%27s%20random%20queries.32r242442bf',
-                                entries: [
-                                    {
-                                        name: fileName,
-                                        path: filePath,
-                                        isDirectory: false,
-                                        url:
-                                            '/github.com/ggilmore/q-test/-/blob/Geoffrey%27s%20random%20queries.32r242442bf/%25%20token.4288249258.sql',
-                                        submodule: null,
-                                        isSingleChild: false,
-                                    },
-                                ],
-                            },
+        testContext
+            .overrideGraphQL({
+              ...commonWebGraphQlResults,
+              RepositoryRedirect : ({repoName}) =>
+                  createRepositoryRedirectResult(repoName),
+              ResolveRev : ({repoName}) =>
+                  createResolveRevisionResult(repoName),
+              FileExternalLinks : ({filePath, repoName, revision}) =>
+                  createFileExternalLinksResult(`https://${repoName}/blob/${
+                      revision}/${
+                      filePath.split('/').map(encodeURIComponent).join('/')}`),
+              TreeEntries : () => ({
+                repository : {
+                  commit : {
+                    tree : {
+                      isRoot : false,
+                      url :
+                          '/github.com/ggilmore/q-test/-/tree/Geoffrey%27s%20random%20queries.32r242442bf',
+                      entries : [
+                        {
+                          name : fileName,
+                          path : filePath,
+                          isDirectory : false,
+                          url :
+                              '/github.com/ggilmore/q-test/-/blob/Geoffrey%27s%20random%20queries.32r242442bf/%25%20token.4288249258.sql',
+                          submodule : null,
+                          isSingleChild : false,
                         },
+                      ],
                     },
-                }),
-                TreeCommits: () => ({
-                    node: {
-                        __typename: 'Repository',
-                        commit: { ancestors: { nodes: [], pageInfo: { hasNextPage: false } } },
-                    },
-                }),
-                Blob: ({ filePath }) => createBlobContentResult(`content for: ${filePath}`),
+                  },
+                },
+              }),
+              TreeCommits : () => ({
+                node : {
+                  __typename : 'Repository',
+                  commit : {
+                    ancestors : {nodes : [], pageInfo : {hasNextPage : false}}
+                  },
+                },
+              }),
+              Blob : ({filePath}) =>
+                  createBlobContentResult(`content for: ${filePath}`),
             })
 
-            await driver.page.goto(
-                `${driver.sourcegraphBaseUrl}/github.com/ggilmore/q-test/-/tree/Geoffrey's%20random%20queries.32r242442bf`
-            )
-            await driver.page.waitForSelector('.test-tree-file-link')
-            assert.strictEqual(
-                await driver.page.evaluate(() => document.querySelector('.test-tree-file-link')?.textContent),
-                fileName
-            )
-
-            // page.click() fails for some reason with Error: Node is either not visible or not an HTMLElement
-            await driver.page.$eval('.test-tree-file-link', linkElement => (linkElement as HTMLElement).click())
-            await driver.page.waitForSelector('.test-repo-blob')
-
-            await driver.page.waitForSelector('.test-breadcrumb')
-            const breadcrumbTexts = await driver.page.evaluate(() =>
-                [...document.querySelectorAll('.test-breadcrumb')].map(breadcrumb => breadcrumb.textContent)
-            )
-            assert.deepStrictEqual(breadcrumbTexts, ['Home', 'Repositories', shortRepositoryName, '@master', filePath])
-
-            await driver.page.waitForSelector('#monaco-query-input .view-lines')
-            // TODO: find a more reliable way to get the current search query,
-            // to account for the fact that it may _actually_ contain non-breaking spaces
-            // (and not just have spaces rendered as non-breaking in the DOM by Monaco)
-            // https://github.com/sourcegraph/sourcegraph/issues/14756
-            const searchQuery = (
-                await driver.page.evaluate(() => document.querySelector('#monaco-query-input .view-lines')?.textContent)
-            )?.replace(/\u00A0/g, ' ')
-            assert.strictEqual(
-                searchQuery,
-                'repo:^github\\.com/ggilmore/q-test$ file:"^Geoffrey\'s random queries\\\\.32r242442bf/% token\\\\.4288249258\\\\.sql"'
-            )
-
-            await driver.page.waitForSelector('.test-go-to-code-host')
-            assert.strictEqual(
+                await driver.page
+            .goto(`${
+                driver
+                    .sourcegraphBaseUrl}/github.com/ggilmore/q-test/-/tree/Geoffrey's%20random%20queries.32r242442bf`)
+                await driver.page.waitForSelector('.test-tree-file-link')
+        assert
+            .strictEqual(
                 await driver.page.evaluate(
-                    () => document.querySelector<HTMLAnchorElement>('.test-go-to-code-host')?.href
-                ),
-                "https://github.com/ggilmore/q-test/blob/master/Geoffrey's%20random%20queries.32r242442bf/%25%20token.4288249258.sql"
-            )
+                    () => document.querySelector('.test-tree-file-link')
+                              ?.textContent),
+                fileName)
 
-            const blobContent = await driver.page.evaluate(() => document.querySelector('.test-repo-blob')?.textContent)
+            // page.click() fails for some reason with Error: Node is either not
+            // visible or not an HTMLElement
+            await driver.page
+            .$eval('.test-tree-file-link',
+                   linkElement => (linkElement as HTMLElement).click())
+                await driver.page
+            .waitForSelector('.test-repo-blob')
+
+                await driver.page.waitForSelector('.test-breadcrumb')
+        const breadcrumbTexts = await driver.page.evaluate(
+            () => [...document.querySelectorAll('.test-breadcrumb')].map(
+                breadcrumb => breadcrumb.textContent))
+        assert
+            .deepStrictEqual(breadcrumbTexts,
+                             [
+                               'Home', 'Repositories', shortRepositoryName,
+                               '@master', filePath
+                             ])
+
+                await driver.page.waitForSelector(
+                    '#monaco-query-input .view-lines')
+        // TODO: find a more reliable way to get the current search query,
+        // to account for the fact that it may _actually_ contain non-breaking
+        // spaces (and not just have spaces rendered as non-breaking in the DOM
+        // by Monaco) https://github.com/sourcegraph/sourcegraph/issues/14756
+        const searchQuery =
+            (await driver.page.evaluate(
+                 () =>
+                     document.querySelector('#monaco-query-input .view-lines')
+                         ?.textContent))
+                ?.replace(/\u00A0/g, ' ')
+        assert
+            .strictEqual(
+                searchQuery,
+                'repo:^github\\.com/ggilmore/q-test$ file:"^Geoffrey\'s random queries\\\\.32r242442bf/% token\\\\.4288249258\\\\.sql"')
+
+                await driver.page.waitForSelector('.test-go-to-code-host')
+        assert.strictEqual(
+            await driver.page.evaluate(
+                () => document
+                          .querySelector<HTMLAnchorElement>(
+                              '.test-go-to-code-host')
+                          ?.href),
+            "https://github.com/ggilmore/q-test/blob/master/Geoffrey's%20random%20queries.32r242442bf/%25%20token.4288249258.sql")
+
+        const blobContent = await driver.page.evaluate(
+            () => document.querySelector('.test-repo-blob')?.textContent)
             assert.strictEqual(blobContent, `content for: ${filePath}`)
         })
 
         it('works with spaces in the repository name', async () => {
             const shortRepositoryName = 'my org/repo with spaces'
-            const repositorySourcegraphUrl = '/github.com/my%20org/repo%20with%20spaces'
+        const repositorySourcegraphUrl =
+            '/github.com/my%20org/repo%20with%20spaces'
 
-            testContext.overrideGraphQL({
-                ...commonWebGraphQlResults,
-                RepositoryRedirect: ({ repoName }) => createRepositoryRedirectResult(repoName),
-                ResolveRev: ({ repoName }) => createResolveRevisionResult(repoName),
-                FileExternalLinks: ({ filePath }) => createFileExternalLinksResult(filePath),
-                TreeEntries: () => createTreeEntriesResult(repositorySourcegraphUrl, ['readme.md']),
+        testContext
+            .overrideGraphQL({
+              ...commonWebGraphQlResults,
+              RepositoryRedirect : ({repoName}) =>
+                  createRepositoryRedirectResult(repoName),
+              ResolveRev : ({repoName}) =>
+                  createResolveRevisionResult(repoName),
+              FileExternalLinks : ({filePath}) =>
+                  createFileExternalLinksResult(filePath),
+              TreeEntries : () => createTreeEntriesResult(
+                  repositorySourcegraphUrl, [ 'readme.md' ]),
 
-                TreeCommits: () => ({
-                    node: {
-                        __typename: 'Repository',
-                        commit: { ancestors: { nodes: [], pageInfo: { hasNextPage: false } } },
-                    },
-                }),
-                Blob: ({ filePath }) => createBlobContentResult(`content for: ${filePath}`),
+              TreeCommits : () => ({
+                node : {
+                  __typename : 'Repository',
+                  commit : {
+                    ancestors : {nodes : [], pageInfo : {hasNextPage : false}}
+                  },
+                },
+              }),
+              Blob : ({filePath}) =>
+                  createBlobContentResult(`content for: ${filePath}`),
             })
 
-            await driver.page.goto(driver.sourcegraphBaseUrl + repositorySourcegraphUrl)
+                await driver.page
+            .goto(driver.sourcegraphBaseUrl + repositorySourcegraphUrl)
 
-            await driver.page.waitForSelector('h2.tree-page__title')
-            await assertSelectorHasText('h2.tree-page__title', ' my org/repo with spaces')
-            await assertSelectorHasText('.test-tree-entry-file', 'readme.md')
+                await driver.page
+            .waitForSelector('h2.tree-page__title') await assertSelectorHasText(
+                'h2.tree-page__title', ' my org/repo with spaces')
+                await assertSelectorHasText('.test-tree-entry-file',
+                                            'readme.md')
 
-            // page.click() fails for some reason with Error: Node is either not visible or not an HTMLElement
-            await driver.page.$eval('.test-tree-file-link', linkElement => (linkElement as HTMLElement).click())
-            await driver.page.waitForSelector('.test-repo-blob')
+            // page.click() fails for some reason with Error: Node is either not
+            // visible or not an HTMLElement
+            await driver.page
+            .$eval('.test-tree-file-link',
+                   linkElement => (linkElement as HTMLElement).click())
+                await driver.page
+            .waitForSelector('.test-repo-blob')
 
-            await driver.page.waitForSelector('.test-breadcrumb')
-            const breadcrumbTexts = await driver.page.evaluate(() =>
-                [...document.querySelectorAll('.test-breadcrumb')].map(breadcrumb => breadcrumb.textContent)
-            )
+                await driver.page.waitForSelector('.test-breadcrumb')
+        const breadcrumbTexts = await driver.page.evaluate(
+            () => [...document.querySelectorAll('.test-breadcrumb')].map(
+                breadcrumb => breadcrumb.textContent))
             assert.deepStrictEqual(breadcrumbTexts, [
                 'Home',
                 'Repositories',

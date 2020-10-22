@@ -1,14 +1,15 @@
-import { parseBrowserRepoURL, toTreeURL } from './url'
-import { RepoFile } from '../../../shared/src/util/url'
+import {RepoFile} from '../../../shared/src/util/url'
+
+import {parseBrowserRepoURL, toTreeURL} from './url'
 
 /**
- * Asserts deep object equality using node's assert.deepEqual, except it (1) ignores differences in the
- * prototype (because that causes 2 object literals to fail the test) and (2) treats undefined properties as
- * missing.
+ * Asserts deep object equality using node's assert.deepEqual, except it (1)
+ * ignores differences in the prototype (because that causes 2 object literals
+ * to fail the test) and (2) treats undefined properties as missing.
  */
-function assertDeepStrictEqual<T>(actual: T, expected: T): void {
-    actual = JSON.parse(JSON.stringify(actual))
-    expected = JSON.parse(JSON.stringify(expected))
+function assertDeepStrictEqual<T>(actual: T, expected: T):
+    void{actual = JSON.parse(JSON.stringify(actual))
+expected = JSON.parse(JSON.stringify(expected))
     expect(actual).toEqual(expected)
 }
 
@@ -58,12 +59,13 @@ describe('parseBrowserRepoURL', () => {
 
     test('should parse github repo with multi-path-part revision', () => {
         const parsed = parseBrowserRepoURL('https://sourcegraph.com/github.com/gorilla/mux@foo/baz/bar')
-        assertDeepStrictEqual(parsed, {
-            rawRevision: 'foo/baz/bar',
-            repoName: 'github.com/gorilla/mux',
-            revision: 'foo/baz/bar',
-        })
-        const parsed2 = parseBrowserRepoURL('https://sourcegraph.com/github.com/gorilla/mux@foo/baz/bar/-/blob/mux.go')
+    assertDeepStrictEqual(parsed, {
+      rawRevision : 'foo/baz/bar',
+      repoName : 'github.com/gorilla/mux',
+      revision : 'foo/baz/bar',
+    })
+    const parsed2 = parseBrowserRepoURL(
+        'https://sourcegraph.com/github.com/gorilla/mux@foo/baz/bar/-/blob/mux.go')
         assertDeepStrictEqual(parsed2, {
             repoName: 'github.com/gorilla/mux',
             revision: 'foo/baz/bar',
@@ -73,12 +75,13 @@ describe('parseBrowserRepoURL', () => {
     })
     test('should parse repo with multi-path-part revision', () => {
         const parsed = parseBrowserRepoURL('https://sourcegraph.com/gorilla/mux@foo/baz/bar')
-        assertDeepStrictEqual(parsed, {
-            repoName: 'gorilla/mux',
-            revision: 'foo/baz/bar',
-            rawRevision: 'foo/baz/bar',
-        })
-        const parsed2 = parseBrowserRepoURL('https://sourcegraph.com/gorilla/mux@foo/baz/bar/-/blob/mux.go')
+    assertDeepStrictEqual(parsed, {
+      repoName : 'gorilla/mux',
+      revision : 'foo/baz/bar',
+      rawRevision : 'foo/baz/bar',
+    })
+    const parsed2 = parseBrowserRepoURL(
+        'https://sourcegraph.com/gorilla/mux@foo/baz/bar/-/blob/mux.go')
         assertDeepStrictEqual(parsed2, {
             repoName: 'gorilla/mux',
             revision: 'foo/baz/bar',

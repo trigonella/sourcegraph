@@ -13,16 +13,16 @@ const compiler = webpack(config)
 signale.await('Webpack compilation')
 
 compiler.run((error, stats) => {
-    console.log(stats.toString(tasks.WEBPACK_STATS_OPTIONS))
+  console.log(stats.toString(tasks.WEBPACK_STATS_OPTIONS))
 
-    if (stats.hasErrors()) {
-        signale.error('Webpack compilation error')
-        process.exit(1)
-    }
-    signale.success('Webpack compilation done')
+  if (stats.hasErrors()) {
+    signale.error('Webpack compilation error')
+    process.exit(1)
+  }
+  signale.success('Webpack compilation done')
 
-    buildChrome()
-    buildFirefox()
-    tasks.copyIntegrationAssets()
-    signale.success('Build done')
+  buildChrome()
+  buildFirefox()
+  tasks.copyIntegrationAssets()
+  signale.success('Build done')
 })

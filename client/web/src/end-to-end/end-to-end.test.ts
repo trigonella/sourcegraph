@@ -1,82 +1,97 @@
-import { describe, test, before, beforeEach, after, afterEach } from 'mocha'
-import { afterEachSaveScreenshotIfFailed } from '../../../shared/src/testing/screenshotReporter'
-import { afterEachRecordCoverage } from '../../../shared/src/testing/coverage'
-import { retry } from '../../../shared/src/testing/utils'
-import { createDriverForTest, Driver, percySnapshot } from '../../../shared/src/testing/driver'
-import got from 'got'
-import { gql } from '../../../shared/src/graphql/graphql'
-import { random, sortBy } from 'lodash'
-import MockDate from 'mockdate'
-import { ExternalServiceKind } from '../../../shared/src/graphql/schema'
-import { getConfig } from '../../../shared/src/testing/config'
 import assert from 'assert'
 import expect from 'expect'
-import { Settings } from '../schema/settings.schema'
+import got from 'got'
+import {random, sortBy} from 'lodash'
+import {after, afterEach, before, beforeEach, describe, test} from 'mocha'
+import MockDate from 'mockdate'
 
-const { gitHubToken, sourcegraphBaseUrl } = getConfig('gitHubToken', 'sourcegraphBaseUrl')
+import {gql} from '../../../shared/src/graphql/graphql'
+import {ExternalServiceKind} from '../../../shared/src/graphql/schema'
+import {getConfig} from '../../../shared/src/testing/config'
+import {afterEachRecordCoverage} from '../../../shared/src/testing/coverage'
+import {
+  createDriverForTest,
+  Driver,
+  percySnapshot
+} from '../../../shared/src/testing/driver'
+import {
+  afterEachSaveScreenshotIfFailed
+} from '../../../shared/src/testing/screenshotReporter'
+import {retry} from '../../../shared/src/testing/utils'
+import {Settings} from '../schema/settings.schema'
+
+const {gitHubToken, sourcegraphBaseUrl} =
+    getConfig('gitHubToken', 'sourcegraphBaseUrl')
 
 describe('e2e test suite', () => {
     let driver: Driver
 
-    before(async function () {
-        // Cloning the repositories takes ~1 minute, so give initialization 2
-        // minutes instead of 1 (which would be inherited from
-        // `jest.setTimeout(1 * 60 * 1000)` above).
-        this.timeout(2 * 60 * 1000)
+before(async function() {
+  // Cloning the repositories takes ~1 minute, so give initialization 2
+  // minutes instead of 1 (which would be inherited from
+  // `jest.setTimeout(1 * 60 * 1000)` above).
+  this.timeout(2 * 60 * 1000)
 
-        // Reset date mocking
-        MockDate.reset()
+  // Reset date mocking
+  MockDate.reset()
 
-        const config = getConfig('headless', 'slowMo', 'testUserPassword')
+  const config = getConfig('headless', 'slowMo', 'testUserPassword')
 
-        // Start browser
-        driver = await createDriverForTest({
-            sourcegraphBaseUrl,
-            logBrowserConsole: true,
-            ...config,
-        })
-        const clonedRepoSlugs = [
-            'sourcegraph/java-langserver',
-            'gorilla/mux',
-            'gorilla/securecookie',
-            'sourcegraph/jsonrpc2',
-            'sourcegraph/go-diff',
-            'sourcegraph/appdash',
-            'sourcegraph/sourcegraph-typescript',
-            'sourcegraph-testing/automation-e2e-test',
-            'sourcegraph/e2e-test-private-repository',
-        ]
-        const alwaysCloningRepoSlugs = ['sourcegraphtest/AlwaysCloningTest']
-        await driver.ensureLoggedIn({ username: 'test', password: config.testUserPassword, email: 'test@test.com' })
-        await driver.resetUserSettings()
-        await driver.ensureHasExternalService({
-            kind: ExternalServiceKind.GITHUB,
-            displayName: 'test-test-github',
-            config: JSON.stringify({
-                url: 'https://github.com',
-                token: gitHubToken,
-                repos: clonedRepoSlugs.concat(alwaysCloningRepoSlugs),
-            }),
-            ensureRepos: clonedRepoSlugs.map(slug => `github.com/${slug}`),
-            alwaysCloning: alwaysCloningRepoSlugs.map(slug => `github.com/${slug}`),
-        })
-    })
+  // Start browser
+  driver = await createDriverForTest({
+    sourcegraphBaseUrl,
+    logBrowserConsole : true,
+    ...config,
+  })
+  const clonedRepoSlugs =
+      [
+        'sourcegraph/java-langserver',
+        'gorilla/mux',
+        'gorilla/securecookie',
+        'sourcegraph/jsonrpc2',
+        'sourcegraph/go-diff',
+        'sourcegraph/appdash',
+        'sourcegraph/sourcegraph-typescript',
+        'sourcegraph-testing/automation-e2e-test',
+        'sourcegraph/e2e-test-private-repository',
+      ] const alwaysCloningRepoSlugs =
+          [ 'sourcegraphtest/AlwaysCloningTest' ] await driver
+              .ensureLoggedIn({
+                username : 'test',
+                password : config.testUserPassword,
+                email : 'test@test.com'
+              }) await driver.resetUserSettings()
+                  await driver.ensureHasExternalService({
+                    kind : ExternalServiceKind.GITHUB,
+                    displayName : 'test-test-github',
+                    config : JSON.stringify({
+                      url : 'https://github.com',
+                      token : gitHubToken,
+                      repos : clonedRepoSlugs.concat(alwaysCloningRepoSlugs),
+                    }),
+                    ensureRepos :
+                        clonedRepoSlugs.map(slug => `github.com/${slug}`),
+                    alwaysCloning : alwaysCloningRepoSlugs.map(
+                        slug => `github.com/${slug}`),
+                  })
+})
 
-    after('Close browser', () => driver?.close())
+after('Close browser', () => driver?.close())
 
-    afterEachSaveScreenshotIfFailed(() => driver.page)
-    afterEachRecordCoverage(() => driver)
+afterEachSaveScreenshotIfFailed(() => driver.page)
+afterEachRecordCoverage(() => driver)
 
-    beforeEach(async () => {
-        if (driver) {
-            // Clear local storage to reset sidebar selection (files or tabs) for each test
-            await driver.page.evaluate(() => {
-                localStorage.setItem('repo-revision-sidebar-last-tab', 'files')
-            })
+beforeEach(async () => {
+  if (driver) {
+    // Clear local storage to reset sidebar selection (files or tabs) for each
+    // test
+    await driver.page
+        .evaluate(() => {localStorage.setItem('repo-revision-sidebar-last-tab',
+                                              'files')})
 
             await driver.resetUserSettings()
-        }
-    })
+  }
+})
 
     describe('Core functionality', () => {
         test('Check settings are saved and applied', async () => {
@@ -100,13 +115,15 @@ describe('e2e test suite', () => {
             await driver.page.click('.test-settings-file .test-save-toolbar-save')
             await driver.page.waitForSelector('.test-global-alert .notices .global-alerts__alert', { visible: true })
             await driver.page.evaluate((message: string) => {
-                const element = document.querySelector<HTMLElement>('.test-global-alert .notices .global-alerts__alert')
-                if (!element) {
-                    throw new Error('No .test-global-alert .notices .global-alerts__alert element found')
-                }
-                if (!element.textContent?.includes(message)) {
-                    throw new Error(`Expected "${message}" message, but didn't find it`)
-                }
+  const element = document.querySelector<HTMLElement>(
+      '.test-global-alert .notices .global-alerts__alert')
+  if (!element) {
+    throw new Error(
+        'No .test-global-alert .notices .global-alerts__alert element found')
+  }
+  if (!element.textContent?.includes(message)) {
+    throw new Error(`Expected "${message}" message, but didn't find it`)
+  }
             }, message)
         })
 
@@ -114,40 +131,45 @@ describe('e2e test suite', () => {
             await driver.page.goto(sourcegraphBaseUrl + '/users/test/settings/tokens/new')
             await driver.page.waitForSelector('.test-create-access-token-description')
 
-            const name = `E2E Test ${new Date().toISOString()} ${random(1, 1e7)}`
+        const name =
+            `E2E Test ${new Date().toISOString()} ${random(1, 1e7)}`
 
-            await driver.replaceText({
-                selector: '.test-create-access-token-description',
-                newText: name,
-                selectMethod: 'keyboard',
-            })
+            await driver
+                .replaceText({
+                  selector : '.test-create-access-token-description',
+                  newText : name,
+                  selectMethod : 'keyboard',
+                })
 
-            await driver.page.click('.test-create-access-token-submit')
-            const token = (await (
-                await driver.page.waitForFunction(
-                    () => document.querySelector<HTMLInputElement>('.test-access-token input[type=text]')?.value
-                )
-            ).jsonValue()) as string | null
-            assert(token)
+                    await driver.page.click('.test-create-access-token-submit')
+        const token =
+            (await (await driver.page.waitForFunction(
+                        () => document
+                                  .querySelector<HTMLInputElement>(
+                                      '.test-access-token input[type=text]')
+                                  ?.value))
+                 .jsonValue()) as string |
+            null
+        assert(token)
 
-            const response = await got.post('.api/graphql', {
-                prefixUrl: sourcegraphBaseUrl,
-                headers: {
-                    Authorization: 'token ' + token,
-                },
-                body: JSON.stringify({
-                    query: gql`
+        const response = await got.post('.api/graphql', {
+          prefixUrl : sourcegraphBaseUrl,
+          headers : {
+            Authorization : 'token ' + token,
+          },
+          body : JSON.stringify({
+            query : gql`
                         query {
                             currentUser {
                                 username
                             }
                         }
                     `,
-                    variables: {},
-                }),
-            })
+            variables : {},
+          }),
+        })
 
-            const username = JSON.parse(response.body).data.currentUser.username
+        const username = JSON.parse(response.body).data.currentUser.username
             expect(username).toBe('test')
 
             await Promise.all([
@@ -245,9 +267,9 @@ describe('e2e test suite', () => {
 
         test('External service repositoryPathPattern', async () => {
             const repo = 'sourcegraph/go-blame' // Tiny repo, fast to clone
-            const repositoryPathPattern = 'foobar/{host}/{nameWithOwner}'
-            const slug = `github.com/${repo}`
-            const pathPatternSlug = `foobar/github.com/${repo}`
+        const repositoryPathPattern = 'foobar/{host}/{nameWithOwner}'
+        const slug = `github.com/${repo}`
+        const pathPatternSlug = `foobar/github.com/${repo}`
 
             const config = {
                 kind: ExternalServiceKind.GITHUB,
@@ -268,15 +290,18 @@ describe('e2e test suite', () => {
             await driver.assertWindowLocationPrefix('/' + pathPatternSlug)
         })
 
-        const awsAccessKeyID = process.env.AWS_ACCESS_KEY_ID
-        const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
-        const awsCodeCommitUsername = process.env.AWS_CODE_COMMIT_GIT_USERNAME
-        const awsCodeCommitPassword = process.env.AWS_CODE_COMMIT_GIT_PASSWORD
+            const awsAccessKeyID = process.env.AWS_ACCESS_KEY_ID
+            const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
+            const awsCodeCommitUsername =
+                process.env.AWS_CODE_COMMIT_GIT_USERNAME
+            const awsCodeCommitPassword =
+                process.env.AWS_CODE_COMMIT_GIT_PASSWORD
 
-        const testIfAwsCredentialsSet =
-            awsSecretAccessKey && awsAccessKeyID && awsCodeCommitUsername && awsCodeCommitPassword
-                ? test
-                : test.skip.bind(test)
+            const testIfAwsCredentialsSet =
+                awsSecretAccessKey && awsAccessKeyID && awsCodeCommitUsername &&
+                        awsCodeCommitPassword
+                    ? test
+                    : test.skip.bind(test)
 
         testIfAwsCredentialsSet('AWS CodeCommit', async () => {
             await driver.ensureHasExternalService({
@@ -295,18 +320,23 @@ describe('e2e test suite', () => {
                 ensureRepos: ['aws/test'],
             })
             await driver.page.goto(sourcegraphBaseUrl + '/aws/test/-/blob/README')
-            const blob = (await (
-                await driver.page.waitFor(() => document.querySelector<HTMLElement>('.test-repo-blob')?.textContent)
-            ).jsonValue()) as string | null
+        const blob =
+            (await (await driver.page.waitFor(
+                        () => document
+                                  .querySelector<HTMLElement>('.test-repo-blob')
+                                  ?.textContent))
+                 .jsonValue()) as string |
+            null
 
             expect(blob).toBe('README\n\nchange')
         })
 
-        const bbsURL = process.env.BITBUCKET_SERVER_URL
-        const bbsToken = process.env.BITBUCKET_SERVER_TOKEN
-        const bbsUsername = process.env.BITBUCKET_SERVER_USERNAME
+            const bbsURL = process.env.BITBUCKET_SERVER_URL
+            const bbsToken = process.env.BITBUCKET_SERVER_TOKEN
+            const bbsUsername = process.env.BITBUCKET_SERVER_USERNAME
 
-        const testIfBBSCredentialsSet = bbsURL && bbsToken && bbsUsername ? test : test.skip.bind(test)
+            const testIfBBSCredentialsSet =
+                bbsURL && bbsToken && bbsUsername ? test : test.skip.bind(test)
 
         testIfBBSCredentialsSet('Bitbucket Server', async () => {
             await driver.ensureHasExternalService({
@@ -322,9 +352,13 @@ describe('e2e test suite', () => {
                 ensureRepos: ['bbs/SOURCEGRAPH/jsonrpc2'],
             })
             await driver.page.goto(sourcegraphBaseUrl + '/bbs/SOURCEGRAPH/jsonrpc2/-/blob/.travis.yml')
-            const blob = (await (
-                await driver.page.waitFor(() => document.querySelector<HTMLElement>('.test-repo-blob')?.textContent)
-            ).jsonValue()) as string | null
+        const blob =
+            (await (await driver.page.waitFor(
+                        () => document
+                                  .querySelector<HTMLElement>('.test-repo-blob')
+                                  ?.textContent))
+                 .jsonValue()) as string |
+            null
 
             expect(blob).toBe('language: go\ngo: \n - 1.x\n\nscript:\n - go test -race -v ./...')
         })
@@ -337,20 +371,28 @@ describe('e2e test suite', () => {
             await percySnapshot(driver.page, 'Repositories list')
         })
 
-        test('Search results repo', async () => {
-            await driver.page.goto(
-                sourcegraphBaseUrl + '/search?q=repo:%5Egithub.com/gorilla/mux%24&patternType=regexp'
-            )
-            await driver.page.waitForSelector('a[href="/github.com/gorilla/mux"]', { visible: true })
+    test(
+        'Search results repo',
+        async () => {
+            await driver.page
+                .goto(
+                    sourcegraphBaseUrl +
+                    '/search?q=repo:%5Egithub.com/gorilla/mux%24&patternType=regexp')
+                    await driver.page.waitForSelector(
+                        'a[href="/github.com/gorilla/mux"]', {visible : true})
             // Flaky https://github.com/sourcegraph/sourcegraph/issues/2704
             // await percySnapshot(page, 'Search results repo')
         })
 
-        test('Search results file', async () => {
-            await driver.page.goto(
-                sourcegraphBaseUrl + '/search?q=repo:%5Egithub.com/gorilla/mux%24+file:%5Emux.go%24&patternType=regexp'
-            )
-            await driver.page.waitForSelector('a[href="/github.com/gorilla/mux"]', { visible: true })
+    test(
+        'Search results file',
+        async () => {
+            await driver.page
+                .goto(
+                    sourcegraphBaseUrl +
+                    '/search?q=repo:%5Egithub.com/gorilla/mux%24+file:%5Emux.go%24&patternType=regexp')
+                    await driver.page.waitForSelector(
+                        'a[href="/github.com/gorilla/mux"]', {visible : true})
             // Flaky https://github.com/sourcegraph/sourcegraph/issues/2704
             // await percySnapshot(page, 'Search results file')
         })
@@ -361,43 +403,51 @@ describe('e2e test suite', () => {
             await driver.page.goto(sourcegraphBaseUrl + '/search?q=type:repo+visibility:private')
             await driver.page.waitForFunction(() => document.querySelectorAll('.test-search-result').length >= 1)
 
-            const privateResults = await driver.page.evaluate(() =>
-                [...document.querySelectorAll('.test-search-result-label')].map(label =>
-                    (label.textContent || '').trim()
-                )
-            )
-            expect(privateResults).toEqual(expect.arrayContaining(privateRepos))
+        const privateResults = await driver.page.evaluate(
+            () => [...document.querySelectorAll('.test-search-result-label')]
+                      .map(label => (label.textContent || '').trim()))
+        expect(privateResults)
+            .toEqual(expect.arrayContaining(privateRepos))
 
-            await driver.page.goto(sourcegraphBaseUrl + '/search?q=type:repo+visibility:public')
-            await driver.page.waitForFunction(() => document.querySelectorAll('.test-search-result').length > 1)
+                await driver.page
+            .goto(sourcegraphBaseUrl + '/search?q=type:repo+visibility:public')
+                await driver.page.waitForFunction(
+                    () => document.querySelectorAll('.test-search-result')
+                              .length > 1)
 
-            const publicResults = await driver.page.evaluate(() =>
-                [...document.querySelectorAll('.etest-search-result-label')].map(label =>
-                    (label.textContent || '').trim()
-                )
-            )
-            expect(publicResults).not.toEqual(expect.arrayContaining(privateRepos))
+        const publicResults = await driver.page.evaluate(
+            () => [...document.querySelectorAll('.etest-search-result-label')]
+                      .map(label => (label.textContent || '').trim()))
+        expect(publicResults)
+            .not
+            .toEqual(expect.arrayContaining(privateRepos))
 
-            await driver.page.goto(sourcegraphBaseUrl + '/search?q=type:repo+visibility:any')
-            await driver.page.waitForFunction(() => document.querySelectorAll('.test-search-result').length > 1)
+                await driver.page
+            .goto(sourcegraphBaseUrl + '/search?q=type:repo+visibility:any')
+                await driver.page.waitForFunction(
+                    () => document.querySelectorAll('.test-search-result')
+                              .length > 1)
 
-            const anyResults = await driver.page.evaluate(() =>
-                [...document.querySelectorAll('.test-search-result-label')].map(label =>
-                    (label.textContent || '').trim()
-                )
-            )
+        const anyResults = await driver.page.evaluate(
+            () => [...document.querySelectorAll('.test-search-result-label')]
+                      .map(label => (label.textContent || '').trim()))
             expect(anyResults).toEqual(expect.arrayContaining(privateRepos))
         })
 
-        test('Search results code', async () => {
-            await driver.page.goto(
-                sourcegraphBaseUrl +
-                    '/search?q=repo:^github.com/gorilla/mux$&patternType=regexp file:mux.go "func NewRouter"'
-            )
-            await driver.page.waitForSelector('a[href="/github.com/gorilla/mux"]', { visible: true })
-            // Flaky https://github.com/sourcegraph/sourcegraph/issues/2704
-            // await percySnapshot(page, 'Search results code')
-        })
+            test(
+                'Search results code',
+                async () => {
+                    await driver.page
+                        .goto(
+                            sourcegraphBaseUrl +
+                            '/search?q=repo:^github.com/gorilla/mux$&patternType=regexp file:mux.go "func NewRouter"')
+                            await driver.page.waitForSelector(
+                                'a[href="/github.com/gorilla/mux"]',
+                                {visible : true})
+                    // Flaky
+                    // https://github.com/sourcegraph/sourcegraph/issues/2704
+                    // await percySnapshot(page, 'Search results code')
+                })
 
         test('Site admin overview', async () => {
             await driver.page.goto(sourcegraphBaseUrl + '/site-admin')
@@ -412,60 +462,67 @@ describe('e2e test suite', () => {
             await driver.page.goto(sourcegraphBaseUrl + '/github.com/gorilla/mux/-/blob/mux.go')
             await driver.page.waitForSelector('.theme.theme-dark, .theme.theme-light', { visible: true })
 
-            const getActiveThemeClasses = (): Promise<string[]> =>
-                driver.page.evaluate(() =>
-                    [...document.querySelector('.theme')!.classList].filter(className => className.startsWith('theme-'))
-                )
+    const getActiveThemeClasses = (): Promise<string[]> => driver.page.evaluate(
+        () => [...document.querySelector('.theme')!.classList].filter(
+            className => className.startsWith('theme-')))
 
-            expect(await getActiveThemeClasses()).toHaveLength(1)
-            await driver.page.waitForSelector('.test-user-nav-item-toggle')
-            await driver.page.click('.test-user-nav-item-toggle')
+    expect(await getActiveThemeClasses())
+        .toHaveLength(1) await driver.page
+        .waitForSelector('.test-user-nav-item-toggle') await driver.page
+        .click('.test-user-nav-item-toggle')
 
-            // Switch to dark
-            await driver.page.select('.test-theme-toggle', 'dark')
-            expect(await getActiveThemeClasses()).toEqual(['theme-dark'])
+        // Switch to dark
+        await driver.page.select('.test-theme-toggle', 'dark')
+    expect(await getActiveThemeClasses())
+        .toEqual([ 'theme-dark' ])
 
-            // Switch to light
-            await driver.page.select('.test-theme-toggle', 'light')
+        // Switch to light
+        await driver.page.select('.test-theme-toggle', 'light')
             expect(await getActiveThemeClasses()).toEqual(['theme-light'])
         })
     })
 
     describe('Repository component', () => {
         const blobTableSelector = '.test-blob > table'
-        /**
-         * @param line 1-indexed line number
-         * @param spanOffset 1-indexed index of the span that's to be clicked
-         */
+    /**
+     * @param line 1-indexed line number
+     * @param spanOffset 1-indexed index of the span that's to be clicked
+     */
         const clickToken = async (line: number, spanOffset: number): Promise<void> => {
-            const selector = `${blobTableSelector} tr:nth-child(${line}) > td.code > div:nth-child(1) > span:nth-child(${spanOffset})`
-            await driver.page.waitForSelector(selector, { visible: true })
-            await driver.page.click(selector)
+  const selector = `${blobTableSelector} tr:nth-child(${
+                       line}) > td.code > div:nth-child(1) > span:nth-child(${
+                       spanOffset})` await driver.page
+                       .waitForSelector(selector, {visible : true})
+                           await driver.page.click(selector)
         }
 
         const getHoverContents = async (): Promise<string[]> => {
-            // Search for any child of test-tooltip-content: as test-tooltip-content has display: contents,
-            // it will never be detected as visible by waitForSelector(), but its children will.
-            const selector = '.test-tooltip-content *'
-            await driver.page.waitForSelector(selector, { visible: true })
-            return driver.page.evaluate(() =>
-                // You can't reference hoverContentSelector in puppeteer's driver.page.evaluate
-                [...document.querySelectorAll('.test-tooltip-content')].map(content => content.textContent || '')
-            )
+  // Search for any child of test-tooltip-content: as test-tooltip-content has
+  // display: contents, it will never be detected as visible by
+  // waitForSelector(), but its children will.
+  const selector = '.test-tooltip-content *' await driver.page.waitForSelector(
+      selector, {visible : true})
+  return driver.page.evaluate(
+      () =>
+          // You can't reference hoverContentSelector in puppeteer's
+          // driver.page.evaluate
+              [...document.querySelectorAll('.test-tooltip-content')].map(
+                  content => content.textContent || ''))
         }
         const assertHoverContentContains = async (value: string): Promise<void> => {
-            expect(await getHoverContents()).toEqual(expect.arrayContaining([expect.stringContaining(value)]))
+  expect(await getHoverContents())
+      .toEqual(expect.arrayContaining([ expect.stringContaining(value) ]))
         }
 
         const clickHoverJ2D = async (): Promise<void> => {
-            const selector = '.test-tooltip-go-to-definition'
-            await driver.page.waitForSelector(selector, { visible: true })
-            await driver.page.click(selector)
+  const selector = '.test-tooltip-go-to-definition' await driver.page
+                       .waitForSelector(selector, {visible : true})
+                           await driver.page.click(selector)
         }
         const clickHoverFindReferences = async (): Promise<void> => {
-            const selector = '.test-tooltip-find-references'
-            await driver.page.waitForSelector(selector, { visible: true })
-            await driver.page.click(selector)
+  const selector = '.test-tooltip-find-references' await driver.page
+                       .waitForSelector(selector, {visible : true})
+                           await driver.page.click(selector)
         }
 
         describe('file tree', () => {
@@ -483,49 +540,61 @@ describe('e2e test suite', () => {
                 )
             })
 
-            test('expands directory on row click (no navigation)', async () => {
-                await driver.page.goto(
-                    sourcegraphBaseUrl + '/github.com/sourcegraph/jsonrpc2@c6c7b9aa99fb76ee5460ccd3912ba35d419d493d'
-                )
-                await driver.page.waitForSelector('.tree__row-icon', { visible: true })
-                await driver.page.click('.tree__row-icon')
-                await driver.page.waitForSelector('.tree__row--selected [data-tree-path="websocket"]', {
-                    visible: true,
-                })
-                await driver.page.waitForSelector('.tree__row--expanded [data-tree-path="websocket"]', {
-                    visible: true,
-                })
-                await driver.assertWindowLocation(
-                    '/github.com/sourcegraph/jsonrpc2@c6c7b9aa99fb76ee5460ccd3912ba35d419d493d'
-                )
-            })
+        test(
+            'expands directory on row click (no navigation)',
+            async () => {
+                await driver.page
+                    .goto(
+                        sourcegraphBaseUrl +
+                        '/github.com/sourcegraph/jsonrpc2@c6c7b9aa99fb76ee5460ccd3912ba35d419d493d')
+                        await driver.page
+                    .waitForSelector('.tree__row-icon', {visible : true})
+                        await driver.page.click('.tree__row-icon')
+                            await driver.page
+                    .waitForSelector(
+                        '.tree__row--selected [data-tree-path="websocket"]', {
+                          visible : true,
+                        }) await driver.page
+                    .waitForSelector(
+                        '.tree__row--expanded [data-tree-path="websocket"]', {
+                          visible : true,
+                        }) await driver
+                    .assertWindowLocation(
+                        '/github.com/sourcegraph/jsonrpc2@c6c7b9aa99fb76ee5460ccd3912ba35d419d493d')})
 
-            test('does navigation on directory row click', async () => {
-                await driver.page.goto(
-                    sourcegraphBaseUrl + '/github.com/sourcegraph/jsonrpc2@c6c7b9aa99fb76ee5460ccd3912ba35d419d493d'
-                )
-                await driver.page.waitForSelector('.tree__row-label', { visible: true })
-                await driver.page.click('.tree__row-label')
-                await driver.page.waitForSelector('.tree__row--selected [data-tree-path="websocket"]', {
-                    visible: true,
-                })
-                await driver.page.waitForSelector('.tree__row--expanded [data-tree-path="websocket"]', {
-                    visible: true,
-                })
-                await driver.assertWindowLocation(
-                    '/github.com/sourcegraph/jsonrpc2@c6c7b9aa99fb76ee5460ccd3912ba35d419d493d/-/tree/websocket'
-                )
-            })
+        test(
+            'does navigation on directory row click',
+            async () => {
+                await driver.page
+                    .goto(
+                        sourcegraphBaseUrl +
+                        '/github.com/sourcegraph/jsonrpc2@c6c7b9aa99fb76ee5460ccd3912ba35d419d493d')
+                        await driver.page
+                    .waitForSelector('.tree__row-label', {visible : true})
+                        await driver.page.click('.tree__row-label')
+                            await driver.page
+                    .waitForSelector(
+                        '.tree__row--selected [data-tree-path="websocket"]', {
+                          visible : true,
+                        }) await driver.page
+                    .waitForSelector(
+                        '.tree__row--expanded [data-tree-path="websocket"]', {
+                          visible : true,
+                        }) await driver
+                    .assertWindowLocation(
+                        '/github.com/sourcegraph/jsonrpc2@c6c7b9aa99fb76ee5460ccd3912ba35d419d493d/-/tree/websocket')})
 
-            test('selects the current file', async () => {
-                await driver.page.goto(
-                    sourcegraphBaseUrl +
-                        '/github.com/sourcegraph/jsonrpc2@c6c7b9aa99fb76ee5460ccd3912ba35d419d493d/-/blob/async.go'
-                )
-                await driver.page.waitForSelector('.tree__row--active [data-tree-path="async.go"]', {
-                    visible: true,
-                })
-            })
+        test(
+            'selects the current file',
+            async () => {
+                await driver.page
+                    .goto(
+                        sourcegraphBaseUrl +
+                        '/github.com/sourcegraph/jsonrpc2@c6c7b9aa99fb76ee5460ccd3912ba35d419d493d/-/blob/async.go')
+                        await driver.page.waitForSelector(
+                            '.tree__row--active [data-tree-path="async.go"]', {
+                              visible : true,
+                            })})
 
             test('shows partial tree when opening directory', async () => {
                 await driver.page.goto(
@@ -538,9 +607,9 @@ describe('e2e test suite', () => {
 
             test('responds to keyboard shortcuts', async () => {
                 const assertNumberRowsExpanded = async (expectedCount: number): Promise<void> => {
-                    expect(
-                        await driver.page.evaluate(() => document.querySelectorAll('.tree__row--expanded').length)
-                    ).toEqual(expectedCount)
+  expect(await driver.page.evaluate(
+             () => document.querySelectorAll('.tree__row--expanded').length))
+      .toEqual(expectedCount)
                 }
                 await driver.page.goto(
                     sourcegraphBaseUrl +
@@ -598,20 +667,25 @@ describe('e2e test suite', () => {
                 await assertNumberRowsExpanded(1) // only `diff` directory expanded
             })
         })
-        describe('symbol sidebar', () => {
-            const listSymbolsTests = [
-                {
-                    name: 'lists symbols in file for Go',
-                    filePath:
-                        '/github.com/sourcegraph/go-diff@3f415a150aec0685cb81b73cc201e762e075006d/-/blob/cmd/go-diff/go-diff.go',
-                    symbolNames: ['main', 'stdin', 'diffPath', 'fileIdx', 'main'],
-                    symbolTypes: ['package', 'constant', 'variable', 'variable', 'function'],
-                },
-                {
-                    name: 'lists symbols in another file for Go',
-                    filePath:
-                        '/github.com/sourcegraph/go-diff@3f415a150aec0685cb81b73cc201e762e075006d/-/blob/diff/diff.go',
-                    symbolNames: [
+            describe('symbol sidebar', () => {
+              const listSymbolsTests =
+                  [
+                    {
+                      name : 'lists symbols in file for Go',
+                      filePath :
+                          '/github.com/sourcegraph/go-diff@3f415a150aec0685cb81b73cc201e762e075006d/-/blob/cmd/go-diff/go-diff.go',
+                      symbolNames :
+                          [ 'main', 'stdin', 'diffPath', 'fileIdx', 'main' ],
+                      symbolTypes : [
+                        'package', 'constant', 'variable', 'variable',
+                        'function'
+                      ],
+                    },
+                    {
+                      name : 'lists symbols in another file for Go',
+                      filePath :
+                          '/github.com/sourcegraph/go-diff@3f415a150aec0685cb81b73cc201e762e075006d/-/blob/diff/diff.go',
+                      symbolNames : [
                         'diff',
                         'Stat',
                         'Stat',
@@ -620,8 +694,8 @@ describe('e2e test suite', () => {
                         'diffTimeParseLayout',
                         'diffTimeFormatLayout',
                         'add',
-                    ],
-                    symbolTypes: [
+                      ],
+                      symbolTypes : [
                         'package',
                         'function',
                         'function',
@@ -630,13 +704,13 @@ describe('e2e test suite', () => {
                         'constant',
                         'constant',
                         'function',
-                    ],
-                },
-                {
-                    name: 'lists symbols in file for Python',
-                    filePath:
-                        '/github.com/sourcegraph/appdash@ebfcffb1b5c00031ce797183546746715a3cfe87/-/blob/python/appdash/sockcollector.py',
-                    symbolNames: [
+                      ],
+                    },
+                    {
+                      name : 'lists symbols in file for Python',
+                      filePath :
+                          '/github.com/sourcegraph/appdash@ebfcffb1b5c00031ce797183546746715a3cfe87/-/blob/python/appdash/sockcollector.py',
+                      symbolNames : [
                         'RemoteCollector',
                         'sock',
                         '_debug',
@@ -645,28 +719,34 @@ describe('e2e test suite', () => {
                         'connect',
                         'collect',
                         'close',
-                    ],
-                    symbolTypes: ['class', 'variable', 'variable', 'field', 'field', 'field', 'field', 'field'],
-                },
-                {
-                    name: 'lists symbols in file for TypeScript',
-                    filePath:
-                        '/github.com/sourcegraph/sourcegraph-typescript@a7b7a61e31af76dad3543adec359fa68737a58a1/-/blob/server/src/cancellation.ts',
-                    symbolNames: [
+                      ],
+                      symbolTypes : [
+                        'class', 'variable', 'variable', 'field', 'field',
+                        'field', 'field', 'field'
+                      ],
+                    },
+                    {
+                      name : 'lists symbols in file for TypeScript',
+                      filePath :
+                          '/github.com/sourcegraph/sourcegraph-typescript@a7b7a61e31af76dad3543adec359fa68737a58a1/-/blob/server/src/cancellation.ts',
+                      symbolNames : [
                         'createAbortError',
                         'isAbortError',
                         'throwIfCancelled',
                         'tryCancel',
                         'toAxiosCancelToken',
                         'source',
-                    ],
-                    symbolTypes: ['constant', 'constant', 'function', 'function', 'function', 'constant'],
-                },
-                {
-                    name: 'lists symbols in file for Java',
-                    filePath:
-                        '/github.com/sourcegraph/java-langserver@03efbe9558acc532e88f5288b4e6cfa155c6f2dc/-/blob/src/main/java/com/sourcegraph/common/Config.java',
-                    symbolNames: [
+                      ],
+                      symbolTypes : [
+                        'constant', 'constant', 'function', 'function',
+                        'function', 'constant'
+                      ],
+                    },
+                    {
+                      name : 'lists symbols in file for Java',
+                      filePath :
+                          '/github.com/sourcegraph/java-langserver@03efbe9558acc532e88f5288b4e6cfa155c6f2dc/-/blob/src/main/java/com/sourcegraph/common/Config.java',
+                      symbolNames : [
                         'com.sourcegraph.common',
                         'Config',
                         'LIGHTSTEP_INCLUDE_SENSITIVE',
@@ -686,32 +766,17 @@ describe('e2e test suite', () => {
                         'log',
                         'checkEnv',
                         'ConfigException',
-                    ],
-                    symbolTypes: [
-                        'package',
-                        'class',
-                        'field',
-                        'field',
-                        'field',
-                        'field',
-                        'field',
-                        'field',
-                        'field',
-                        'field',
-                        'field',
-                        'method',
-                        'field',
-                        'field',
-                        'field',
-                        'field',
-                        'field',
-                        'method',
-                        'class',
-                    ],
-                },
-            ]
+                      ],
+                      symbolTypes : [
+                        'package', 'class',  'field',  'field', 'field',
+                        'field',   'field',  'field',  'field', 'field',
+                        'field',   'method', 'field',  'field', 'field',
+                        'field',   'field',  'method', 'class',
+                      ],
+                    },
+                  ]
 
-            for (const symbolTest of listSymbolsTests) {
+                  for (const symbolTest of listSymbolsTests) {
                 test(symbolTest.name, async () => {
                     await driver.page.goto(sourcegraphBaseUrl + symbolTest.filePath)
 
@@ -719,89 +784,112 @@ describe('e2e test suite', () => {
 
                     await driver.page.waitForSelector('.test-symbol-name', { visible: true })
 
-                    const symbolNames = await driver.page.evaluate(() =>
-                        [...document.querySelectorAll('.test-symbol-name')].map(name => name.textContent || '')
-                    )
-                    const symbolTypes = await driver.page.evaluate(() =>
-                        [...document.querySelectorAll('.test-symbol-icon')].map(
-                            icon => icon.getAttribute('data-tooltip') || ''
-                        )
-                    )
+                const symbolNames = await driver.page.evaluate(
+                    () => [...document.querySelectorAll('.test-symbol-name')]
+                              .map(name => name.textContent || ''))
+                const symbolTypes = await driver.page.evaluate(
+                    () => [...document.querySelectorAll('.test-symbol-icon')]
+                              .map(icon =>
+                                       icon.getAttribute('data-tooltip') || ''))
 
-                    expect(sortBy(symbolNames)).toEqual(sortBy(symbolTest.symbolNames))
+                expect(sortBy(symbolNames))
+                    .toEqual(sortBy(symbolTest.symbolNames))
                     expect(sortBy(symbolTypes)).toEqual(sortBy(symbolTest.symbolTypes))
                 })
-            }
+              }
 
-            const navigateToSymbolTests = [
-                {
-                    name: 'navigates to file on symbol click for Go',
-                    repoPath: '/github.com/sourcegraph/go-diff@3f415a150aec0685cb81b73cc201e762e075006d',
-                    filePath: '/tree/cmd',
-                    symbolPath: '/blob/cmd/go-diff/go-diff.go#L19:2-19:10',
-                },
-                {
-                    name: 'navigates to file on symbol click for Java',
-                    repoPath: '/github.com/sourcegraph/java-langserver@03efbe9558acc532e88f5288b4e6cfa155c6f2dc',
-                    filePath: '/tree/src/main/java/com/sourcegraph/common',
-                    symbolPath: '/blob/src/main/java/com/sourcegraph/common/Config.java#L14:20-14:26',
-                    skip: true,
-                },
-                {
-                    name:
-                        'displays valid symbols at different file depths for Go (./examples/cmd/webapp-opentracing/main.go.go)',
-                    repoPath: '/github.com/sourcegraph/appdash@ebfcffb1b5c00031ce797183546746715a3cfe87',
-                    filePath: '/tree/examples',
-                    symbolPath: '/blob/examples/cmd/webapp-opentracing/main.go#L26:6-26:10',
-                    skip: true,
-                },
-                {
-                    name: 'displays valid symbols at different file depths for Go (./sqltrace/sql.go)',
-                    repoPath: '/github.com/sourcegraph/appdash@ebfcffb1b5c00031ce797183546746715a3cfe87',
-                    filePath: '/tree/sqltrace',
-                    symbolPath: '/blob/sqltrace/sql.go#L14:2-14:5',
-                    skip: true,
-                },
-            ]
+              const navigateToSymbolTests =
+                  [
+                    {
+                      name : 'navigates to file on symbol click for Go',
+                      repoPath :
+                          '/github.com/sourcegraph/go-diff@3f415a150aec0685cb81b73cc201e762e075006d',
+                      filePath : '/tree/cmd',
+                      symbolPath : '/blob/cmd/go-diff/go-diff.go#L19:2-19:10',
+                    },
+                    {
+                      name : 'navigates to file on symbol click for Java',
+                      repoPath :
+                          '/github.com/sourcegraph/java-langserver@03efbe9558acc532e88f5288b4e6cfa155c6f2dc',
+                      filePath : '/tree/src/main/java/com/sourcegraph/common',
+                      symbolPath :
+                          '/blob/src/main/java/com/sourcegraph/common/Config.java#L14:20-14:26',
+                      skip : true,
+                    },
+                    {
+                      name :
+                          'displays valid symbols at different file depths for Go (./examples/cmd/webapp-opentracing/main.go.go)',
+                      repoPath :
+                          '/github.com/sourcegraph/appdash@ebfcffb1b5c00031ce797183546746715a3cfe87',
+                      filePath : '/tree/examples',
+                      symbolPath :
+                          '/blob/examples/cmd/webapp-opentracing/main.go#L26:6-26:10',
+                      skip : true,
+                    },
+                    {
+                      name :
+                          'displays valid symbols at different file depths for Go (./sqltrace/sql.go)',
+                      repoPath :
+                          '/github.com/sourcegraph/appdash@ebfcffb1b5c00031ce797183546746715a3cfe87',
+                      filePath : '/tree/sqltrace',
+                      symbolPath : '/blob/sqltrace/sql.go#L14:2-14:5',
+                      skip : true,
+                    },
+                  ]
 
-            for (const navigationTest of navigateToSymbolTests) {
+                  for (const navigationTest of navigateToSymbolTests) {
                 const testFunc = navigationTest.skip ? test.skip : test
-                testFunc(navigationTest.name, async () => {
-                    const repoBaseURL = sourcegraphBaseUrl + navigationTest.repoPath + '/-'
+                testFunc(
+                    navigationTest.name,
+                    async () => {
+                        const repoBaseURL =
+                            sourcegraphBaseUrl + navigationTest.repoPath +
+                            '/-'
 
-                    await driver.page.goto(repoBaseURL + navigationTest.filePath)
+                            await driver.page
+                                .goto(repoBaseURL + navigationTest.filePath)
 
-                    await (await driver.page.waitForSelector('[data-test-tab="symbols"]')).click()
+                                    await (await driver.page.waitForSelector(
+                                        '[data-test-tab="symbols"]'))
+                                .click()
 
-                    await driver.page.waitForSelector('.test-symbol-name', { visible: true })
+                                    await driver.page
+                                .waitForSelector('.test-symbol-name',
+                                                 {visible : true})
 
-                    await (
-                        await driver.page.waitForSelector(`.test-symbol-link[href*="${navigationTest.symbolPath}"]`, {
-                            visible: true,
-                        })
-                    ).click()
-                    await driver.assertWindowLocation(repoBaseURL + navigationTest.symbolPath, true)
-                })
-            }
+                                    await (await driver.page.waitForSelector(
+                                        `.test-symbol-link[href*="${
+                                            navigationTest.symbolPath}"]`,
+                                        {
+                                          visible : true,
+                                        }))
+                                .click() await driver.assertWindowLocation(
+                                    repoBaseURL + navigationTest.symbolPath,
+                                    true)})
+              }
 
-            const highlightSymbolTests = [
-                {
-                    name: 'highlights correct line for Go',
-                    filePath:
-                        '/github.com/sourcegraph/go-diff@3f415a150aec0685cb81b73cc201e762e075006d/-/blob/diff/diff.go',
-                    index: 5,
-                    line: 65,
-                },
-                {
-                    name: 'highlights correct line for TypeScript',
-                    filePath:
-                        '/github.com/sourcegraph/sourcegraph-typescript@a7b7a61e31af76dad3543adec359fa68737a58a1/-/blob/server/src/cancellation.ts',
-                    index: 2,
-                    line: 17,
-                },
-            ]
+              const highlightSymbolTests =
+                  [
+                    {
+                      name : 'highlights correct line for Go',
+                      filePath :
+                          '/github.com/sourcegraph/go-diff@3f415a150aec0685cb81b73cc201e762e075006d/-/blob/diff/diff.go',
+                      index : 5,
+                      line : 65,
+                    },
+                    {
+                      name : 'highlights correct line for TypeScript',
+                      filePath :
+                          '/github.com/sourcegraph/sourcegraph-typescript@a7b7a61e31af76dad3543adec359fa68737a58a1/-/blob/server/src/cancellation.ts',
+                      index : 2,
+                      line : 17,
+                    },
+                  ]
 
-            for (const { name, filePath, index, line } of highlightSymbolTests) {
+                  for (const {name,
+                              filePath,
+                              index,
+                              line} of highlightSymbolTests) {
                 test(name, async () => {
                     await driver.page.goto(sourcegraphBaseUrl + filePath)
                     await driver.page.waitForSelector('[data-test-tab="symbols"]')
@@ -817,8 +905,8 @@ describe('e2e test suite', () => {
 
                     expect(selectedLineNumber).toEqual(line)
                 })
-            }
-        })
+              }
+            })
 
         describe('directory page', () => {
             it('shows a row for each file in the directory', async () => {
@@ -842,38 +930,55 @@ describe('e2e test suite', () => {
                 )
             })
 
-            test('shows commit information on a row', async () => {
-                await driver.page.goto(
-                    sourcegraphBaseUrl + '/github.com/sourcegraph/go-diff@3f415a150aec0685cb81b73cc201e762e075006d',
-                    {
-                        waitUntil: 'domcontentloaded',
-                    }
-                )
-                await driver.page.waitForSelector('.test-tree-page-no-recent-commits')
-                await driver.page.click('.test-tree-page-show-all-commits')
-                await driver.page.waitForSelector('.git-commit-node__message', { visible: true })
-                await retry(async () =>
-                    expect(
-                        await driver.page.evaluate(
-                            () => document.querySelectorAll('.git-commit-node__message')[3].textContent
-                        )
-                    ).toContain('Add support for new/removed binary files.')
-                )
-                await retry(async () =>
-                    expect(
-                        await driver.page.evaluate(() =>
-                            document.querySelectorAll('.git-commit-node-byline')[3].textContent!.trim()
-                        )
-                    ).toContain('Dmitri Shuralyov')
-                )
-                await retry(async () =>
-                    expect(
-                        await driver.page.evaluate(
-                            () => document.querySelectorAll('.git-commit-node__oid')[3].textContent
-                        )
-                    ).toEqual('2083912')
-                )
-            })
+        test(
+            'shows commit information on a row',
+            async () => {
+                await driver.page
+                    .goto(
+                        sourcegraphBaseUrl +
+                            '/github.com/sourcegraph/go-diff@3f415a150aec0685cb81b73cc201e762e075006d',
+                        {
+                          waitUntil : 'domcontentloaded',
+                        }) await driver.page
+                    .waitForSelector('.test-tree-page-no-recent-commits')
+                        await driver.page
+                    .click('.test-tree-page-show-all-commits') await driver.page
+                    .waitForSelector('.git-commit-node__message',
+                                     {visible : true})
+                        await retry(
+                            async () =>
+                                expect(
+                                    await driver.page.evaluate(
+                                        () =>
+                                            document
+                                                .querySelectorAll(
+                                                    '.git-commit-node__message')
+                                                    [3]
+                                                .textContent))
+                                    .toContain(
+                                        'Add support for new/removed binary files.'))
+                            await retry(
+                                async () =>
+                                    expect(
+                                        await driver.page.evaluate(
+                                            () =>
+                                                document
+                                                    .querySelectorAll(
+                                                        '.git-commit-node-byline')
+                                                        [3]
+                                                    .textContent!.trim()))
+                                        .toContain('Dmitri Shuralyov'))
+                                await retry(
+                                    async () =>
+                                        expect(
+                                            await driver.page.evaluate(
+                                                () =>
+                                                    document
+                                                        .querySelectorAll(
+                                                            '.git-commit-node__oid')
+                                                            [3]
+                                                        .textContent))
+                                            .toEqual('2083912'))})
 
             it('navigates when clicking on a row', async () => {
                 await driver.page.goto(
@@ -899,17 +1004,24 @@ describe('e2e test suite', () => {
                 )
             })
 
-            test('resolves default branch when unspecified', async () => {
-                await driver.page.goto(sourcegraphBaseUrl + '/github.com/sourcegraph/go-diff/-/blob/diff/diff.go')
-                await driver.page.waitForSelector('#repo-revision-popover', { visible: true })
-                await retry(async () => {
-                    expect(
-                        await driver.page.evaluate(() => document.querySelector('.test-revision')!.textContent!.trim())
-                    ).toEqual('master')
-                })
+        test(
+            'resolves default branch when unspecified',
+            async () => {
+                await driver.page
+                    .goto(sourcegraphBaseUrl +
+                          '/github.com/sourcegraph/go-diff/-/blob/diff/diff.go')
+                        await driver.page
+                    .waitForSelector('#repo-revision-popover', {visible : true})
+                        await retry(
+                            async () => {
+                                expect(await driver.page.evaluate(
+                                           () => document
+                                                     .querySelector(
+                                                         '.test-revision')!
+                                                     .textContent!.trim()))
+                                    .toEqual('master')})
                 // Verify file contents are loaded.
-                await driver.page.waitForSelector(blobTableSelector)
-            })
+                await driver.page.waitForSelector(blobTableSelector)})
 
             test('updates revision with switcher', async () => {
                 await driver.page.goto(sourcegraphBaseUrl + '/github.com/sourcegraph/go-diff/-/blob/diff/diff.go')
@@ -940,15 +1052,14 @@ describe('e2e test suite', () => {
                     await percySnapshot(driver.page, 'Code intel hover tooltip')
                 })
 
-                test('gets displayed when navigating to a URL with a token position', async () => {
-                    await driver.page.goto(
-                        sourcegraphBaseUrl +
-                            '/github.com/gorilla/mux@15a353a636720571d19e37b34a14499c3afa9991/-/blob/mux.go#L151:23'
-                    )
+        test(
+            'gets displayed when navigating to a URL with a token position',
+            async () => {
+                await driver.page.goto(
+                    sourcegraphBaseUrl +
+                    '/github.com/gorilla/mux@15a353a636720571d19e37b34a14499c3afa9991/-/blob/mux.go#L151:23')
                     await assertHoverContentContains(
-                        'ErrMethodMismatch is returned when the method in the request does not match'
-                    )
-                })
+                        'ErrMethodMismatch is returned when the method in the request does not match')})
 
                 describe('jump to definition', () => {
                     test('noops when on the definition', async () => {
@@ -962,35 +1073,38 @@ describe('e2e test suite', () => {
                         )
                     })
 
-                    test('does navigation (same repo, same file)', async () => {
-                        await driver.page.goto(
-                            sourcegraphBaseUrl +
-                                '/github.com/sourcegraph/go-diff@3f415a150aec0685cb81b73cc201e762e075006d/-/blob/diff/parse.go#L25:10'
-                        )
-                        await clickHoverJ2D()
-                        await driver.assertWindowLocation(
-                            '/github.com/sourcegraph/go-diff@3f415a150aec0685cb81b73cc201e762e075006d/-/blob/diff/parse.go#L29:6'
-                        )
-                    })
+                test(
+                    'does navigation (same repo, same file)',
+                    async () => {
+                        await driver.page
+                            .goto(
+                                sourcegraphBaseUrl +
+                                '/github.com/sourcegraph/go-diff@3f415a150aec0685cb81b73cc201e762e075006d/-/blob/diff/parse.go#L25:10')
+                                await clickHoverJ2D() await driver
+                            .assertWindowLocation(
+                                '/github.com/sourcegraph/go-diff@3f415a150aec0685cb81b73cc201e762e075006d/-/blob/diff/parse.go#L29:6')})
 
-                    test('does navigation (same repo, different file)', async () => {
-                        await driver.page.goto(
-                            sourcegraphBaseUrl +
-                                '/github.com/sourcegraph/go-diff@3f415a150aec0685cb81b73cc201e762e075006d/-/blob/diff/print.go#L13:31'
-                        )
-                        await clickHoverJ2D()
-                        await driver.assertWindowLocation(
-                            '/github.com/sourcegraph/go-diff@3f415a150aec0685cb81b73cc201e762e075006d/-/blob/diff/diff.pb.go#L38:6'
-                        )
+                test(
+                    'does navigation (same repo, different file)',
+                    async () => {
+                        await driver.page
+                            .goto(
+                                sourcegraphBaseUrl +
+                                '/github.com/sourcegraph/go-diff@3f415a150aec0685cb81b73cc201e762e075006d/-/blob/diff/print.go#L13:31')
+                                await clickHoverJ2D() await driver
+                            .assertWindowLocation(
+                                '/github.com/sourcegraph/go-diff@3f415a150aec0685cb81b73cc201e762e075006d/-/blob/diff/diff.pb.go#L38:6')
                         // Verify file tree is highlighting the new path.
-                        await driver.page.waitForSelector('.tree__row--active [data-tree-path="diff/diff.pb.go"]', {
-                            visible: true,
-                        })
-                    })
+                        await driver.page.waitForSelector(
+                            '.tree__row--active [data-tree-path="diff/diff.pb.go"]',
+                            {
+                              visible : true,
+                            })})
 
-                    // basic code intel doesn't support cross-repo jump-to-definition yet.
-                    // If this test gets re-enabled `sourcegraph/vcsstore` and
-                    // `sourcegraph/go-vcs` need to be cloned.
+                // basic code intel doesn't support cross-repo
+                // jump-to-definition yet. If this test gets re-enabled
+                // `sourcegraph/vcsstore` and `sourcegraph/go-vcs` need to be
+                // cloned.
                     test.skip('does navigation (external repo)', async () => {
                         await driver.page.goto(
                             sourcegraphBaseUrl +
@@ -1005,7 +1119,7 @@ describe('e2e test suite', () => {
 
                 describe('find references', () => {
                     test('opens widget and fetches local references', async function () {
-                        this.timeout(120000)
+  this.timeout(120000)
 
                         await driver.page.goto(
                             sourcegraphBaseUrl +
@@ -1039,8 +1153,8 @@ describe('e2e test suite', () => {
                         await driver.assertAllHighlightedTokens('MultiFileDiffReader')
                     })
 
-                    // TODO unskip this once basic-code-intel looks for external
-                    // references even when local references are found.
+                // TODO unskip this once basic-code-intel looks for external
+                // references even when local references are found.
                     test.skip('opens widget and fetches external references', async () => {
                         await driver.page.goto(
                             sourcegraphBaseUrl +
@@ -1068,17 +1182,21 @@ describe('e2e test suite', () => {
                 await driver.assertAllHighlightedTokens('Compare')
             })
 
-            test('resolves standard library function (from stdlib repo)', async () => {
+        test(
+            'resolves standard library function (from stdlib repo)',
+            async () => {
                 // https://godoc.org/github.com/golang/go/src/bytes#Compare
-                await driver.page.goto(
-                    sourcegraphBaseUrl +
-                        '/-/godoc/refs?def=Compare&pkg=github.com%2Fgolang%2Fgo%2Fsrc%2Fbytes&repo=github.com%2Fgolang%2Fgo'
-                )
-                await driver.assertWindowLocationPrefix('/github.com/golang/go/-/blob/src/bytes/bytes_decl.go')
-                await driver.assertStickyHighlightedToken('Compare')
-                await driver.assertNonemptyLocalRefs()
-                await driver.assertAllHighlightedTokens('Compare')
-            })
+                await driver.page
+                    .goto(
+                        sourcegraphBaseUrl +
+                        '/-/godoc/refs?def=Compare&pkg=github.com%2Fgolang%2Fgo%2Fsrc%2Fbytes&repo=github.com%2Fgolang%2Fgo')
+                        await driver
+                    .assertWindowLocationPrefix(
+                        '/github.com/golang/go/-/blob/src/bytes/bytes_decl.go')
+                        await driver
+                    .assertStickyHighlightedToken('Compare')
+                        await driver.assertNonemptyLocalRefs()
+                            await driver.assertAllHighlightedTokens('Compare')})
 
             test('resolves external package function (from gorilla/mux)', async () => {
                 // https://godoc.org/github.com/gorilla/mux#Router
@@ -1120,11 +1238,8 @@ describe('e2e test suite', () => {
             await driver.page.goto(sourcegraphBaseUrl + '/github.com/sourcegraph/go-diff')
 
             const operators: { [key: string]: string } = {
-                repo: '^github.com/sourcegraph/go-diff$',
-                count: '1000',
-                type: 'file',
-                file: '.go',
-                '-file': '.md',
+  repo: '^github.com/sourcegraph/go-diff$', count: '1000', type: 'file',
+      file: '.go', '-file': '.md',
             }
 
             const operatorsQuery = Object.keys(operators)
@@ -1174,14 +1289,15 @@ describe('e2e test suite', () => {
             before(async () => {
                 await driver.setConfig(['experimentalFeatures'], previous => {
                     previousExperimentalFeatures = previous?.value
-                    return { searchMultipleRevisionsPerRepository: true }
+                    return {
+  searchMultipleRevisionsPerRepository: true }
                 })
                 // Wait for configuration to be applied.
                 await new Promise(resolve => setTimeout(resolve, 6000))
             })
-            after(async () => {
-                await driver.setConfig(['experimentalFeatures'], () => previousExperimentalFeatures)
-            })
+                    after(async () => {await driver.setConfig(
+                              [ 'experimentalFeatures' ],
+                              () => previousExperimentalFeatures)})
 
             test('searches', async () => {
                 await driver.page.goto(
@@ -1196,62 +1312,83 @@ describe('e2e test suite', () => {
                     expect(label.includes('results')).toEqual(true)
                 })
 
-                const fileMatchHrefs = (
-                    await driver.page.$$eval('.test-file-match-children-item', as =>
-                        as.map(a => (a as HTMLAnchorElement).pathname)
-                    )
-                ).sort()
+                    const fileMatchHrefs =
+                        (await driver.page.$$eval(
+                             '.test-file-match-children-item', as
+                                                               => as.map(
+                                                                        a =>
+                                                                            (a as
+                                                                             HTMLAnchorElement)
+                                                                                .pathname)))
+                            .sort()
 
-                // Only check for specific branches, so that the test doesn't break when new
-                // branches are added (it's an active repository).
-                const checkBranches = [
-                    'master',
-                    'print-options',
+                    // Only check for specific branches, so that the test
+                    // doesn't break when new branches are added (it's an active
+                    // repository).
+                    const checkBranches = [
+                      'master',
+                      'print-options',
 
-                    // These next 2 branches are included because of the *refs/heads/ in the query.
-                    // If they are ever deleted from the actual live repository, replace them with
-                    // any other branches that still exist.
-                    'test-already-exist-pr',
-                    'bug-fix-wip',
-                ].sort()
+                      // These next 2 branches are included because of the
+                      // *refs/heads/ in the query. If they are ever deleted
+                      // from the actual live repository, replace them with any
+                      // other branches that still exist.
+                      'test-already-exist-pr',
+                      'bug-fix-wip',
+                    ].sort()
                 expect(
                     fileMatchHrefs.filter(href => checkBranches.some(branch => href.includes(`@${branch}/`)))
                 ).toEqual(checkBranches.map(branch => `/github.com/sourcegraph/go-diff@${branch}/-/blob/diff/parse.go`))
             })
         })
 
-        test('accepts query for sourcegraph/jsonrpc2', async () => {
-            await driver.page.goto(sourcegraphBaseUrl + '/search')
+                test(
+                    'accepts query for sourcegraph/jsonrpc2',
+                    async () => {
+                        await driver.page
+                            .goto(sourcegraphBaseUrl + '/search')
 
-            // Update the input value
-            await driver.page.waitForSelector('#monaco-query-input', { visible: true })
-            await driver.page.keyboard.type('test repo:sourcegraph/jsonrpc2@c6c7b9aa99fb76ee5460ccd3912ba35d419d493d')
+                        // Update the input value
+                        await driver.page
+                            .waitForSelector('#monaco-query-input',
+                                             {visible : true})
+                                await driver.page.keyboard
+                            .type(
+                                'test repo:sourcegraph/jsonrpc2@c6c7b9aa99fb76ee5460ccd3912ba35d419d493d')
 
-            // TODO: test search scopes
+                        // TODO: test search scopes
 
-            // Submit the search
-            await driver.page.click('.search-button')
+                        // Submit the search
+                        await driver.page
+                            .click('.search-button')
 
-            await driver.page.waitForSelector('.test-search-results-stats', { visible: true })
-            await retry(async () => {
-                const label = await driver.page.evaluate(
-                    () => document.querySelector('.test-search-results-stats')!.textContent || ''
-                )
-                const match = /(\d+) results?/.exec(label)
-                if (!match) {
-                    throw new Error(
-                        `.test-search-results-stats textContent did not match regex '(\\d+) results': '${label}'`
-                    )
-                }
-                const numberOfResults = parseInt(match[1], 10)
-                expect(numberOfResults).toBeGreaterThan(0)
-            })
-        })
+                                await driver.page
+                            .waitForSelector(
+                                '.test-search-results-stats',
+                                {visible : true}) await retry(async () => {
+                              const label = await driver.page.evaluate(
+                                  () => document
+                                            .querySelector(
+                                                '.test-search-results-stats')!
+                                            .textContent ||
+                                        '')
+                              const match = /(\d+) results?/.exec(label)
+                              if (!match) {
+                                throw new Error(
+                                    `.test-search-results-stats textContent did not match regex '(\\d+) results': '${
+                                        label}'`)
+                              }
+                              const numberOfResults = parseInt(match[1], 10)
+                              expect(numberOfResults).toBeGreaterThan(0)
+                            })})
 
-        test('redirects to a URL with &patternType=regexp if no patternType in URL', async () => {
-            await driver.page.goto(sourcegraphBaseUrl + '/search?q=test')
-            await driver.assertWindowLocation('/search?q=test&patternType=regexp')
-        })
+                test(
+                    'redirects to a URL with &patternType=regexp if no patternType in URL',
+                    async () => {
+                        await driver.page
+                            .goto(sourcegraphBaseUrl + '/search?q=test')
+                                await driver.assertWindowLocation(
+                                    '/search?q=test&patternType=regexp')})
 
         test('regexp toggle appears and updates patternType query parameter when clicked', async () => {
             await driver.page.goto(sourcegraphBaseUrl + '/search?q=test&patternType=literal')
@@ -1284,9 +1421,8 @@ describe('e2e test suite', () => {
             await driver.page.waitForSelector('#monaco-query-input', { visible: true })
             await driver.page.waitForSelector('.test-regexp-toggle', { visible: true })
 
-            const activeToggle = await driver.page.evaluate(
-                () => document.querySelectorAll('.test-regexp-toggle--active').length
-            )
+    const activeToggle = await driver.page.evaluate(
+        () => document.querySelectorAll('.test-regexp-toggle--active').length)
             expect(activeToggle).toEqual(1)
             await driver.page.keyboard.type('test')
             await driver.page.click('.search-button')
@@ -1301,32 +1437,35 @@ describe('e2e test suite', () => {
             )
             await driver.page.waitForSelector('.test-search-result-type-tabs', { visible: true })
             await driver.page.waitForSelector('.test-search-result-tab--active', { visible: true })
-            const tabs = await driver.page.evaluate(() =>
-                [...document.querySelectorAll('.test-search-result-tab')].map(tab => tab.textContent)
-            )
+    const tabs = await driver.page.evaluate(
+        () => [...document.querySelectorAll('.test-search-result-tab')].map(
+            tab => tab.textContent))
 
-            expect(tabs.length).toEqual(6)
-            expect(tabs).toStrictEqual(['Code', 'Diffs', 'Commits', 'Symbols', 'Repositories', 'Filenames'])
+    expect(tabs.length).toEqual(6)
+    expect(tabs).toStrictEqual(
+        [ 'Code', 'Diffs', 'Commits', 'Symbols', 'Repositories', 'Filenames' ])
 
-            const activeTab = await driver.page.evaluate(
-                () => document.querySelectorAll('.test-search-result-tab--active').length
-            )
-            expect(activeTab).toEqual(1)
+    const activeTab = await driver.page.evaluate(
+        () =>
+            document.querySelectorAll('.test-search-result-tab--active').length)
+    expect(activeTab).toEqual(1)
 
-            const label = await driver.page.evaluate(
-                () => document.querySelector('.test-search-result-tab--active')!.textContent || ''
-            )
+    const label = await driver.page.evaluate(
+        () => document.querySelector(
+                          '.test-search-result-tab--active')!.textContent ||
+              '')
             expect(label).toEqual('Code')
         })
 
         test.skip('Clicking search results tabs updates query and URL', async () => {
-            for (const searchType of ['diff', 'commit', 'symbol', 'repo']) {
-                await driver.page.waitForSelector(`.test-search-result-tab-${searchType}`)
-                await driver.page.click(`.test-search-result-tab-${searchType}`)
-                await driver.assertWindowLocation(
-                    `/search?q=repo:%5Egithub.com/gorilla/mux%24+type:${searchType}&patternType=regexp`
-                )
-            }
+  for (const searchType of ['diff', 'commit', 'symbol', 'repo']) {
+    await driver.page
+        .waitForSelector(`.test-search-result-tab-${searchType}`) await driver
+        .page.click(`.test-search-result-tab-${searchType}`)
+            await driver.assertWindowLocation(
+                `/search?q=repo:%5Egithub.com/gorilla/mux%24+type:${
+                    searchType}&patternType=regexp`)
+  }
         })
     })
 
@@ -1347,10 +1486,10 @@ describe('e2e test suite', () => {
             await driver.page.click('.test-saved-search-form-submit-button')
             await driver.assertWindowLocation('/users/test/searches')
 
-            const nodes = await driver.page.evaluate(
-                () => document.querySelectorAll('.test-saved-search-list-page-row').length
-            )
-            expect(nodes).toEqual(1)
+    const nodes = await driver.page.evaluate(
+        () => document.querySelectorAll('.test-saved-search-list-page-row')
+                  .length)
+    expect(nodes).toEqual(1)
 
             expect(
                 await driver.page.evaluate(
@@ -1361,14 +1500,15 @@ describe('e2e test suite', () => {
         test('Delete saved search', async () => {
             await driver.page.goto(sourcegraphBaseUrl + '/users/test/searches')
             await driver.page.waitForSelector('.test-delete-saved-search-button', { visible: true })
-            driver.page.on('dialog', async dialog => {
-                await dialog.accept()
-            })
-            await driver.page.click('.test-delete-saved-search-button')
-            await driver.page.waitFor(() => !document.querySelector('.test-saved-search-list-page-row'))
-            const nodes = await driver.page.evaluate(
-                () => document.querySelectorAll('.test-saved-search-list-page-row').length
-            )
+        driver.page
+            .on('dialog', async dialog => {await dialog.accept()}) await driver
+            .page.click('.test-delete-saved-search-button')
+                await driver.page.waitFor(
+                    () => !document.querySelector(
+                        '.test-saved-search-list-page-row'))
+        const nodes = await driver.page.evaluate(
+            () => document.querySelectorAll('.test-saved-search-list-page-row')
+                      .length)
             expect(nodes).toEqual(0)
         })
         test('Save search from saved searches page', async () => {
@@ -1389,10 +1529,10 @@ describe('e2e test suite', () => {
             await driver.page.click('.test-saved-search-form-submit-button')
             await driver.assertWindowLocation('/users/test/searches')
 
-            const nodes = await driver.page.evaluate(
-                () => document.querySelectorAll('.test-saved-search-list-page-row').length
-            )
-            expect(nodes).toEqual(1)
+        const nodes = await driver.page.evaluate(
+            () => document.querySelectorAll('.test-saved-search-list-page-row')
+                      .length)
+        expect(nodes).toEqual(1)
 
             expect(
                 await driver.page.evaluate(
@@ -1426,21 +1566,22 @@ describe('e2e test suite', () => {
         beforeEach(async () => {
             await driver.setUserSettings<Settings>({ experimentalFeatures: { searchStats: true } })
         })
-        afterEach(async () => {
-            await driver.resetUserSettings()
-        })
+    afterEach(async () => {await driver.resetUserSettings()})
 
-        // This is a substring that appears in the sourcegraph/go-diff repository, which is present
-        // in the external service added for the e2e test. It is OK if it starts to appear in other
-        // repositories (such as sourcegraph/sourcegraph now that it's mentioned here); the test
-        // just checks that it is found in at least 1 Go file.
-        const uniqueString = 'Incomplete-'
-        const uniqueStringPostfix = 'Lines'
+    // This is a substring that appears in the sourcegraph/go-diff repository,
+    // which is present in the external service added for the e2e test. It is OK
+    // if it starts to appear in other repositories (such as
+    // sourcegraph/sourcegraph now that it's mentioned here); the test just
+    // checks that it is found in at least 1 Go file.
+    const uniqueString = 'Incomplete-'
+    const uniqueStringPostfix = 'Lines'
 
-        test('button on search results page', async () => {
-            await driver.page.goto(`${sourcegraphBaseUrl}/search?q=${uniqueString}`)
-            await driver.page.waitForSelector(`a[href="/stats?q=${uniqueString}"]`)
-        })
+    test(
+        'button on search results page',
+        async () => {await driver.page
+                         .goto(`${sourcegraphBaseUrl}/search?q=${uniqueString}`)
+                             await driver.page.waitForSelector(
+                                 `a[href="/stats?q=${uniqueString}"]`)})
 
         test('page', async () => {
             await driver.page.goto(`${sourcegraphBaseUrl}/stats?q=${uniqueString}`)
@@ -1448,10 +1589,10 @@ describe('e2e test suite', () => {
             // Ensure the global navbar hides the search input (to avoid confusion with the one on
             // the stats page).
             await driver.page.waitForSelector('.global-navbar a.nav-link[href="/search"]')
-            assert.strictEqual(
-                await driver.page.evaluate(() => document.querySelectorAll('#monaco-query-input').length),
-                0
-            )
+        assert.strictEqual(
+            await driver.page.evaluate(
+                () => document.querySelectorAll('#monaco-query-input').length),
+            0)
 
             const queryInputValue = () =>
                 driver.page.evaluate(() => {
@@ -1461,15 +1602,23 @@ describe('e2e test suite', () => {
 
             // Check for a Go result (the sample repositories have Go files).
             await driver.page.waitForSelector(`a[href*="${uniqueString}+lang:go"]`)
-            assert.strictEqual(await queryInputValue(), uniqueString)
-            await percySnapshot(driver.page, 'Search stats')
+                    assert
+                        .strictEqual(await queryInputValue(), uniqueString)
+                            await percySnapshot(driver.page, 'Search stats')
 
-            // Update the query and rerun the computation.
-            await driver.page.type('.test-stats-query', uniqueStringPostfix) // the uniqueString is followed by 'Incomplete-Lines' in go-diff
-            const wantQuery = `${uniqueString}${uniqueStringPostfix}`
-            assert.strictEqual(await queryInputValue(), wantQuery)
-            await driver.page.click('.test-stats-query-update')
-            await driver.page.waitForSelector(`a[href*="${wantQuery}+lang:go"]`)
+                        // Update the query and rerun the computation.
+                        await driver.page.type(
+                            '.test-stats-query',
+                            uniqueStringPostfix) // the uniqueString is followed
+                                                 // by 'Incomplete-Lines' in
+                                                 // go-diff
+                    const wantQuery = `${uniqueString}${uniqueStringPostfix}`
+                    assert
+                        .strictEqual(await queryInputValue(), wantQuery)
+                            await driver.page
+                        .click('.test-stats-query-update')
+                            await driver.page.waitForSelector(
+                                `a[href*="${wantQuery}+lang:go"]`)
             assert.ok(driver.page.url().endsWith(`/stats?q=${wantQuery}`))
         })
     })

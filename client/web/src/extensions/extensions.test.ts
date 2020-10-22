@@ -1,7 +1,11 @@
-import { ExtensionCategory, EXTENSION_CATEGORIES } from '../../../shared/src/schema/extensionSchema'
-import { Settings } from '../../../shared/src/settings/settings'
-import { createRecord } from '../../../shared/src/util/createRecord'
-import { applyCategoryFilter, applyExtensionsEnablement } from './extensions'
+import {
+  EXTENSION_CATEGORIES,
+  ExtensionCategory
+} from '../../../shared/src/schema/extensionSchema'
+import {Settings} from '../../../shared/src/settings/settings'
+import {createRecord} from '../../../shared/src/util/createRecord'
+
+import {applyCategoryFilter, applyExtensionsEnablement} from './extensions'
 
 describe('extension registry helpers', () => {
     const TEST_EXTENSION_CATEGORIES: ExtensionCategory[] = ['Reports and stats', 'Linters']
@@ -9,23 +13,20 @@ describe('extension registry helpers', () => {
     const extensionsByCategory: Parameters<typeof applyCategoryFilter>[0] = createRecord(
         EXTENSION_CATEGORIES,
         category => {
-            let primaryExtensionIDs: string[] = []
-            let allExtensionIDs: string[] = []
+  let primaryExtensionIDs: string[] = [] let allExtensionIDs: string[] = []
 
-            if (category === 'Reports and stats') {
-                primaryExtensionIDs = ['sourcegraph/codecov']
-                allExtensionIDs = ['sourcegraph/codecov', 'sourcegraph/eslint']
-            }
+      if (category === 'Reports and stats') {
+    primaryExtensionIDs = [ 'sourcegraph/codecov' ]
+    allExtensionIDs = [ 'sourcegraph/codecov', 'sourcegraph/eslint' ]
+  }
 
-            if (category === 'Linters') {
-                primaryExtensionIDs = ['sourcegraph/eslint', 'sourcegraph/dockerfile-lint']
-                allExtensionIDs = ['sourcegraph/eslint', 'sourcegraph/dockerfile-lint']
-            }
+  if (category === 'Linters') {
+    primaryExtensionIDs =
+        [ 'sourcegraph/eslint', 'sourcegraph/dockerfile-lint' ]
+    allExtensionIDs = [ 'sourcegraph/eslint', 'sourcegraph/dockerfile-lint' ]
+  }
 
-            return {
-                primaryExtensionIDs,
-                allExtensionIDs,
-            }
+  return { primaryExtensionIDs, allExtensionIDs, }
         }
     )
 
@@ -37,7 +38,7 @@ describe('extension registry helpers', () => {
                 []
             )
 
-            // Should be primary IDs of each base category provided
+    // Should be primary IDs of each base category provided
             expect(filteredExtensionsByCategory).toStrictEqual({
                 'Reports and stats': extensionsByCategory['Reports and stats'].primaryExtensionIDs,
                 Linters: extensionsByCategory.Linters.primaryExtensionIDs,
@@ -49,7 +50,7 @@ describe('extension registry helpers', () => {
                 'Reports and stats',
             ])
 
-            // Should include all IDs of the selected category
+        // Should include all IDs of the selected category
             expect(filteredExtensionsByCategory).toStrictEqual({
                 'Reports and stats': extensionsByCategory['Reports and stats'].allExtensionIDs,
             })
@@ -60,20 +61,19 @@ describe('extension registry helpers', () => {
                 'Linters',
             ])
 
-            expect(filteredExtensionsByCategory).toStrictEqual({
-                'Reports and stats': extensionsByCategory['Reports and stats'].allExtensionIDs,
-                // Every linter extension that isn't in reports and stats
-                Linters: extensionsByCategory.Linters.allExtensionIDs.filter(
-                    extensionID => !extensionsByCategory['Reports and stats'].allExtensionIDs.includes(extensionID)
-                ),
-            })
+        expect(filteredExtensionsByCategory).toStrictEqual({
+          'Reports and stats' :
+              extensionsByCategory['Reports and stats'].allExtensionIDs,
+          // Every linter extension that isn't in reports and stats
+          Linters : extensionsByCategory.Linters.allExtensionIDs.filter(
+              extensionID => !extensionsByCategory['Reports and stats']
+                                  .allExtensionIDs.includes(extensionID)),
+        })
 
-            // reverse order
-            const filteredExtensionsByCategoryReverseOrder = applyCategoryFilter(
-                extensionsByCategory,
-                TEST_EXTENSION_CATEGORIES,
-                ['Linters', 'Reports and stats']
-            )
+        // reverse order
+        const filteredExtensionsByCategoryReverseOrder =
+            applyCategoryFilter(extensionsByCategory, TEST_EXTENSION_CATEGORIES,
+                                [ 'Linters', 'Reports and stats' ])
 
             expect(filteredExtensionsByCategoryReverseOrder).toStrictEqual({
                 // Every reports and stats extension that isn't in linters
@@ -87,25 +87,25 @@ describe('extension registry helpers', () => {
 
     describe('applyExtensionsEnablement', () => {
         const MINIMAL_SETTINGS: Settings = {
-            extensions: {
-                'sourcegraph/codecov': true,
-                'sourcegraph/eslint': true,
-                'sourcegraph/dockerfile-lint': false,
-            },
+  extensions: {
+    'sourcegraph/codecov': true,
+    'sourcegraph/eslint': true,
+    'sourcegraph/dockerfile-lint': false,
+  },
         }
 
         const categorizedExtensions: Parameters<typeof applyExtensionsEnablement>[0] = createRecord(
             TEST_EXTENSION_CATEGORIES,
             category => {
-                if (category === 'Reports and stats') {
-                    return ['sourcegraph/codecov']
-                }
+  if (category === 'Reports and stats') {
+    return [ 'sourcegraph/codecov' ]
+  }
 
-                if (category === 'Linters') {
-                    return ['sourcegraph/eslint', 'sourcegraph/dockerfile-lint']
-                }
+  if (category === 'Linters') {
+    return [ 'sourcegraph/eslint', 'sourcegraph/dockerfile-lint' ]
+  }
 
-                return []
+  return []
             }
         )
 

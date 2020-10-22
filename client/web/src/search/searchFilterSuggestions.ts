@@ -1,13 +1,15 @@
-import { Suggestion, FilterSuggestionTypes } from './input/Suggestion'
-import { assign } from 'lodash/fp'
-import { languageIcons } from '../../../shared/src/components/languageIcons'
-import { NonFilterSuggestionType } from '../../../shared/src/search/suggestions/util'
-import { FilterType } from '../../../shared/src/search/interactive/util'
+import {assign} from 'lodash/fp'
 
-export type SearchFilterSuggestions = Record<
-    FilterSuggestionTypes,
-    {
-        default?: string
+import {languageIcons} from '../../../shared/src/components/languageIcons'
+import {FilterType} from '../../../shared/src/search/interactive/util'
+import {
+  NonFilterSuggestionType
+} from '../../../shared/src/search/suggestions/util'
+
+import {FilterSuggestionTypes, Suggestion} from './input/Suggestion'
+
+export type SearchFilterSuggestions = Record < FilterSuggestionTypes,
+            {default?: string
         values: Suggestion[]
     }
 >

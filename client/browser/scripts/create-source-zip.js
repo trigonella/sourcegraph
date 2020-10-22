@@ -24,9 +24,8 @@ const rootDirectoryNameForZip = 'sourcegraph-source'
 
 shelljs.rm('-f', 'sourcegraph.zip')
 signale.await(`Downloading sourcegraph/sourcegraph at revision ${commitId}`)
-shelljs.exec(
-  `curl -Ls https://github.com/sourcegraph/sourcegraph/archive/${commitId}.zip -o sourcegraph-downloaded.zip`
-)
+shelljs.exec(`curl -Ls https://github.com/sourcegraph/sourcegraph/archive/${
+    commitId}.zip -o sourcegraph-downloaded.zip`)
 shelljs.rm('-rf', `sourcegraph-${commitId}/`)
 shelljs.exec('unzip -q sourcegraph-downloaded.zip')
 shelljs.rm('-f', 'sourcegraph-downloaded.zip')
@@ -41,6 +40,7 @@ if (includeCodeIntelExtensions) {
 }
 
 signale.await('Producing sourcegraph.zip')
-shelljs.exec(`zip -qr sourcegraph.zip ${rootDirectoryNameForZip} --exclude "${rootDirectoryNameForZip}/node_modules/*"`)
+shelljs.exec(`zip -qr sourcegraph.zip ${rootDirectoryNameForZip} --exclude "${
+    rootDirectoryNameForZip}/node_modules/*"`)
 shelljs.rm('-rf', rootDirectoryNameForZip)
 signale.success('Done producing sourcegraph.zip')

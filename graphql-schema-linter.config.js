@@ -1,5 +1,5 @@
 module.exports = {
-  rules: [
+  rules : [
     'deprecations-have-a-reason',
     'fields-have-descriptions',
     'input-object-values-have-descriptions',

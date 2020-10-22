@@ -1,5 +1,4 @@
-declare module '*.scss' {
-    const cssModule: string
+declare module '*.scss' {const cssModule : string
     export default cssModule
 }
 declare module '*.css' {
@@ -14,7 +13,7 @@ declare module '*.css' {
  */
 declare module '*.worker.ts' {
     class WebpackWorker extends Worker {
-        constructor()
+  constructor()
     }
     export default WebpackWorker
 }

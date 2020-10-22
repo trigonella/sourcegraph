@@ -1,11 +1,11 @@
-import { startCase } from 'lodash'
-import { parseURL, getDiffFileName } from './util'
-import { getFixtureBody } from '../shared/codeHostTestUtils'
+import {startCase} from 'lodash'
 
-describe('util', () => {
-    describe('parseURL()', () => {
-        const testcases: {
-            name: string
+import {getFixtureBody} from '../shared/codeHostTestUtils'
+
+import {getDiffFileName, parseURL} from './util'
+
+describe('util', () => {describe('parseURL()', () => {
+                   const testcases: {name: string
             url: string
         }[] = [
             {
@@ -56,15 +56,13 @@ describe('util', () => {
             },
         ]
         for (const { name, url } of testcases) {
-            test(name, () => {
-                expect(parseURL(new URL(url))).toMatchSnapshot()
-            })
-        }
-    })
-})
+              test(name,
+                   () => {expect(parseURL(new URL(url))).toMatchSnapshot()})
+            }
+                 })})
 
-type GithubVersion = 'github.com' | 'ghe-2.14.11'
-type GithubDiffPage = 'commit' | 'pull-request' | 'pull-request-discussion'
+type GithubVersion = 'github.com'|'ghe-2.14.11'
+type GithubDiffPage = 'commit'|'pull-request'|'pull-request-discussion'
 
 describe('getDiffFileName()', () => {
     const tests: Record<GithubVersion, Record<GithubDiffPage, string>> = {
@@ -91,8 +89,9 @@ describe('getDiffFileName()', () => {
                 htmlFixturePath,
                 isFullDocument: false,
             })
-            // TODO add examples with renamed files and check that getDeltaFilename() doesn't return
-            // identical headFilePath & baseFilePath
+        // TODO add examples with renamed files and check that
+        // getDeltaFilename() doesn't return identical headFilePath &
+        // baseFilePath
             expect(getDiffFileName(container)).toStrictEqual({
                 baseFilePath: expectedFilePath,
                 headFilePath: expectedFilePath,
@@ -100,30 +99,35 @@ describe('getDiffFileName()', () => {
         })
     }
     for (const gitHubVersion of ['github.com', 'ghe-2.14.11'] as const) {
-        describe(gitHubVersion, () => {
-            for (const [gitHubDiffPage, expectedFilePath] of Object.entries(tests[gitHubVersion])) {
-                describe(`${startCase(gitHubDiffPage)} page`, () => {
-                    for (const gitHubFlavor of ['vanilla', 'refined-github']) {
-                        describe(startCase(gitHubFlavor), () => {
-                            if (gitHubDiffPage === 'pull-request-discussion') {
-                                testGetDeltaFilename({
-                                    expectedFilePath,
-                                    htmlFixturePath: `${__dirname}/__fixtures__/${gitHubVersion}/${gitHubDiffPage}/${gitHubFlavor}/code-view.html`,
-                                })
-                            } else {
-                                for (const view of ['split', 'unified']) {
-                                    describe(`${view}`, () => {
-                                        testGetDeltaFilename({
-                                            expectedFilePath,
-                                            htmlFixturePath: `${__dirname}/__fixtures__/${gitHubVersion}/${gitHubDiffPage}/${gitHubFlavor}/${view}/code-view.html`,
-                                        })
-                                    })
-                                }
-                            }
-                        })
+          describe(gitHubVersion, () => {
+            for (const [gitHubDiffPage, expectedFilePath] of Object.entries(
+                     tests[gitHubVersion])) {
+              describe(`${startCase(gitHubDiffPage)} page`, () => {
+                for (const gitHubFlavor of ['vanilla', 'refined-github']) {
+                  describe(startCase(gitHubFlavor), () => {
+                    if (gitHubDiffPage === 'pull-request-discussion') {
+                      testGetDeltaFilename({
+                        expectedFilePath,
+                        htmlFixturePath :
+                            `${__dirname}/__fixtures__/${gitHubVersion}/${
+                                gitHubDiffPage}/${gitHubFlavor}/code-view.html`,
+                      })
+                    } else {
+                      for (const view of ['split', 'unified']) {
+                        describe(
+                            `${view}`,
+                            () => {testGetDeltaFilename({
+                              expectedFilePath,
+                              htmlFixturePath : `${__dirname}/__fixtures__/${
+                                  gitHubVersion}/${gitHubDiffPage}/${
+                                  gitHubFlavor}/${view}/code-view.html`,
+                            })})
+                      }
                     }
-                })
+                  })
+                }
+              })
             }
-        })
-    }
+          })
+        }
 })

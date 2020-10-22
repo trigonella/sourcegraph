@@ -1,23 +1,30 @@
-import { TelemetryService } from '../../../../shared/src/telemetry/telemetryService'
-import { Observable } from 'rxjs'
-import { gql, dataOrThrowErrors } from '../../../../shared/src/graphql/graphql'
-import { createAggregateError, isErrorLike, ErrorLike } from '../../../../shared/src/util/errors'
-import { map } from 'rxjs/operators'
+import {Observable} from 'rxjs'
+import {map} from 'rxjs/operators'
+
+import {dataOrThrowErrors, gql} from '../../../../shared/src/graphql/graphql'
 import {
-    UpdateExternalServiceResult,
-    UpdateExternalServiceVariables,
-    Scalars,
-    AddExternalServiceVariables,
-    AddExternalServiceResult,
-    ExternalServiceFields,
-    ExternalServiceVariables,
-    ExternalServiceResult,
-    DeleteExternalServiceVariables,
-    DeleteExternalServiceResult,
-    ExternalServicesVariables,
-    ExternalServicesResult,
+  TelemetryService
+} from '../../../../shared/src/telemetry/telemetryService'
+import {
+  createAggregateError,
+  ErrorLike,
+  isErrorLike
+} from '../../../../shared/src/util/errors'
+import {requestGraphQL} from '../../backend/graphql'
+import {
+  AddExternalServiceResult,
+  AddExternalServiceVariables,
+  DeleteExternalServiceResult,
+  DeleteExternalServiceVariables,
+  ExternalServiceFields,
+  ExternalServiceResult,
+  ExternalServicesResult,
+  ExternalServicesVariables,
+  ExternalServiceVariables,
+  Scalars,
+  UpdateExternalServiceResult,
+  UpdateExternalServiceVariables,
 } from '../../graphql-operations'
-import { requestGraphQL } from '../../backend/graphql'
 
 export const externalServiceFragment = gql`
     fragment ExternalServiceFields on ExternalService {
@@ -30,12 +37,11 @@ export const externalServiceFragment = gql`
     }
 `
 
-export async function addExternalService(
-    variables: AddExternalServiceVariables,
-    eventLogger: TelemetryService
-): Promise<AddExternalServiceResult['addExternalService']> {
-    return requestGraphQL<AddExternalServiceResult, AddExternalServiceVariables>(
-        gql`
+export async function addExternalService(variables: AddExternalServiceVariables,
+                                         eventLogger: TelemetryService):
+    Promise<AddExternalServiceResult['addExternalService']> {
+      return requestGraphQL<AddExternalServiceResult,
+                            AddExternalServiceVariables>(gql`
             mutation AddExternalService($input: AddExternalServiceInput!) {
                 addExternalService(input: $input) {
                     ...ExternalServiceFields
@@ -44,32 +50,30 @@ export async function addExternalService(
 
             ${externalServiceFragment}
         `,
-        variables
-    )
-        .pipe(
-            map(({ data, errors }) => {
-                if (!data || !data.addExternalService || (errors && errors.length > 0)) {
-                    eventLogger.log('AddExternalServiceFailed')
-                    throw createAggregateError(errors)
-                }
-                eventLogger.log('AddExternalServiceSucceeded')
-                return data.addExternalService
-            })
-        )
-        .toPromise()
-}
+                                                         variables)
+          .pipe(map(({data, errors}) => {
+            if (!data || !data.addExternalService ||
+                (errors && errors.length > 0)) {
+              eventLogger.log('AddExternalServiceFailed')
+              throw createAggregateError(errors)
+            }
+            eventLogger.log('AddExternalServiceSucceeded')
+            return data.addExternalService
+          }))
+          .toPromise()
+    }
 
-export function isExternalService(
-    externalServiceOrError?: ExternalServiceFields | ErrorLike
-): externalServiceOrError is ExternalServiceFields {
-    return !!externalServiceOrError && !isErrorLike(externalServiceOrError)
-}
+export function isExternalService(externalServiceOrError
+                                  ?: ExternalServiceFields|ErrorLike):
+    externalServiceOrError is ExternalServiceFields {
+      return !!externalServiceOrError && !isErrorLike(externalServiceOrError)
+    }
 
 export function updateExternalService(
-    variables: UpdateExternalServiceVariables
-): Promise<UpdateExternalServiceResult['updateExternalService']> {
-    return requestGraphQL<UpdateExternalServiceResult, UpdateExternalServiceVariables>(
-        gql`
+    variables: UpdateExternalServiceVariables):
+    Promise<UpdateExternalServiceResult['updateExternalService']> {
+      return requestGraphQL<UpdateExternalServiceResult,
+                            UpdateExternalServiceVariables>(gql`
             mutation UpdateExternalService($input: UpdateExternalServiceInput!) {
                 updateExternalService(input: $input) {
                     ...ExternalServiceFields
@@ -77,18 +81,15 @@ export function updateExternalService(
             }
             ${externalServiceFragment}
         `,
-        variables
-    )
-        .pipe(
-            map(dataOrThrowErrors),
-            map(data => data.updateExternalService)
-        )
-        .toPromise()
-}
+                                                            variables)
+          .pipe(map(dataOrThrowErrors), map(data => data.updateExternalService))
+          .toPromise()
+    }
 
-export function fetchExternalService(id: Scalars['ID']): Observable<ExternalServiceFields> {
-    return requestGraphQL<ExternalServiceResult, ExternalServiceVariables>(
-        gql`
+export function fetchExternalService(id: Scalars['ID']):
+    Observable<ExternalServiceFields> {
+      return requestGraphQL<ExternalServiceResult, ExternalServiceVariables>(
+                 gql`
             query ExternalService($id: ID!) {
                 node(id: $id) {
                     __typename
@@ -97,34 +98,34 @@ export function fetchExternalService(id: Scalars['ID']): Observable<ExternalServ
             }
             ${externalServiceFragment}
         `,
-        { id }
-    ).pipe(
-        map(dataOrThrowErrors),
-        map(({ node }) => {
-            if (!node) {
-                throw new Error('External service not found')
-            }
-            if (node.__typename !== 'ExternalService') {
-                throw new Error(`Node is a ${node.__typename}, not a ExternalService`)
-            }
-            return node
-        })
-    )
-}
+                 {id})
+          .pipe(map(dataOrThrowErrors), map(({node}) => {
+                  if (!node) {
+                    throw new Error('External service not found')
+                  }
+                  if (node.__typename !== 'ExternalService') {
+                    throw new Error(
+                        `Node is a ${node.__typename}, not a ExternalService`)
+                  }
+                  return node
+                }))
+    }
 
-export async function deleteExternalService(externalService: Scalars['ID']): Promise<void> {
-    const result = await requestGraphQL<DeleteExternalServiceResult, DeleteExternalServiceVariables>(
-        gql`
+export async function deleteExternalService(externalService: Scalars['ID']):
+    Promise<void> {
+      const result = await requestGraphQL<DeleteExternalServiceResult,
+                                          DeleteExternalServiceVariables>(
+                         gql`
             mutation DeleteExternalService($externalService: ID!) {
                 deleteExternalService(externalService: $externalService) {
                     alwaysNil
                 }
             }
         `,
-        { externalService }
-    ).toPromise()
-    dataOrThrowErrors(result)
-}
+                         {externalService})
+                         .toPromise()
+      dataOrThrowErrors(result)
+    }
 
 export const listExternalServiceFragment = gql`
     fragment ListExternalServiceFields on ExternalService {
@@ -135,11 +136,10 @@ export const listExternalServiceFragment = gql`
     }
 `
 
-export function queryExternalServices(
-    variables: ExternalServicesVariables
-): Observable<ExternalServicesResult['externalServices']> {
-    return requestGraphQL<ExternalServicesResult, ExternalServicesVariables>(
-        gql`
+export function queryExternalServices(variables: ExternalServicesVariables):
+    Observable<ExternalServicesResult['externalServices']> {
+      return requestGraphQL<ExternalServicesResult, ExternalServicesVariables>(
+                 gql`
             query ExternalServices($first: Int, $after: String, $namespace: ID) {
                 externalServices(first: $first, after: $after, namespace: $namespace) {
                     nodes {
@@ -155,13 +155,11 @@ export function queryExternalServices(
 
             ${listExternalServiceFragment}
         `,
-        variables
-    ).pipe(
-        map(({ data, errors }) => {
+                 variables)
+          .pipe(map(({data, errors}) => {
             if (!data || !data.externalServices || errors) {
-                throw createAggregateError(errors)
+              throw createAggregateError(errors)
             }
             return data.externalServices
-        })
-    )
-}
+          }))
+    }

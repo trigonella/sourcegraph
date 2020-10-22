@@ -1,8 +1,10 @@
-import { TestScheduler } from 'rxjs/testing'
-import { from, defer } from 'rxjs'
-import { repeatUntil } from './repeatUntil'
+import {defer, from} from 'rxjs'
+import {TestScheduler} from 'rxjs/testing'
 
-const scheduler = (): TestScheduler => new TestScheduler((a, b) => expect(a).toEqual(b))
+import {repeatUntil} from './repeatUntil'
+
+const scheduler = (): TestScheduler =>
+    new TestScheduler((a, b) => expect(a).toEqual(b))
 
 describe('repeatUntil()', () => {
     it('completes if the emitted value matches select', () => {

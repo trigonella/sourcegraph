@@ -1,6 +1,9 @@
-javascript:(function() {
-  if (window.location.hostname !== 'github.com' && window.location.hostname !== 'sourcegraph.com') {
-    alert('This bookmarklet may only be used on GitHub.com or Sourcegraph.com, not ' + window.location.hostname + '.');
+javascript: (function() {
+  if (window.location.hostname !== 'github.com' &&
+      window.location.hostname !== 'sourcegraph.com') {
+    alert(
+        'This bookmarklet may only be used on GitHub.com or Sourcegraph.com, not ' +
+        window.location.hostname + '.');
     return;
   }
   var pats = [
@@ -16,9 +19,15 @@ javascript:(function() {
       '^/github.com/([^/]+)/([^/@]+)@([^/]+)/-/tree/(.+)$',
       '/$1/$2/tree/$3/$4',
     ],
-    ['^/([^/]+)/([^/]+)/blob/([^/]+)/(.+)$', '/github.com/$1/$2@$3/-/blob/$4', '', ''],
-    ['^/([^/]+)/([^/]+)$', '/github.com/$1/$2', '^/github.com/([^/]+)/([^/]+)$', '/$1/$2'],
-    ['^/([^/]+)$', '/$1', '^/([^/]+)$', '/$1'],
+    [
+      '^/([^/]+)/([^/]+)/blob/([^/]+)/(.+)$', '/github.com/$1/$2@$3/-/blob/$4',
+      '', ''
+    ],
+    [
+      '^/([^/]+)/([^/]+)$', '/github.com/$1/$2',
+      '^/github.com/([^/]+)/([^/]+)$', '/$1/$2'
+    ],
+    [ '^/([^/]+)$', '/$1', '^/([^/]+)$', '/$1' ],
   ];
   var pathname = window.location.pathname;
   if (window.location.hostname === 'sourcegraph.com') {

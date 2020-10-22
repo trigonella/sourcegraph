@@ -1,11 +1,10 @@
-import { getPageKindFromPathName, GitLabPageKind } from './scrape'
+import {getPageKindFromPathName, GitLabPageKind} from './scrape'
 
 describe('getPageKindFromPathName()', () => {
-    const TESTCASES: {
-        title: string
-        pathname: string
-        owner: string
-        projectName: string
+  const TESTCASES: {title: string
+  pathname: string
+  owner: string
+  projectName: string
         expected: GitLabPageKind
     }[] = [
         {
@@ -73,8 +72,8 @@ describe('getPageKindFromPathName()', () => {
         },
     ]
     for (const { title, pathname, owner, projectName, expected } of TESTCASES) {
-        test(title, () => {
-            expect(getPageKindFromPathName(owner, projectName, pathname)).toBe(expected)
-        })
-    }
+          test(title, () => {expect(getPageKindFromPathName(owner, projectName,
+                                                            pathname))
+                                 .toBe(expected)})
+        }
 })

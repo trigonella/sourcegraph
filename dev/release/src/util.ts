@@ -1,28 +1,30 @@
-import * as readline from 'readline'
-import { readFile, writeFile, mkdir } from 'mz/fs'
+import {mkdir, readFile, writeFile} from 'mz/fs'
 import * as path from 'path'
+import * as readline from 'readline'
 
-export async function readLine(prompt: string, cacheFile?: string): Promise<string> {
-    if (!cacheFile) {
-        return readLineNoCache(prompt)
-    }
+export async function readLine(prompt: string,
+                               cacheFile?: string): Promise<string> {
+  if (!cacheFile) {
+    return readLineNoCache(prompt)
+  }
 
-    try {
-        return await readFile(cacheFile, { encoding: 'utf8' })
-    } catch {
-        const userInput = await readLineNoCache(prompt)
-        await mkdir(path.dirname(cacheFile), { recursive: true })
-        await writeFile(cacheFile, userInput)
-        return userInput
-    }
+  try {
+    return await readFile(cacheFile, {encoding : 'utf8'})
+  } catch {
+    const userInput = await readLineNoCache(prompt)
+        await mkdir(path.dirname(cacheFile), {recursive : true})
+            await writeFile(cacheFile, userInput)
+    return userInput
+  }
 }
 
 async function readLineNoCache(prompt: string): Promise<string> {
-    const readlineInterface = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-    })
-    const userInput = await new Promise<string>(resolve => readlineInterface.question(prompt, resolve))
-    readlineInterface.close()
-    return userInput
+  const readlineInterface = readline.createInterface({
+    input : process.stdin,
+    output : process.stdout,
+  })
+  const userInput = await new Promise<string>(
+      resolve => readlineInterface.question(prompt, resolve))
+  readlineInterface.close()
+  return userInput
 }

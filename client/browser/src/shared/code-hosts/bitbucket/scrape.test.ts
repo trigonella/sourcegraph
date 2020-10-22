@@ -1,10 +1,10 @@
-import { readFile } from 'mz/fs'
-import { getFixtureBody } from '../shared/codeHostTestUtils'
+import {readFile} from 'mz/fs'
+import {getFixtureBody} from '../shared/codeHostTestUtils'
 import {
-    getFileInfoFromSingleFileSourceCodeView,
-    getFileInfoWithoutCommitIDsFromMultiFileDiffCodeView,
-    isCommitsView,
-    isPullRequestView,
+  getFileInfoFromSingleFileSourceCodeView,
+  getFileInfoWithoutCommitIDsFromMultiFileDiffCodeView,
+  isCommitsView,
+  isPullRequestView,
 } from './scrape'
 
 describe('Bitbucket scrape.ts', () => {
@@ -16,9 +16,10 @@ describe('Bitbucket scrape.ts', () => {
             jsdom.reconfigure({
                 url: 'https://bitbucket.test/projects/SOUR/repos/mux/browse/context.go',
             })
-            document.body.innerHTML = await readFile(`${__dirname}/__fixtures__/single-file.html`, 'utf-8')
-            const codeView = document.querySelector<HTMLElement>('.file-content')
-            const fileInfo = getFileInfoFromSingleFileSourceCodeView(codeView!)
+        document.body.innerHTML = await readFile(
+            `${__dirname}/__fixtures__/single-file.html`, 'utf-8')
+        const codeView = document.querySelector<HTMLElement>('.file-content')
+        const fileInfo = getFileInfoFromSingleFileSourceCodeView(codeView!)
             expect(fileInfo).toStrictEqual({
                 commitID: '212aa90d7cec051ab29930d5c56f758f6f69a789',
                 filePath: 'context.go',
@@ -34,11 +35,13 @@ describe('Bitbucket scrape.ts', () => {
             jsdom.reconfigure({
                 url: 'https://bitbucket.test/projects/SOURCEGRAPH/repos/mux/pull-requests/1/diff#dir/new_file.go',
             })
-            const codeView = await getFixtureBody({
-                htmlFixturePath: `${__dirname}/__fixtures__/code-views/pull-request/split/added.html`,
-                isFullDocument: false,
-            })
-            const fileInfo = getFileInfoWithoutCommitIDsFromMultiFileDiffCodeView(codeView)
+    const codeView = await getFixtureBody({
+      htmlFixturePath :
+          `${__dirname}/__fixtures__/code-views/pull-request/split/added.html`,
+      isFullDocument : false,
+    })
+    const fileInfo =
+        getFileInfoWithoutCommitIDsFromMultiFileDiffCodeView(codeView)
             expect(fileInfo).toStrictEqual({
                 changeType: 'ADD',
                 baseFilePath: 'dir/new_file.go',
@@ -52,11 +55,13 @@ describe('Bitbucket scrape.ts', () => {
             jsdom.reconfigure({
                 url: 'https://bitbucket.test/projects/SOURCEGRAPH/repos/mux/pull-requests/1/diff#dir/mux.go',
             })
-            const codeView = await getFixtureBody({
-                htmlFixturePath: `${__dirname}/__fixtures__/code-views/pull-request/split/modified.html`,
-                isFullDocument: false,
-            })
-            const fileInfo = getFileInfoWithoutCommitIDsFromMultiFileDiffCodeView(codeView)
+        const codeView = await getFixtureBody({
+          htmlFixturePath : `${
+              __dirname}/__fixtures__/code-views/pull-request/split/modified.html`,
+          isFullDocument : false,
+        })
+        const fileInfo =
+            getFileInfoWithoutCommitIDsFromMultiFileDiffCodeView(codeView)
             expect(fileInfo).toStrictEqual({
                 changeType: 'MODIFY',
                 baseFilePath: 'dir/mux.go',
@@ -70,11 +75,13 @@ describe('Bitbucket scrape.ts', () => {
             jsdom.reconfigure({
                 url: 'https://bitbucket.test/projects/SOURCEGRAPH/repos/mux/pull-requests/1/diff#dir/old_test.go',
             })
-            const codeView = await getFixtureBody({
-                htmlFixturePath: `${__dirname}/__fixtures__/code-views/pull-request/split/deleted.html`,
-                isFullDocument: false,
-            })
-            const fileInfo = getFileInfoWithoutCommitIDsFromMultiFileDiffCodeView(codeView)
+        const codeView = await getFixtureBody({
+          htmlFixturePath : `${
+              __dirname}/__fixtures__/code-views/pull-request/split/deleted.html`,
+          isFullDocument : false,
+        })
+        const fileInfo =
+            getFileInfoWithoutCommitIDsFromMultiFileDiffCodeView(codeView)
             expect(fileInfo).toStrictEqual({
                 changeType: 'DELETE',
                 baseFilePath: 'dir/old_test.go',
@@ -88,11 +95,13 @@ describe('Bitbucket scrape.ts', () => {
             jsdom.reconfigure({
                 url: 'https://bitbucket.test/projects/SOURCEGRAPH/repos/mux/pull-requests/1/diff#dir/mux.1.go',
             })
-            const codeView = await getFixtureBody({
-                htmlFixturePath: `${__dirname}/__fixtures__/code-views/pull-request/split/copied.html`,
-                isFullDocument: false,
-            })
-            const fileInfo = getFileInfoWithoutCommitIDsFromMultiFileDiffCodeView(codeView)
+        const codeView = await getFixtureBody({
+          htmlFixturePath : `${
+              __dirname}/__fixtures__/code-views/pull-request/split/copied.html`,
+          isFullDocument : false,
+        })
+        const fileInfo =
+            getFileInfoWithoutCommitIDsFromMultiFileDiffCodeView(codeView)
             expect(fileInfo).toStrictEqual({
                 changeType: 'COPY',
                 baseFilePath: 'dir/mux.go',
@@ -106,11 +115,13 @@ describe('Bitbucket scrape.ts', () => {
             jsdom.reconfigure({
                 url: 'https://bitbucket.test/projects/SOURCEGRAPH/repos/mux/pull-requests/1/diff#dir/mux_test_moved.go',
             })
-            const codeView = await getFixtureBody({
-                htmlFixturePath: `${__dirname}/__fixtures__/code-views/pull-request/split/renamed.html`,
-                isFullDocument: false,
-            })
-            const fileInfo = getFileInfoWithoutCommitIDsFromMultiFileDiffCodeView(codeView)
+        const codeView = await getFixtureBody({
+          htmlFixturePath : `${
+              __dirname}/__fixtures__/code-views/pull-request/split/renamed.html`,
+          isFullDocument : false,
+        })
+        const fileInfo =
+            getFileInfoWithoutCommitIDsFromMultiFileDiffCodeView(codeView)
             expect(fileInfo).toStrictEqual({
                 changeType: 'RENAME',
                 baseFilePath: 'dir/mux_test.go',
@@ -124,11 +135,13 @@ describe('Bitbucket scrape.ts', () => {
             jsdom.reconfigure({
                 url: 'https://bitbucket.test/projects/SOURCEGRAPH/repos/mux/pull-requests/1/diff#dir/test-dir/route.go',
             })
-            const codeView = await getFixtureBody({
-                htmlFixturePath: `${__dirname}/__fixtures__/code-views/pull-request/split/moved.html`,
-                isFullDocument: false,
-            })
-            const fileInfo = getFileInfoWithoutCommitIDsFromMultiFileDiffCodeView(codeView)
+        const codeView = await getFixtureBody({
+          htmlFixturePath : `${
+              __dirname}/__fixtures__/code-views/pull-request/split/moved.html`,
+          isFullDocument : false,
+        })
+        const fileInfo =
+            getFileInfoWithoutCommitIDsFromMultiFileDiffCodeView(codeView)
             expect(fileInfo).toStrictEqual({
                 changeType: 'MOVE',
                 baseFilePath: 'dir/route.go',

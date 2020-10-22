@@ -1,35 +1,42 @@
-import { Selection } from '@sourcegraph/extension-api-classes'
-import { Location } from '@sourcegraph/extension-api-types'
-import { Observable, of } from 'rxjs'
-import { TestScheduler } from 'rxjs/testing'
-import { TextDocumentRegistrationOptions } from '../../protocol'
-import {
-    getLocationsFromProviders,
-    ProvideTextDocumentLocationSignature,
-    TextDocumentLocationProviderRegistry,
-} from './location'
-import { Entry } from './registry'
-import { FIXTURE } from './registry.test'
-import { first } from 'rxjs/operators'
+import {Selection} from '@sourcegraph/extension-api-classes'
+import {Location} from '@sourcegraph/extension-api-types'
+import {Observable, of} from 'rxjs'
+import {first} from 'rxjs/operators'
+import {TestScheduler} from 'rxjs/testing'
 
-const scheduler = (): TestScheduler => new TestScheduler((actual, expected) => expect(actual).toEqual(expected))
+import {TextDocumentRegistrationOptions} from '../../protocol'
+
+import {
+  getLocationsFromProviders,
+  ProvideTextDocumentLocationSignature,
+  TextDocumentLocationProviderRegistry,
+} from './location'
+import {Entry} from './registry'
+import {FIXTURE} from './registry.test'
+
+const scheduler = (): TestScheduler =>
+    new TestScheduler((actual, expected) => expect(actual).toEqual(expected))
 
 const FIXTURE_LOCATION: Location = {
-    uri: 'file:///f',
-    range: { start: { line: 1, character: 2 }, end: { line: 3, character: 4 } },
-}
-const FIXTURE_LOCATIONS: Location | Location[] | null = [FIXTURE_LOCATION, FIXTURE_LOCATION]
+  uri : 'file:///f',
+  range : {start : {line : 1, character : 2}, end : {line : 3, character : 4}},
+} const FIXTURE_LOCATIONS: Location|Location[]|null =
+    [ FIXTURE_LOCATION, FIXTURE_LOCATION ]
 
-/**
- * Allow overriding {@link TextDocumentLocationProviderRegistry#entries} for tests.
- */
-class TestTextDocumentLocationProviderRegistry extends TextDocumentLocationProviderRegistry {
-    constructor(entries?: Observable<Entry<TextDocumentRegistrationOptions, ProvideTextDocumentLocationSignature>[]>) {
-        super()
-        if (entries) {
-            entries.subscribe(entries => this.entries.next(entries))
-        }
+    /**
+     * Allow overriding {@link TextDocumentLocationProviderRegistry#entries} for
+     * tests.
+     */
+    class TestTextDocumentLocationProviderRegistry extends
+    TextDocumentLocationProviderRegistry {
+  constructor(entries
+              ?: Observable<Entry<TextDocumentRegistrationOptions,
+                                  ProvideTextDocumentLocationSignature>[]>) {
+    super()
+    if (entries) {
+      entries.subscribe(entries => this.entries.next(entries))
     }
+  }
 }
 
 describe('TextDocumentLocationProviderRegistry', () => {
@@ -135,22 +142,22 @@ describe('getLocationsFromProviders', () => {
         })
     })
 
-    it('returns the results of other providers even if a provider errors', () => {
-        scheduler().run(({ cold, expectObservable }) => {
-            expectObservable(
-                getLocationsFromProviders(
-                    cold<ProvideTextDocumentLocationSignature[]>('-a', {
-                        a: [() => cold('-a', { a: [FIXTURE_LOCATION] }), () => cold('-#', {}, new Error('x'))],
-                    }),
-                    FIXTURE.TextDocumentPositionParams,
-                    false
-                )
-            ).toBe('-lr', {
-                l: { isLoading: true, result: [] },
-                r: { isLoading: false, result: [FIXTURE_LOCATION] },
-            })
-        })
-    })
+        it('returns the results of other providers even if a provider errors',
+           () => {scheduler().run(
+               ({cold, expectObservable}) => {
+                   expectObservable(
+                       getLocationsFromProviders(
+                           cold<ProvideTextDocumentLocationSignature[]>('-a', {
+                             a : [
+                               () => cold('-a', {a : [ FIXTURE_LOCATION ]}),
+                               () => cold('-#', {}, new Error('x'))
+                             ],
+                           }),
+                           FIXTURE.TextDocumentPositionParams, false))
+                       .toBe('-lr', {
+                         l : {isLoading : true, result : []},
+                         r : {isLoading : false, result : [ FIXTURE_LOCATION ]},
+                       })})})
 
     describe('2 providers', () => {
         it('returns an empty result if both providers return an empty result', () => {
@@ -169,21 +176,22 @@ describe('getLocationsFromProviders', () => {
             })
         })
 
-        it('omits null result from 1 provider', () => {
-            scheduler().run(({ cold, expectObservable }) => {
-                expectObservable(
-                    getLocationsFromProviders(
-                        cold<ProvideTextDocumentLocationSignature[]>('-a', {
-                            a: [() => cold('-a', { a: FIXTURE_LOCATIONS }), () => of(null)],
-                        }),
-                        FIXTURE.TextDocumentPositionParams
-                    )
-                ).toBe('-lr', {
-                    l: { isLoading: true, result: [] },
-                    r: { isLoading: false, result: FIXTURE_LOCATIONS },
-                })
-            })
-        })
+    it('omits null result from 1 provider',
+       () => {scheduler().run(
+           ({cold, expectObservable}) => {
+               expectObservable(
+                   getLocationsFromProviders(
+                       cold<ProvideTextDocumentLocationSignature[]>('-a', {
+                         a : [
+                           () => cold('-a', {a : FIXTURE_LOCATIONS}),
+                           () => of(null)
+                         ],
+                       }),
+                       FIXTURE.TextDocumentPositionParams))
+                   .toBe('-lr', {
+                     l : {isLoading : true, result : []},
+                     r : {isLoading : false, result : FIXTURE_LOCATIONS},
+                   })})})
 
         it('merges results from providers', () => {
             scheduler().run(({ cold, expectObservable }) => {

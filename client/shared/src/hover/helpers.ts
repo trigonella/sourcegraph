@@ -5,7 +5,8 @@ import * as React from 'react'
  *
  * @param event The synthetic React event object
  */
-export const toNativeEvent = <E extends React.SyntheticEvent<T>, T>(event: E): E['nativeEvent'] => {
-    event.persist()
-    return event.nativeEvent
-}
+export const toNativeEvent =
+    <E extends React.SyntheticEvent<T>, T>(event: E): E['nativeEvent'] => {
+      event.persist()
+      return event.nativeEvent
+    }

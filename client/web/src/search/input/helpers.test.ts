@@ -1,4 +1,4 @@
-import { convertPlainTextToInteractiveQuery } from './helpers'
+import {convertPlainTextToInteractiveQuery} from './helpers'
 
 describe('Search input helpers', () => {
     describe('convertPlainTextToInteractiveQuery', () => {

@@ -1,14 +1,16 @@
-import { initNewExtensionAPI } from './flatExtensionApi'
-import { SettingsEdit } from '../client/services/settings'
-import { pretendRemote } from '../util'
-import { MainThreadAPI } from '../contract'
-import { SettingsCascade } from '../../settings/settings'
-import { ExtensionDocuments } from './api/documents'
+import {SettingsCascade} from '../../settings/settings'
+import {SettingsEdit} from '../client/services/settings'
+import {MainThreadAPI} from '../contract'
+import {pretendRemote} from '../util'
 
-const initialSettings = (value: { a: string }): SettingsCascade<{ a: string }> => ({
-    subjects: [],
-    final: value,
-})
+import {ExtensionDocuments} from './api/documents'
+import {initNewExtensionAPI} from './flatExtensionApi'
+
+const initialSettings = (value: {a: string}): SettingsCascade<{a : string}> =>
+    ({
+      subjects : [],
+      final : value,
+    })
 
 const noopDocuments = new ExtensionDocuments(() => Promise.resolve())
 
@@ -19,8 +21,8 @@ describe('ExtensionHost: Configuration', () => {
                 configuration,
                 exposedToMain: { syncSettingsData },
             } = initNewExtensionAPI(pretendRemote({}), initialSettings({ a: 'a' }), noopDocuments)
-            syncSettingsData({ subjects: [], final: { a: 'b' } })
-            syncSettingsData({ subjects: [], final: { a: 'c' } })
+syncSettingsData({subjects : [], final : {a : 'b'}})
+syncSettingsData({subjects : [], final : {a : 'c'}})
             expect(configuration.get<{ a: string }>().get('a')).toBe('c')
         })
     })
@@ -28,8 +30,8 @@ describe('ExtensionHost: Configuration', () => {
     describe('changes', () => {
         test('emits immediately on subscription', () => {
             const { configuration } = initNewExtensionAPI(pretendRemote({}), initialSettings({ a: 'a' }), noopDocuments)
-            let calledTimes = 0
-            configuration.subscribe(() => calledTimes++)
+    let calledTimes = 0
+    configuration.subscribe(() => calledTimes++)
             expect(calledTimes).toBe(1)
         })
 
@@ -38,10 +40,10 @@ describe('ExtensionHost: Configuration', () => {
                 configuration,
                 exposedToMain: { syncSettingsData },
             } = initNewExtensionAPI(pretendRemote({}), initialSettings({ a: 'a' }), noopDocuments)
-            let calledTimes = 0
-            configuration.subscribe(() => calledTimes++)
-            syncSettingsData({ subjects: [], final: { a: 'b' } })
-            // one initial and one update
+        let calledTimes = 0
+        configuration.subscribe(() => calledTimes++)
+        syncSettingsData({subjects : [], final : {a : 'b'}})
+        // one initial and one update
             expect(calledTimes).toBe(2)
         })
 
@@ -50,9 +52,9 @@ describe('ExtensionHost: Configuration', () => {
                 configuration,
                 exposedToMain: { syncSettingsData },
             } = initNewExtensionAPI(pretendRemote({}), initialSettings({ a: 'b' }), noopDocuments)
-            const config = configuration.get<{ a: string }>()
-            expect(config.get('a')).toBe('b')
-            syncSettingsData({ subjects: [], final: { a: 'c' } })
+        const config = configuration.get<{a : string}>()
+        expect(config.get('a')).toBe('b')
+        syncSettingsData({subjects : [], final : {a : 'c'}})
             expect(config.get('a')).toBe('b') // Shouldn't this be 'c' instead?
         })
     })
@@ -70,9 +72,11 @@ describe('ExtensionHost: Configuration', () => {
                 initialSettings({ a: 'b' }),
                 noopDocuments
             )
-            const config = configuration.get<{ a: string }>()
-            await config.update('a', 'aha!')
-            expect(requestedEdits).toEqual<SettingsEdit[]>([{ path: ['a'], value: 'aha!' }])
+    const config =
+        configuration.get<{a : string}>() await config.update('a', 'aha!')
+    expect(requestedEdits).toEqual<SettingsEdit[]>([
+      {path : [ 'a' ], value : 'aha!'}
+    ])
             expect(config.get('a')).toBe('b') // no optimistic updates
         })
     })

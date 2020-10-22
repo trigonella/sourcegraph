@@ -1,28 +1,36 @@
-import { take } from 'rxjs/operators'
-import { PlatformContext } from '../../../../shared/src/platform/context'
-import { buildSearchURLQuery } from '../../../../shared/src/util/url'
-import { createSuggestionFetcher } from '../backend/search'
-import { observeSourcegraphURL, getAssetsURL, DEFAULT_SOURCEGRAPH_URL } from '../util/context'
-import { createPlatformContext } from '../platform/context'
-import { from } from 'rxjs'
-import { isDefined, isNot } from '../../../../shared/src/util/types'
-import { ErrorLike, isErrorLike } from '../../../../shared/src/util/errors'
-import { Settings } from '../../../../shared/src/settings/settings'
-import { SearchPatternType } from '../../graphql-operations'
+import {from} from 'rxjs'
+import {take} from 'rxjs/operators'
+
+import {PlatformContext} from '../../../../shared/src/platform/context'
+import {Settings} from '../../../../shared/src/settings/settings'
+import {ErrorLike, isErrorLike} from '../../../../shared/src/util/errors'
+import {isDefined, isNot} from '../../../../shared/src/util/types'
+import {buildSearchURLQuery} from '../../../../shared/src/util/url'
+import {SearchPatternType} from '../../graphql-operations'
+import {createSuggestionFetcher} from '../backend/search'
+import {createPlatformContext} from '../platform/context'
+import {
+  DEFAULT_SOURCEGRAPH_URL,
+  getAssetsURL,
+  observeSourcegraphURL
+} from '../util/context'
 
 const isURL = /^https?:\/\//
 const IS_EXTENSION = true // This feature is only supported in browser extension
 
 export class SearchCommand {
-    public description = 'Enter a search query'
+  public description = 'Enter a search query'
 
-    private suggestionFetcher = createSuggestionFetcher(20, this.requestGraphQL)
+      private suggestionFetcher =
+          createSuggestionFetcher(20, this.requestGraphQL)
 
-    private prev: { query: string; suggestions: browser.omnibox.SuggestResult[] } = { query: '', suggestions: [] }
+              private prev: {
+                query: string; suggestions : browser.omnibox.SuggestResult[]
+              } = {query : '', suggestions: []}
 
-    constructor(private requestGraphQL: PlatformContext['requestGraphQL']) {}
+  constructor(private requestGraphQL: PlatformContext['requestGraphQL']) {}
 
-    public getSuggestions = (query: string): Promise<browser.omnibox.SuggestResult[]> =>
+  public getSuggestions = (query: string): Promise<browser.omnibox.SuggestResult[]> =>
         new Promise(resolve => {
             if (this.prev.query === query) {
                 resolve(this.prev.suggestions)
@@ -79,39 +87,45 @@ export class SearchCommand {
     private readonly settingsTimeoutDuration = 60 * 60 * 1000 // one hour
 
     private async getDefaultSearchPatternType(sourcegraphURL: string): Promise<SearchPatternType> {
-        try {
-            // Refresh settings when either:
-            // - First search
-            // - Sourcegraph URL changes
-            // - Over an hour has passed since last refresh
+    try {
+      // Refresh settings when either:
+      // - First search
+      // - Sourcegraph URL changes
+      // - Over an hour has passed since last refresh
 
-            if (this.lastSourcegraphUrl !== sourcegraphURL || this.settingsTimeoutHandler === 0) {
-                clearTimeout(this.settingsTimeoutHandler)
-                this.settingsTimeoutHandler = 0
+      if (this.lastSourcegraphUrl !== sourcegraphURL ||
+          this.settingsTimeoutHandler === 0) {
+        clearTimeout(this.settingsTimeoutHandler) this.settingsTimeoutHandler =
+            0
 
-                const platformContext = createPlatformContext(
-                    { urlToFile: undefined, getContext: undefined },
-                    { sourcegraphURL, assetsURL: getAssetsURL(DEFAULT_SOURCEGRAPH_URL) },
-                    IS_EXTENSION
-                )
+        const platformContext =
+            createPlatformContext(
+                {urlToFile : undefined, getContext : undefined}, {
+                  sourcegraphURL,
+                  assetsURL : getAssetsURL(DEFAULT_SOURCEGRAPH_URL)
+                },
+                IS_EXTENSION)
 
                 await platformContext.refreshSettings()
-                const settings = (await from(platformContext.settings).pipe(take(1)).toPromise()).final
+        const settings =
+            (await from(platformContext.settings).pipe(take(1)).toPromise())
+                .final
 
-                if (isDefined(settings) && isNot<ErrorLike | Settings, ErrorLike>(isErrorLike)(settings)) {
-                    this.defaultPatternType =
-                        (settings['search.defaultPatternType'] as SearchPatternType) || this.defaultPatternType
-                }
-
-                this.lastSourcegraphUrl = sourcegraphURL
-                this.settingsTimeoutHandler = window.setTimeout(() => {
-                    this.settingsTimeoutHandler = 0
-                }, this.settingsTimeoutDuration)
-            }
-        } catch {
-            // Ignore errors trying to get settings, fall to return default below
+        if (isDefined(settings) &&
+            isNot<ErrorLike|Settings, ErrorLike>(isErrorLike)(settings)) {
+          this.defaultPatternType =
+              (settings['search.defaultPatternType'] as SearchPatternType) ||
+              this.defaultPatternType
         }
 
-        return this.defaultPatternType
+        this.lastSourcegraphUrl = sourcegraphURL this.settingsTimeoutHandler =
+            window.setTimeout(() => {this.settingsTimeoutHandler = 0},
+                              this.settingsTimeoutDuration)
+      }
+    } catch {
+      // Ignore errors trying to get settings, fall to return default below
     }
+
+    return this.defaultPatternType
+  }
 }

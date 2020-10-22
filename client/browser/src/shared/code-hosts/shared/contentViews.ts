@@ -1,53 +1,82 @@
-import { asyncScheduler, merge, Observable, of, Subject, Subscription, Unsubscribable } from 'rxjs'
-import { distinctUntilChanged, map, mapTo, mergeMap, observeOn, tap, throttleTime } from 'rxjs/operators'
-import { LinkPreviewProviderRegistry } from '../../../../../shared/src/api/client/services/linkPreview'
-import { applyLinkPreview } from '../../../../../shared/src/components/linkPreviews/linkPreviews'
-import { ExtensionsControllerProps } from '../../../../../shared/src/extensions/controller'
-import { MutationRecordLike, observeMutations } from '../../util/dom'
-import { CodeHost } from './codeHost'
-import { trackViews } from './views'
+import {
+  asyncScheduler,
+  merge,
+  Observable,
+  of,
+  Subject,
+  Subscription,
+  Unsubscribable
+} from 'rxjs'
+import {
+  distinctUntilChanged,
+  map,
+  mapTo,
+  mergeMap,
+  observeOn,
+  tap,
+  throttleTime
+} from 'rxjs/operators'
+import {
+  LinkPreviewProviderRegistry
+} from '../../../../../shared/src/api/client/services/linkPreview'
+import {
+  applyLinkPreview
+} from '../../../../../shared/src/components/linkPreviews/linkPreviews'
+import {
+  ExtensionsControllerProps
+} from '../../../../../shared/src/extensions/controller'
+import {MutationRecordLike, observeMutations} from '../../util/dom'
+import {CodeHost} from './codeHost'
+import {trackViews} from './views'
 
 /**
- * Defines a content view that is present on a page and exposes operations for manipulating it.
+ * Defines a content view that is present on a page and exposes operations for
+ * manipulating it.
  */
 export interface ContentView {
-    /** The content view HTML element. */
-    element: HTMLElement
+  /** The content view HTML element. */
+  element: HTMLElement
 }
 
 /**
- * Handles added and removed content views according to the {@link CodeHost} configuration.
+ * Handles added and removed content views according to the {@link CodeHost}
+ * configuration.
  */
 export function handleContentViews(
-    mutations: Observable<MutationRecordLike[]>,
+    mutations: Observable<MutationRecordLike[]>, {
+      extensionsController,
+    }:|ExtensionsControllerProps|{
+      extensionsController : {
+        services : {
+          linkPreviews : Pick<LinkPreviewProviderRegistry, 'provideLinkPreview'>
+        }
+      }
+    },
     {
-        extensionsController,
-    }:
-        | ExtensionsControllerProps
-        | {
-              extensionsController: {
-                  services: { linkPreviews: Pick<LinkPreviewProviderRegistry, 'provideLinkPreview'> }
-              }
-          },
-    {
-        contentViewResolvers,
-        linkPreviewContentClass,
-        setElementTooltip,
-    }: Pick<CodeHost, 'contentViewResolvers' | 'linkPreviewContentClass' | 'setElementTooltip'>
-): Unsubscribable {
-    /** A stream of added or removed content views. */
-    const contentViews = mutations.pipe(trackViews<ContentView>(contentViewResolvers || []), observeOn(asyncScheduler))
+      contentViewResolvers,
+      linkPreviewContentClass,
+      setElementTooltip,
+    }: Pick<CodeHost, 'contentViewResolvers'|'linkPreviewContentClass'|
+            'setElementTooltip'>): Unsubscribable {
+  /** A stream of added or removed content views. */
+  const contentViews =
+      mutations.pipe(trackViews<ContentView>(contentViewResolvers || []),
+                     observeOn(asyncScheduler))
 
-    /** Pause DOM MutationObserver while we are making changes to avoid duplicating work. */
-    const pauseMutationObserver = new Subject<boolean>()
+  /**
+   * Pause DOM MutationObserver while we are making changes to avoid
+   * duplicating work.
+   */
+  const pauseMutationObserver = new Subject<boolean>()
 
-    /**
-     * Map from content view element to linkPreview subscriptions
-     *
-     * These subscriptions are maintained separately from `contentViewEvent.subscription`,
-     * as they need to be unsubscribed when a content view is updated.
-     */
-    const linkPreviewSubscriptions = new Map<HTMLElement, Subscription>()
+  /**
+   * Map from content view element to linkPreview subscriptions
+   *
+   * These subscriptions are maintained separately from
+   * `contentViewEvent.subscription`, as they need to be unsubscribed when a
+   * content view is updated.
+   */
+  const linkPreviewSubscriptions = new Map<HTMLElement, Subscription>()
 
     return contentViews
         .pipe(
@@ -56,16 +85,17 @@ export function handleContentViews(
                     of(contentViewEvent).pipe(
                         tap(() => {
                             console.log('Content view added', { contentViewEvent })
-                            linkPreviewSubscriptions.set(contentViewEvent.element, new Subscription())
+    linkPreviewSubscriptions.set(contentViewEvent.element, new Subscription())
                             contentViewEvent.subscriptions.add(() => {
-                                console.log('Content view removed', { contentViewEvent })
+    console.log('Content view removed', {contentViewEvent})
 
-                                // Clean up current link preview subscriptions when the content view is removed
-                                const subscriptions = linkPreviewSubscriptions.get(contentViewEvent.element)
-                                if (!subscriptions) {
-                                    throw new Error('No linkPreview subscriptions')
-                                }
-                                subscriptions.unsubscribe()
+    // Clean up current link preview subscriptions when the content view is
+    // removed
+    const subscriptions = linkPreviewSubscriptions.get(contentViewEvent.element)
+    if (!subscriptions) {
+      throw new Error('No linkPreview subscriptions')
+    }
+    subscriptions.unsubscribe()
                             })
                         })
                     ),
@@ -89,35 +119,37 @@ export function handleContentViews(
                 )
             ),
             tap(({ element }) => {
-                // Reset link preview subscriptions
-                let subscriptions = linkPreviewSubscriptions.get(element)
-                if (!subscriptions) {
-                    throw new Error('No linkPreview subscriptions')
-                }
-                subscriptions.unsubscribe()
-                subscriptions = new Subscription()
-                linkPreviewSubscriptions.set(element, subscriptions)
+    // Reset link preview subscriptions
+    let subscriptions = linkPreviewSubscriptions.get(element)
+    if (!subscriptions) {
+      throw new Error('No linkPreview subscriptions')
+    }
+    subscriptions.unsubscribe()
+    subscriptions = new Subscription()
+    linkPreviewSubscriptions.set(element, subscriptions)
 
-                // Add link preview content.
-                for (const link of element.querySelectorAll<HTMLAnchorElement>('a[href]')) {
-                    subscriptions.add(
-                        extensionsController.services.linkPreviews
-                            .provideLinkPreview(link.href)
-                            // The nested subscribe cannot be replaced with a switchMap()
-                            // because we are managing a stateful Map. The subscription is
-                            // managed correctly.
-                            //
-                            // eslint-disable-next-line rxjs/no-nested-subscribe
-                            .subscribe(linkPreview => {
-                                try {
-                                    pauseMutationObserver.next(true) // ignore DOM mutations we make
-                                    applyLinkPreview({ setElementTooltip, linkPreviewContentClass }, link, linkPreview)
-                                } finally {
-                                    pauseMutationObserver.next(false) // stop ignoring DOM mutations
-                                }
-                            })
-                    )
+    // Add link preview content.
+    for (const link of element.querySelectorAll<HTMLAnchorElement>('a[href]')) {
+      subscriptions.add(
+          extensionsController.services.linkPreviews
+              .provideLinkPreview(link.href)
+              // The nested subscribe cannot be replaced with a switchMap()
+              // because we are managing a stateful Map. The subscription is
+              // managed correctly.
+              //
+              // eslint-disable-next-line rxjs/no-nested-subscribe
+              .subscribe(linkPreview => {
+                try {
+                  pauseMutationObserver.next(
+                      true) // ignore DOM mutations we make
+                  applyLinkPreview({setElementTooltip, linkPreviewContentClass},
+                                   link, linkPreview)
+                } finally {
+                  pauseMutationObserver.next(
+                      false) // stop ignoring DOM mutations
                 }
+              }))
+    }
             })
         )
         .subscribe()

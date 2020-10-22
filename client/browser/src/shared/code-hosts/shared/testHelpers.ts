@@ -1,13 +1,11 @@
-import { Observable, of, throwError } from 'rxjs'
-import { SuccessGraphQLResult } from '../../../../../shared/src/graphql/graphql'
-import { IQuery } from '../../../../../shared/src/graphql/schema'
-import { PlatformContext } from '../../../../../shared/src/platform/context'
+import {Observable, of, throwError} from 'rxjs'
+import {SuccessGraphQLResult} from '../../../../../shared/src/graphql/graphql'
+import {IQuery} from '../../../../../shared/src/graphql/schema'
+import {PlatformContext} from '../../../../../shared/src/platform/context'
 
 export interface GraphQLResponseMap {
-    [requestName: string]: (
-        variables: { [k: string]: any },
-        mightContainPrivateInfo?: boolean
-    ) => Observable<SuccessGraphQLResult<any>>
+  [requestName: string]: (variables: {[k: string]: any}, mightContainPrivateInfo
+                          ?: boolean) => Observable<SuccessGraphQLResult<any>>
 }
 
 export const DEFAULT_GRAPHQL_RESPONSES: GraphQLResponseMap = {
@@ -94,13 +92,15 @@ export const mockRequestGraphQL = (
     mightContainPrivateInfo,
 }: {
     request: string
-    variables: V
+variables: V
     mightContainPrivateInfo?: boolean
 }) => {
-    const nameMatch = request.match(/^\s*(?:query|mutation)\s+(\w+)/)
-    const requestName = nameMatch?.[1]
-    if (!requestName || !responseMap[requestName]) {
-        return throwError(new Error(`No mock for GraphQL request ${String(requestName)}`))
-    }
-    return responseMap[requestName](variables, mightContainPrivateInfo) as Observable<SuccessGraphQLResult<R>>
+  const nameMatch = request.match(/^\s*(?:query|mutation)\s+(\w+)/)
+  const requestName =
+      nameMatch?.[1] if (!requestName || !responseMap[requestName]) {
+    return throwError(
+        new Error(`No mock for GraphQL request ${String(requestName)}`))
+  }
+  return responseMap[requestName](variables, mightContainPrivateInfo) as
+         Observable<SuccessGraphQLResult<R>>
 }

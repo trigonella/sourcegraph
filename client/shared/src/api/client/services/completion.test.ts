@@ -1,10 +1,11 @@
-import { of, throwError } from 'rxjs'
-import { TestScheduler } from 'rxjs/testing'
+import {of, throwError} from 'rxjs'
+import {TestScheduler} from 'rxjs/testing'
 import * as sourcegraph from 'sourcegraph'
-import { getCompletionItems, ProvideCompletionItemSignature } from './completion'
-import { FIXTURE } from './registry.test'
+import {getCompletionItems, ProvideCompletionItemSignature} from './completion'
+import {FIXTURE} from './registry.test'
 
-const scheduler = (): TestScheduler => new TestScheduler((a, b) => expect(a).toEqual(b))
+const scheduler = (): TestScheduler =>
+    new TestScheduler((a, b) => expect(a).toEqual(b))
 
 const FIXTURE_COMPLETION_LIST: sourcegraph.CompletionList = {
     items: [{ label: 'x' }],
@@ -53,20 +54,21 @@ describe('getCompletionItems', () => {
             ))
     })
 
-    test('errors do not propagate', () =>
-        scheduler().run(({ cold, expectObservable }) =>
-            expectObservable(
-                getCompletionItems(
-                    cold<ProvideCompletionItemSignature[]>('-a-|', {
-                        a: [() => of(FIXTURE_COMPLETION_LIST), () => throwError(new Error('x'))],
-                    }),
-                    FIXTURE.TextDocumentPositionParams,
-                    false
-                )
-            ).toBe('-a-|', {
-                a: FIXTURE_COMPLETION_LIST,
-            })
-        ))
+        test('errors do not propagate',
+             () => scheduler().run(
+                 ({cold, expectObservable}) =>
+                     expectObservable(
+                         getCompletionItems(
+                             cold<ProvideCompletionItemSignature[]>('-a-|', {
+                               a : [
+                                 () => of(FIXTURE_COMPLETION_LIST),
+                                 () => throwError(new Error('x'))
+                               ],
+                             }),
+                             FIXTURE.TextDocumentPositionParams, false))
+                         .toBe('-a-|', {
+                           a : FIXTURE_COMPLETION_LIST,
+                         })))
 
     describe('2 providers', () => {
         test('returns null result if both providers return null', () =>
@@ -83,19 +85,20 @@ describe('getCompletionItems', () => {
                 })
             ))
 
-        test('omits null result from 1 provider', () =>
-            scheduler().run(({ cold, expectObservable }) =>
-                expectObservable(
-                    getCompletionItems(
-                        cold<ProvideCompletionItemSignature[]>('-a-|', {
-                            a: [() => of(FIXTURE_COMPLETION_LIST), () => of(null)],
-                        }),
-                        FIXTURE.TextDocumentPositionParams
-                    )
-                ).toBe('-a-|', {
-                    a: FIXTURE_COMPLETION_LIST,
-                })
-            ))
+    test('omits null result from 1 provider',
+         () => scheduler().run(
+             ({cold, expectObservable}) =>
+                 expectObservable(
+                     getCompletionItems(
+                         cold<ProvideCompletionItemSignature[]>('-a-|', {
+                           a : [
+                             () => of(FIXTURE_COMPLETION_LIST), () => of(null)
+                           ],
+                         }),
+                         FIXTURE.TextDocumentPositionParams))
+                     .toBe('-a-|', {
+                       a : FIXTURE_COMPLETION_LIST,
+                     })))
 
         test('merges results from providers', () =>
             scheduler().run(({ cold, expectObservable }) =>

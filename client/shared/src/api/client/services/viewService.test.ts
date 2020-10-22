@@ -1,15 +1,22 @@
-import { NEVER } from 'rxjs'
-import { TestScheduler } from 'rxjs/testing'
-import { createViewService, View, getView, ViewService } from './viewService'
-import { Evaluated, Contributions, ContributableViewContainer } from '../../protocol'
-import { MarkupKind } from '@sourcegraph/extension-api-classes'
+import {MarkupKind} from '@sourcegraph/extension-api-classes'
+import {NEVER} from 'rxjs'
+import {TestScheduler} from 'rxjs/testing'
 
-const scheduler = (): TestScheduler => new TestScheduler((actual, expected) => expect(actual).toEqual(expected))
+import {
+  ContributableViewContainer,
+  Contributions,
+  Evaluated
+} from '../../protocol'
+
+import {createViewService, getView, View, ViewService} from './viewService'
+
+const scheduler = (): TestScheduler =>
+    new TestScheduler((actual, expected) => expect(actual).toEqual(expected))
 
 describe('ViewService', () => {
     test('throws on ID conflict', () => {
         const viewService = createViewService()
-        viewService.register('v', ContributableViewContainer.GlobalPage, () => NEVER)
+viewService.register('v', ContributableViewContainer.GlobalPage, () => NEVER)
         expect(() => viewService.register('v', ContributableViewContainer.GlobalPage, () => NEVER)).toThrow()
     })
 
@@ -41,7 +48,7 @@ describe('ViewService', () => {
             const subscription = viewService.register('v', ContributableViewContainer.GlobalPage, () =>
                 cold<View>('bc', { b: { title: 'b', content: [] }, c: { title: 'c', content: [] } })
             )
-            subscription.unsubscribe()
+        subscription.unsubscribe()
             expectObservable(viewService.get('v', {})).toBe('d', {
                 d: null,
             })

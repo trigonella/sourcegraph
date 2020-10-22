@@ -1,26 +1,27 @@
-import { map } from 'rxjs/operators'
-import { dataOrThrowErrors, gql } from '../../../../../shared/src/graphql/graphql'
-import { Observable } from 'rxjs'
-import { diffStatFields, fileDiffFields } from '../../../backend/diff'
+import {Observable} from 'rxjs'
+import {map} from 'rxjs/operators'
+
+import {dataOrThrowErrors, gql} from '../../../../../shared/src/graphql/graphql'
+import {diffStatFields, fileDiffFields} from '../../../backend/diff'
+import {requestGraphQL} from '../../../backend/graphql'
 import {
-    CampaignFields,
-    CampaignChangesetsVariables,
-    CampaignChangesetsResult,
-    ExternalChangesetFileDiffsResult,
-    ExternalChangesetFileDiffsVariables,
-    ExternalChangesetFileDiffsFields,
-    SyncChangesetResult,
-    SyncChangesetVariables,
-    Scalars,
-    ChangesetCountsOverTimeVariables,
-    ChangesetCountsOverTimeFields,
-    ChangesetCountsOverTimeResult,
-    DeleteCampaignResult,
-    DeleteCampaignVariables,
-    CampaignByNamespaceResult,
-    CampaignByNamespaceVariables,
+  CampaignByNamespaceResult,
+  CampaignByNamespaceVariables,
+  CampaignChangesetsResult,
+  CampaignChangesetsVariables,
+  CampaignFields,
+  ChangesetCountsOverTimeFields,
+  ChangesetCountsOverTimeResult,
+  ChangesetCountsOverTimeVariables,
+  DeleteCampaignResult,
+  DeleteCampaignVariables,
+  ExternalChangesetFileDiffsFields,
+  ExternalChangesetFileDiffsResult,
+  ExternalChangesetFileDiffsVariables,
+  Scalars,
+  SyncChangesetResult,
+  SyncChangesetVariables,
 } from '../../../graphql-operations'
-import { requestGraphQL } from '../../../backend/graphql'
 
 const changesetStatsFragment = gql`
     fragment ChangesetStatsFields on ChangesetConnectionStats {
@@ -90,12 +91,11 @@ const changesetLabelFragment = gql`
     }
 `
 
-export const fetchCampaignByNamespace = (
-    namespaceID: Scalars['ID'],
-    campaign: CampaignFields['name']
-): Observable<CampaignFields | null> =>
-    requestGraphQL<CampaignByNamespaceResult, CampaignByNamespaceVariables>(
-        gql`
+export const fetchCampaignByNamespace =
+    (namespaceID: Scalars['ID'],
+     campaign: CampaignFields['name']): Observable<CampaignFields|null> =>
+        requestGraphQL<CampaignByNamespaceResult, CampaignByNamespaceVariables>(
+            gql`
             query CampaignByNamespace($namespaceID: ID!, $campaign: String!) {
                 campaign(namespace: $namespaceID, name: $campaign) {
                     ...CampaignFields
@@ -103,16 +103,13 @@ export const fetchCampaignByNamespace = (
             }
             ${campaignFragment}
         `,
-        { namespaceID, campaign }
-    ).pipe(
-        map(dataOrThrowErrors),
-        map(({ campaign }) => {
-            if (!campaign) {
-                return null
-            }
-            return campaign
-        })
-    )
+            {namespaceID, campaign})
+            .pipe(map(dataOrThrowErrors), map(({campaign}) => {
+                    if (!campaign) {
+                      return null
+                    }
+                    return campaign
+                  }))
 
 export const hiddenExternalChangesetFieldsFragment = gql`
     fragment HiddenExternalChangesetFields on HiddenExternalChangeset {
@@ -183,20 +180,20 @@ export const changesetFieldsFragment = gql`
 `
 
 export const queryChangesets = ({
-    campaign,
-    first,
-    after,
-    externalState,
-    reviewState,
-    checkState,
-    publicationState,
-    reconcilerState,
-    onlyPublishedByThisCampaign,
-}: CampaignChangesetsVariables): Observable<
-    (CampaignChangesetsResult['node'] & { __typename: 'Campaign' })['changesets']
-> =>
-    requestGraphQL<CampaignChangesetsResult, CampaignChangesetsVariables>(
-        gql`
+  campaign,
+  first,
+  after,
+  externalState,
+  reviewState,
+  checkState,
+  publicationState,
+  reconcilerState,
+  onlyPublishedByThisCampaign,
+}: CampaignChangesetsVariables):
+    Observable<(CampaignChangesetsResult['node'] &
+                {__typename : 'Campaign'})['changesets']> =>
+        requestGraphQL<CampaignChangesetsResult, CampaignChangesetsVariables>(
+            gql`
             query CampaignChangesets(
                 $campaign: ID!
                 $first: Int
@@ -236,43 +233,45 @@ export const queryChangesets = ({
 
             ${changesetFieldsFragment}
         `,
-        {
-            campaign,
-            first,
-            after,
-            externalState,
-            reviewState,
-            checkState,
-            publicationState,
-            reconcilerState,
-            onlyPublishedByThisCampaign,
-        }
-    ).pipe(
-        map(dataOrThrowErrors),
-        map(({ node }) => {
-            if (!node) {
-                throw new Error(`Campaign with ID ${campaign} does not exist`)
-            }
-            if (node.__typename !== 'Campaign') {
-                throw new Error(`The given ID is a ${node.__typename}, not a Campaign`)
-            }
-            return node.changesets
-        })
-    )
+            {
+              campaign,
+              first,
+              after,
+              externalState,
+              reviewState,
+              checkState,
+              publicationState,
+              reconcilerState,
+              onlyPublishedByThisCampaign,
+            })
+            .pipe(
+                map(dataOrThrowErrors), map(({node}) => {
+                  if (!node) {
+                    throw new Error(
+                        `Campaign with ID ${campaign} does not exist`)
+                  }
+                  if (node.__typename !== 'Campaign') {
+                    throw new Error(
+                        `The given ID is a ${node.__typename}, not a Campaign`)
+                  }
+                  return node.changesets
+                }))
 
-export async function syncChangeset(changeset: Scalars['ID']): Promise<void> {
-    const result = await requestGraphQL<SyncChangesetResult, SyncChangesetVariables>(
-        gql`
+export async function syncChangeset(changeset: Scalars['ID']):
+    Promise<void> {
+      const result =
+          await requestGraphQL<SyncChangesetResult, SyncChangesetVariables>(
+              gql`
             mutation SyncChangeset($changeset: ID!) {
                 syncChangeset(changeset: $changeset) {
                     alwaysNil
                 }
             }
         `,
-        { changeset }
-    ).toPromise()
-    dataOrThrowErrors(result)
-}
+              {changeset})
+              .toPromise()
+      dataOrThrowErrors(result)
+    }
 
 // Because thats the name in the API:
 // eslint-disable-next-line unicorn/prevent-abbreviations
@@ -340,13 +339,15 @@ export const externalChangesetFileDiffsFields = gql`
 `
 
 export const queryExternalChangesetWithFileDiffs = ({
-    externalChangeset,
-    first,
-    after,
-    isLightTheme,
-}: ExternalChangesetFileDiffsVariables): Observable<ExternalChangesetFileDiffsFields> =>
-    requestGraphQL<ExternalChangesetFileDiffsResult, ExternalChangesetFileDiffsVariables>(
-        gql`
+  externalChangeset,
+  first,
+  after,
+  isLightTheme,
+}: ExternalChangesetFileDiffsVariables):
+    Observable<ExternalChangesetFileDiffsFields> =>
+        requestGraphQL<ExternalChangesetFileDiffsResult,
+                       ExternalChangesetFileDiffsVariables>(
+            gql`
             query ExternalChangesetFileDiffs(
                 $externalChangeset: ID!
                 $first: Int
@@ -361,19 +362,19 @@ export const queryExternalChangesetWithFileDiffs = ({
 
             ${externalChangesetFileDiffsFields}
         `,
-        { externalChangeset, first, after, isLightTheme }
-    ).pipe(
-        map(dataOrThrowErrors),
-        map(({ node }) => {
-            if (!node) {
-                throw new Error(`Changeset with ID ${externalChangeset} does not exist`)
-            }
-            if (node.__typename !== 'ExternalChangeset') {
-                throw new Error(`The given ID is a ${node.__typename}, not an ExternalChangeset`)
-            }
-            return node
-        })
-    )
+            {externalChangeset, first, after, isLightTheme})
+            .pipe(
+                map(dataOrThrowErrors), map(({node}) => {
+                  if (!node) {
+                    throw new Error(
+                        `Changeset with ID ${externalChangeset} does not exist`)
+                  }
+                  if (node.__typename !== 'ExternalChangeset') {
+                    throw new Error(`The given ID is a ${
+                        node.__typename}, not an ExternalChangeset`)
+                  }
+                  return node
+                }))
 
 const changesetCountsOverTimeFragment = gql`
     fragment ChangesetCountsOverTimeFields on ChangesetCounts {
@@ -389,10 +390,11 @@ const changesetCountsOverTimeFragment = gql`
 `
 
 export const queryChangesetCountsOverTime = ({
-    campaign,
-}: ChangesetCountsOverTimeVariables): Observable<ChangesetCountsOverTimeFields[]> =>
-    requestGraphQL<ChangesetCountsOverTimeResult, ChangesetCountsOverTimeVariables>(
-        gql`
+  campaign,
+}: ChangesetCountsOverTimeVariables):
+    Observable<ChangesetCountsOverTimeFields[]> =>
+        requestGraphQL<ChangesetCountsOverTimeResult,
+                       ChangesetCountsOverTimeVariables>(gql`
             query ChangesetCountsOverTime($campaign: ID!) {
                 node(id: $campaign) {
                     __typename
@@ -406,30 +408,31 @@ export const queryChangesetCountsOverTime = ({
 
             ${changesetCountsOverTimeFragment}
         `,
-        { campaign }
-    ).pipe(
-        map(dataOrThrowErrors),
-        map(({ node }) => {
-            if (!node) {
-                throw new Error(`Campaign with ID ${campaign} does not exist`)
-            }
-            if (node.__typename !== 'Campaign') {
-                throw new Error(`The given ID is a ${node.__typename}, not a Campaign`)
-            }
-            return node.changesetCountsOverTime
-        })
-    )
+                                                         {campaign})
+            .pipe(
+                map(dataOrThrowErrors), map(({node}) => {
+                  if (!node) {
+                    throw new Error(
+                        `Campaign with ID ${campaign} does not exist`)
+                  }
+                  if (node.__typename !== 'Campaign') {
+                    throw new Error(
+                        `The given ID is a ${node.__typename}, not a Campaign`)
+                  }
+                  return node.changesetCountsOverTime
+                }))
 
 export async function deleteCampaign(campaign: Scalars['ID']): Promise<void> {
-    const result = await requestGraphQL<DeleteCampaignResult, DeleteCampaignVariables>(
-        gql`
+  const result =
+      await requestGraphQL<DeleteCampaignResult, DeleteCampaignVariables>(
+          gql`
             mutation DeleteCampaign($campaign: ID!) {
                 deleteCampaign(campaign: $campaign) {
                     alwaysNil
                 }
             }
         `,
-        { campaign }
-    ).toPromise()
-    dataOrThrowErrors(result)
+          {campaign})
+          .toPromise()
+  dataOrThrowErrors(result)
 }

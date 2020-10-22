@@ -1,28 +1,33 @@
-import { TextDocumentDecoration } from '@sourcegraph/extension-api-types'
-import { of } from 'rxjs'
-import { TestScheduler } from 'rxjs/testing'
-import { TextDocumentIdentifier } from '../types/textDocument'
+import {TextDocumentDecoration} from '@sourcegraph/extension-api-types'
+import {of} from 'rxjs'
+import {TestScheduler} from 'rxjs/testing'
+import {TextDocumentIdentifier} from '../types/textDocument'
 import {
-    decorationAttachmentStyleForTheme,
-    decorationStyleForTheme,
-    getDecorations,
-    ProvideTextDocumentDecorationSignature,
+  decorationAttachmentStyleForTheme,
+  decorationStyleForTheme,
+  getDecorations,
+  ProvideTextDocumentDecorationSignature,
 } from './decoration'
-import { FIXTURE as COMMON_FIXTURE } from './registry.test'
+import {FIXTURE as COMMON_FIXTURE} from './registry.test'
 
 const FIXTURE = {
-    ...COMMON_FIXTURE,
-    TextDocumentIdentifier: { uri: 'file:///f' } as TextDocumentIdentifier,
+  ...COMMON_FIXTURE,
+  TextDocumentIdentifier : {uri : 'file:///f'} as TextDocumentIdentifier,
 }
 
-const FIXTURE_RESULT: TextDocumentDecoration[] | null = [
-    {
-        range: { start: { line: 1, character: 2 }, end: { line: 3, character: 4 } },
-        backgroundColor: 'red',
-    },
-]
+const FIXTURE_RESULT: TextDocumentDecoration[]|null =
+    [
+      {
+        range : {
+          start : {line : 1, character : 2},
+          end : {line : 3, character : 4}
+        },
+        backgroundColor : 'red',
+      },
+    ]
 
-const scheduler = (): TestScheduler => new TestScheduler((a, b) => expect(a).toEqual(b))
+    const scheduler = (): TestScheduler =>
+        new TestScheduler((a, b) => expect(a).toEqual(b))
 
 describe('getDecorations', () => {
     describe('0 providers', () => {
@@ -82,19 +87,19 @@ describe('getDecorations', () => {
                 })
             ))
 
-        test('omits null result from 1 provider', () =>
-            scheduler().run(({ cold, expectObservable }) =>
+    test(
+        'omits null result from 1 provider',
+        () => scheduler().run(
+            ({cold, expectObservable}) =>
                 expectObservable(
                     getDecorations(
                         cold<ProvideTextDocumentDecorationSignature[]>('-a-|', {
-                            a: [() => of(FIXTURE_RESULT), () => of(null)],
+                          a : [ () => of(FIXTURE_RESULT), () => of(null) ],
                         }),
-                        FIXTURE.TextDocumentIdentifier
-                    )
-                ).toBe('-a-|', {
-                    a: FIXTURE_RESULT,
-                })
-            ))
+                        FIXTURE.TextDocumentIdentifier))
+                    .toBe('-a-|', {
+                      a : FIXTURE_RESULT,
+                    })))
 
         test('merges results from providers', () =>
             scheduler().run(({ cold, expectObservable }) =>
@@ -131,22 +136,24 @@ describe('getDecorations', () => {
 })
 
 describe('decorationStyleForTheme', () => {
-    const FIXTURE_RANGE = { start: { line: 1, character: 2 }, end: { line: 3, character: 4 } }
+    const FIXTURE_RANGE = {
+  start: {line: 1, character: 2}, end: {line: 3, character: 4} }
 
     test('supports no theme overrides', () =>
         expect(decorationStyleForTheme({ range: FIXTURE_RANGE, backgroundColor: 'red' }, true)).toEqual({
             backgroundColor: 'red',
         }))
 
-    test('applies light theme overrides', () =>
-        expect(
-            decorationStyleForTheme(
-                { range: FIXTURE_RANGE, backgroundColor: 'red', light: { backgroundColor: 'blue' } },
-                true
-            )
-        ).toEqual({
-            backgroundColor: 'blue',
-        }))
+test('applies light theme overrides',
+     () => expect(decorationStyleForTheme({
+             range : FIXTURE_RANGE,
+             backgroundColor : 'red',
+             light : {backgroundColor : 'blue'}
+           },
+                                          true))
+               .toEqual({
+                 backgroundColor : 'blue',
+               }))
 
     test('applies dark theme overrides', () =>
         expect(
@@ -168,10 +175,12 @@ describe('decorationAttachmentStyleForTheme', () => {
     test('supports no theme overrides', () =>
         expect(decorationAttachmentStyleForTheme({ color: 'red' }, true)).toEqual({ color: 'red' }))
 
-    test('applies light theme overrides', () =>
-        expect(decorationAttachmentStyleForTheme({ color: 'red', light: { color: 'blue' } }, true)).toEqual({
-            color: 'blue',
-        }))
+test('applies light theme overrides',
+     () => expect(decorationAttachmentStyleForTheme(
+                      {color : 'red', light : {color : 'blue'}}, true))
+               .toEqual({
+                 color : 'blue',
+               }))
 
     test('applies dark theme overrides', () =>
         expect(

@@ -1,5 +1,8 @@
-import { testCodeHostMountGetters, testToolbarMountGetter } from '../shared/codeHostTestUtils'
-import { bitbucketServerCodeHost, getToolbarMount } from './codeHost'
+import {
+  testCodeHostMountGetters,
+  testToolbarMountGetter
+} from '../shared/codeHostTestUtils'
+import {bitbucketServerCodeHost, getToolbarMount} from './codeHost'
 
 describe('bitbucketServerCodeHost', () => {
     testCodeHostMountGetters(bitbucketServerCodeHost, {

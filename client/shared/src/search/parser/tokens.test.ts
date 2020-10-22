@@ -1,5 +1,5 @@
-import { getMonacoTokens } from './tokens'
-import { parseSearchQuery, ParseSuccess, Sequence } from './parser'
+import {parseSearchQuery, ParseSuccess, Sequence} from './parser'
+import {getMonacoTokens} from './tokens'
 
 describe('getMonacoTokens()', () => {
     test('returns the tokens for a parsed search query', () => {

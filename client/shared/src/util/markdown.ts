@@ -1,18 +1,20 @@
-import { highlight, highlightAuto } from 'highlight.js/lib/core'
-import { without } from 'lodash'
-// This is the only file allowed to import this module, all other modules must use renderMarkdown() exported from here
-// eslint-disable-next-line no-restricted-imports
+import {highlight, highlightAuto} from 'highlight.js/lib/core'
+import {without} from 'lodash'
+// This is the only file allowed to import this module, all other modules must
+// use renderMarkdown() exported from here eslint-disable-next-line
+// no-restricted-imports
 import marked from 'marked'
 import sanitize from 'sanitize-html'
-import { Overwrite } from 'utility-types'
+import {Overwrite} from 'utility-types'
 
 /**
- * Escapes HTML by replacing characters like `<` with their HTML escape sequences like `&lt;`
+ * Escapes HTML by replacing characters like `<` with their HTML escape
+ * sequences like `&lt;`
  */
 const escapeHTML = (html: string): string => {
-    const span = document.createElement('span')
-    span.textContent = html
-    return span.innerHTML
+  const span = document.createElement('span')
+  span.textContent = html
+  return span.innerHTML
 }
 
 /**
@@ -25,18 +27,18 @@ const escapeHTML = (html: string): string => {
  * @returns Safe HTML
  */
 export const highlightCodeSafe = (code: string, language?: string): string => {
-    try {
-        if (language === 'plaintext' || language === 'text') {
-            return escapeHTML(code)
-        }
-        if (language) {
-            return highlight(language, code, true).value
-        }
-        return highlightAuto(code).value
-    } catch (error) {
-        console.warn('Error syntax-highlighting hover markdown code block', error)
-        return escapeHTML(code)
+  try {
+    if (language === 'plaintext' || language === 'text') {
+      return escapeHTML(code)
     }
+    if (language) {
+      return highlight(language, code, true).value
+    }
+    return highlightAuto(code).value
+  } catch (error) {
+    console.warn('Error syntax-highlighting hover markdown code block', error)
+    return escapeHTML(code)
+  }
 }
 
 const svgPresentationAttributes = ['fill', 'stroke', 'stroke-width'] as const
@@ -63,104 +65,120 @@ export const renderMarkdown = (
               /** Following options apply to non-plaintext output only. */
               plainText?: false
 
-              /** Allow links to data: URIs and that download files. */
+/** Allow links to data: URIs and that download files. */
               allowDataUriLinksAndDownloads?: boolean
           }
     ) = {}
 ): string => {
-    const rendered = marked(markdown, {
-        gfm: true,
-        breaks: options.breaks,
-        sanitize: false,
-        highlight: (code, language) => highlightCodeSafe(code, language),
-    })
+  const rendered = marked(markdown, {
+    gfm : true,
+    breaks : options.breaks,
+    sanitize : false,
+    highlight : (code, language) => highlightCodeSafe(code, language),
+  })
 
-    let sanitizeOptions: Overwrite<sanitize.IOptions, sanitize.IDefaults>
-    if (options.plainText) {
-        sanitizeOptions = {
-            allowedAttributes: {},
-            allowedSchemes: [],
-            allowedSchemesByTag: {},
-            allowedTags: [],
-            selfClosing: [],
-        }
-    } else {
-        sanitizeOptions = {
-            ...sanitize.defaults,
-            // Ensure <object> must have type attribute set
-            exclusiveFilter: ({ tag, attribs }) => tag === 'object' && !attribs.type,
-
-            allowedTags: [
-                ...without(sanitize.defaults.allowedTags, 'iframe'),
-                'h1',
-                'h2',
-                'span',
-                'small',
-                'img',
-                'picture',
-                'source',
-                'object',
-                'svg',
-                'rect',
-                'defs',
-                'pattern',
-                'mask',
-                'circle',
-                'path',
-                'title',
-            ],
-            allowedAttributes: {
-                ...sanitize.defaults.allowedAttributes,
-                a: [
-                    ...sanitize.defaults.allowedAttributes.a,
-                    'title',
-                    'data-tooltip', // TODO support fancy tooltips through native titles
-                    'class',
-                    { name: 'rel', values: ['noopener', 'noreferrer'] },
-                ],
-                img: [...sanitize.defaults.allowedAttributes.img, 'alt', 'width', 'height', 'align'],
-                // Support different images depending on media queries (e.g. color theme, reduced motion)
-                source: ['srcset', 'media'],
-                // Support SVGs for code insights.
-                object: ['data', { name: 'type', values: ['image/svg+xml'] }, 'width'],
-                svg: ['width', 'height', 'viewbox', 'version', 'preserveaspectratio', 'style'],
-                rect: ['x', 'y', 'width', 'height', 'transform', ...svgPresentationAttributes],
-                path: ['d', ...svgPresentationAttributes],
-                circle: ['cx', 'cy', ...svgPresentationAttributes],
-                pattern: ['id', 'width', 'height', 'patternunits', 'patterntransform'],
-                mask: ['id'],
-                // Allow highligh.js styles, e.g.
-                // <span class="hljs-keyword">
-                // <code class="language-javascript">
-                span: ['class'],
-                code: ['class'],
-                // Support deep-linking
-                h1: ['id'],
-                h2: ['id'],
-                h3: ['id'],
-                h4: ['id'],
-                h5: ['id'],
-                h6: ['id'],
-            },
-            allowedStyles: {
-                // SVGs are usually for charts in code insights.
-                // Allow them to be responsive.
-                svg: {
-                    flex: ALL_VALUES_ALLOWED,
-                    'flex-grow': ALL_VALUES_ALLOWED,
-                    'flex-shrink': ALL_VALUES_ALLOWED,
-                    'flex-basis': ALL_VALUES_ALLOWED,
-                },
-            },
-        }
-        if (options.allowDataUriLinksAndDownloads) {
-            sanitizeOptions.allowedAttributes.a = [...sanitizeOptions.allowedAttributes.a, 'download']
-            sanitizeOptions.allowedSchemesByTag = {
-                ...sanitizeOptions.allowedSchemesByTag,
-                a: [...(sanitizeOptions.allowedSchemesByTag.a || sanitizeOptions.allowedSchemes), 'data'],
-            }
-        }
+  let sanitizeOptions:
+      Overwrite<sanitize.IOptions, sanitize.IDefaults>if (options.plainText) {
+    sanitizeOptions = {
+      allowedAttributes : {},
+      allowedSchemes : [],
+      allowedSchemesByTag : {},
+      allowedTags : [],
+      selfClosing : [],
     }
+  }
+  else {
+    sanitizeOptions = {
+      ...sanitize.defaults,
+      // Ensure <object> must have type attribute set
+      exclusiveFilter : ({tag, attribs}) => tag === 'object' && !attribs.type,
 
-    return sanitize(rendered, sanitizeOptions)
+      allowedTags : [
+        ...without(sanitize.defaults.allowedTags, 'iframe'),
+        'h1',
+        'h2',
+        'span',
+        'small',
+        'img',
+        'picture',
+        'source',
+        'object',
+        'svg',
+        'rect',
+        'defs',
+        'pattern',
+        'mask',
+        'circle',
+        'path',
+        'title',
+      ],
+      allowedAttributes : {
+        ...sanitize.defaults.allowedAttributes,
+        a : [
+          ...sanitize.defaults.allowedAttributes.a,
+          'title',
+          'data-tooltip', // TODO support fancy tooltips through native titles
+          'class',
+          {name : 'rel', values : [ 'noopener', 'noreferrer' ]},
+        ],
+        img : [
+          ...sanitize.defaults.allowedAttributes.img, 'alt', 'width', 'height',
+          'align'
+        ],
+        // Support different images depending on media queries (e.g. color
+        // theme, reduced motion)
+        source : [ 'srcset', 'media' ],
+        // Support SVGs for code insights.
+        object :
+            [ 'data', {name : 'type', values : [ 'image/svg+xml' ]}, 'width' ],
+        svg : [
+          'width', 'height', 'viewbox', 'version', 'preserveaspectratio',
+          'style'
+        ],
+        rect : [
+          'x', 'y', 'width', 'height', 'transform', ...svgPresentationAttributes
+        ],
+        path : [ 'd', ...svgPresentationAttributes ],
+        circle : [ 'cx', 'cy', ...svgPresentationAttributes ],
+        pattern :
+            [ 'id', 'width', 'height', 'patternunits', 'patterntransform' ],
+        mask : [ 'id' ],
+        // Allow highligh.js styles, e.g.
+        // <span class="hljs-keyword">
+        // <code class="language-javascript">
+        span : [ 'class' ],
+        code : [ 'class' ],
+        // Support deep-linking
+        h1 : [ 'id' ],
+        h2 : [ 'id' ],
+        h3 : [ 'id' ],
+        h4 : [ 'id' ],
+        h5 : [ 'id' ],
+        h6 : [ 'id' ],
+      },
+      allowedStyles : {
+        // SVGs are usually for charts in code insights.
+        // Allow them to be responsive.
+        svg : {
+          flex : ALL_VALUES_ALLOWED,
+          'flex-grow' : ALL_VALUES_ALLOWED,
+          'flex-shrink' : ALL_VALUES_ALLOWED,
+          'flex-basis' : ALL_VALUES_ALLOWED,
+        },
+      },
+    } if (options.allowDataUriLinksAndDownloads) {
+      sanitizeOptions.allowedAttributes.a =
+          [...sanitizeOptions.allowedAttributes.a, 'download' ]
+      sanitizeOptions.allowedSchemesByTag = {
+        ...sanitizeOptions.allowedSchemesByTag,
+        a : [
+          ...(sanitizeOptions.allowedSchemesByTag.a ||
+              sanitizeOptions.allowedSchemes),
+          'data'
+        ],
+      }
+    }
+  }
+
+  return sanitize(rendered, sanitizeOptions)
 }

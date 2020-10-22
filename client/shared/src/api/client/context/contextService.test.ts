@@ -1,23 +1,23 @@
 import * as sinon from 'sinon'
-import { createContextService } from './contextService'
+import {createContextService} from './contextService'
 
 describe('createContextService()', () => {
     describe('updateContext()', () => {
         it('adds properties', () => {
             const service = createContextService({ clientApplication: 'other' })
-            service.updateContext({ a: 1, c: 2, d: 3 })
-            const spy = sinon.spy()
-            service.data.subscribe(spy)
-            sinon.assert.calledOnce(spy)
-            expect(service.data.value).toEqual({
-                'clientApplication.isSourcegraph': false,
-                'clientApplication.extensionAPIVersion.major': 3,
-                a: 1,
-                c: 2,
-                d: 3,
-            })
-            service.updateContext({ b: 1, e: 4 })
-            sinon.assert.calledTwice(spy)
+service.updateContext({a : 1, c : 2, d : 3})
+const spy = sinon.spy()
+service.data.subscribe(spy)
+sinon.assert.calledOnce(spy)
+expect(service.data.value).toEqual({
+  'clientApplication.isSourcegraph' : false,
+  'clientApplication.extensionAPIVersion.major' : 3,
+  a : 1,
+  c : 2,
+  d : 3,
+})
+service.updateContext({b : 1, e : 4})
+sinon.assert.calledTwice(spy)
             expect(service.data.value).toEqual({
                 'clientApplication.isSourcegraph': false,
                 'clientApplication.extensionAPIVersion.major': 3,
@@ -30,19 +30,19 @@ describe('createContextService()', () => {
         })
         it('modifies properties', () => {
             const service = createContextService({ clientApplication: 'other' })
-            service.updateContext({ a: 1, c: 2, d: 3 })
-            const spy = sinon.spy()
-            service.data.subscribe(spy)
-            sinon.assert.calledOnce(spy)
-            expect(service.data.value).toEqual({
-                'clientApplication.isSourcegraph': false,
-                'clientApplication.extensionAPIVersion.major': 3,
-                a: 1,
-                c: 2,
-                d: 3,
-            })
-            service.updateContext({ a: 2 })
-            sinon.assert.calledTwice(spy)
+        service.updateContext({a : 1, c : 2, d : 3})
+        const spy = sinon.spy()
+        service.data.subscribe(spy)
+        sinon.assert.calledOnce(spy)
+        expect(service.data.value).toEqual({
+          'clientApplication.isSourcegraph' : false,
+          'clientApplication.extensionAPIVersion.major' : 3,
+          a : 1,
+          c : 2,
+          d : 3,
+        })
+        service.updateContext({a : 2})
+        sinon.assert.calledTwice(spy)
             expect(service.data.value).toEqual({
                 'clientApplication.isSourcegraph': false,
                 'clientApplication.extensionAPIVersion.major': 3,
@@ -53,19 +53,19 @@ describe('createContextService()', () => {
         })
         it('merges properties', () => {
             const service = createContextService({ clientApplication: 'other' })
-            service.updateContext({ a: 1, c: 2, d: 3 })
-            const spy = sinon.spy()
-            service.data.subscribe(spy)
-            sinon.assert.calledOnce(spy)
-            expect(service.data.value).toEqual({
-                'clientApplication.isSourcegraph': false,
-                'clientApplication.extensionAPIVersion.major': 3,
-                a: 1,
-                c: 2,
-                d: 3,
-            })
-            service.updateContext({ b: 1, c: 3 })
-            sinon.assert.calledTwice(spy)
+        service.updateContext({a : 1, c : 2, d : 3})
+        const spy = sinon.spy()
+        service.data.subscribe(spy)
+        sinon.assert.calledOnce(spy)
+        expect(service.data.value).toEqual({
+          'clientApplication.isSourcegraph' : false,
+          'clientApplication.extensionAPIVersion.major' : 3,
+          a : 1,
+          c : 2,
+          d : 3,
+        })
+        service.updateContext({b : 1, c : 3})
+        sinon.assert.calledTwice(spy)
             expect(service.data.value).toEqual({
                 'clientApplication.isSourcegraph': false,
                 'clientApplication.extensionAPIVersion.major': 3,
@@ -77,18 +77,18 @@ describe('createContextService()', () => {
         })
         it('removes a key if it is null', () => {
             const service = createContextService({ clientApplication: 'other' })
-            service.updateContext({ a: 1, b: 2 })
-            const spy = sinon.spy()
-            service.data.subscribe(spy)
-            sinon.assert.calledOnce(spy)
-            expect(service.data.value).toEqual({
-                'clientApplication.isSourcegraph': false,
-                'clientApplication.extensionAPIVersion.major': 3,
-                a: 1,
-                b: 2,
-            })
-            service.updateContext({ a: 1, b: null })
-            sinon.assert.calledTwice(spy)
+        service.updateContext({a : 1, b : 2})
+        const spy = sinon.spy()
+        service.data.subscribe(spy)
+        sinon.assert.calledOnce(spy)
+        expect(service.data.value).toEqual({
+          'clientApplication.isSourcegraph' : false,
+          'clientApplication.extensionAPIVersion.major' : 3,
+          a : 1,
+          b : 2,
+        })
+        service.updateContext({a : 1, b : null})
+        sinon.assert.calledTwice(spy)
             expect(service.data.value).toEqual({
                 'clientApplication.isSourcegraph': false,
                 'clientApplication.extensionAPIVersion.major': 3,
@@ -97,18 +97,18 @@ describe('createContextService()', () => {
         })
         it('does not emit if values are the same', () => {
             const service = createContextService({ clientApplication: 'other' })
-            service.updateContext({ a: 1, c: 2 })
-            const spy = sinon.spy()
-            service.data.subscribe(spy)
-            sinon.assert.calledOnce(spy)
-            expect(service.data.value).toEqual({
-                'clientApplication.isSourcegraph': false,
-                'clientApplication.extensionAPIVersion.major': 3,
-                a: 1,
-                c: 2,
-            })
-            service.updateContext({ a: 1 })
-            sinon.assert.calledOnce(spy)
+        service.updateContext({a : 1, c : 2})
+        const spy = sinon.spy()
+        service.data.subscribe(spy)
+        sinon.assert.calledOnce(spy)
+        expect(service.data.value).toEqual({
+          'clientApplication.isSourcegraph' : false,
+          'clientApplication.extensionAPIVersion.major' : 3,
+          a : 1,
+          c : 2,
+        })
+        service.updateContext({a : 1})
+        sinon.assert.calledOnce(spy)
             expect(service.data.value).toEqual({
                 'clientApplication.isSourcegraph': false,
                 'clientApplication.extensionAPIVersion.major': 3,

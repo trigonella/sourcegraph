@@ -1,4 +1,5 @@
-import { NamespaceAreaRoute } from '../../namespaces/NamespaceArea'
-import { namespaceAreaRoutes } from '../../namespaces/routes'
+import {NamespaceAreaRoute} from '../../namespaces/NamespaceArea'
+import {namespaceAreaRoutes} from '../../namespaces/routes'
 
-export const enterpriseNamespaceAreaRoutes: readonly NamespaceAreaRoute[] = [...namespaceAreaRoutes]
+export const enterpriseNamespaceAreaRoutes: readonly NamespaceAreaRoute[] =
+    [...namespaceAreaRoutes ]

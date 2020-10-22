@@ -1,31 +1,26 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // license, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
-declare module 'webextension-polyfill' {
-    export = browser
+declare module 'webextension-polyfill' {export = browser}
+
+declare namespace browser{
+  /**
+   * An object that allows adding, removing and inspecting listeners.
+   * Event listeners may return a value.
+   */
+  interface CallbackEventEmitter<F extends(...args: any) => any>{
+    addListener(callback: F) : void removeListener(callback: F) :
+        void hasListener(callback: F) : boolean
+  }
+
+  /**
+   * Simpler version for events with a single parameter that always return void.
+   */
+  type EventEmitter<T> = CallbackEventEmitter<(event: T) => void>
 }
 
-declare namespace browser {
-    /**
-     * An object that allows adding, removing and inspecting listeners.
-     * Event listeners may return a value.
-     */
-    interface CallbackEventEmitter<F extends (...args: any) => any> {
-        addListener(callback: F): void
-        removeListener(callback: F): void
-        hasListener(callback: F): boolean
-    }
-
-    /**
-     * Simpler version for events with a single parameter that always return void.
-     */
-    type EventEmitter<T> = CallbackEventEmitter<(event: T) => void>
-}
-
-declare namespace browser.alarms {
-    interface Alarm {
-        name: string
-        scheduledTime: number
+declare namespace browser.alarms{interface Alarm{name : string
+scheduledTime: number
         periodInMinutes?: number
     }
 
@@ -47,43 +42,42 @@ declare namespace browser.alarms {
 }
 
 declare namespace browser.bookmarks {
-    type BookmarkTreeNodeUnmodifiable = 'managed'
-    type BookmarkTreeNodeType = 'bookmark' | 'folder' | 'separator'
-    interface BookmarkTreeNode {
-        id: string
-        parentId?: string
-        index?: number
-        url?: string
-        title: string
-        dateAdded?: number
-        dateGroupModified?: number
-        unmodifiable?: BookmarkTreeNodeUnmodifiable
-        children?: BookmarkTreeNode[]
-        type?: BookmarkTreeNodeType
-    }
+  type BookmarkTreeNodeUnmodifiable = 'managed'
+  type BookmarkTreeNodeType =
+      'bookmark'|'folder'|'separator' interface BookmarkTreeNode {
+    id: string
+    parentId?: string
+    index?: number
+    url?: string
+    title: string
+    dateAdded?: number
+    dateGroupModified?: number
+    unmodifiable?: BookmarkTreeNodeUnmodifiable
+    children?: BookmarkTreeNode[]
+    type?: BookmarkTreeNodeType
+  }
 
-    interface CreateDetails {
-        parentId?: string
-        index?: number
-        title?: string
-        type?: BookmarkTreeNodeType
-        url?: string
-    }
+  interface CreateDetails {
+    parentId?: string
+    index?: number
+    title?: string
+    type?: BookmarkTreeNodeType
+    url?: string
+  }
 
-    function create(bookmark: CreateDetails): Promise<BookmarkTreeNode>
-    function get(idOrIdList: string | string[]): Promise<BookmarkTreeNode[]>
-    function getChildren(id: string): Promise<BookmarkTreeNode[]>
-    function getRecent(numberOfItems: number): Promise<BookmarkTreeNode[]>
-    function getSubTree(id: string): Promise<[BookmarkTreeNode]>
-    function getTree(): Promise<[BookmarkTreeNode]>
+  function create(bookmark: CreateDetails):
+      Promise<BookmarkTreeNode>function get(idOrIdList: string|string[]):
+          Promise<BookmarkTreeNode[]>function getChildren(id: string):
+              Promise<BookmarkTreeNode[]>function getRecent(
+                  numberOfItems: number): Promise<BookmarkTreeNode[]>
+                  function getSubTree(id: string):
+                      Promise<[ BookmarkTreeNode ]>function getTree():
+                          Promise<[ BookmarkTreeNode ]>
 
-    type Destination =
-        | {
-              parentId: string
-              index?: number
-          }
-        | {
-              index: number
+                              type Destination = | {
+                                parentId: string
+                                index?: number
+                              } | {index : number
               parentId?: string
           }
     function move(id: string, destination: Destination): Promise<BookmarkTreeNode>
@@ -93,9 +87,9 @@ declare namespace browser.bookmarks {
         query:
             | string
             | {
-                  query?: string
-                  url?: string
-                  title?: string
+    query?: string
+    url?: string
+    title?: string
               }
     ): Promise<BookmarkTreeNode[]>
     function update(id: string, changes: { title: string; url: string }): Promise<BookmarkTreeNode>
@@ -104,9 +98,9 @@ declare namespace browser.bookmarks {
     const onRemoved: CallbackEventEmitter<(
         id: string,
         removeInfo: {
-            parentId: string
-            index: number
-            node: BookmarkTreeNode
+    parentId: string
+    index: number
+    node: BookmarkTreeNode
         }
     ) => void>
     const onChanged: CallbackEventEmitter<(
@@ -129,54 +123,65 @@ declare namespace browser.bookmarks {
 
 declare namespace browser.browserAction {
     type ColorArray = [number, number, number, number]
-    type ImageDataType = ImageData
+        type ImageDataType = ImageData
 
-    function setTitle(details: { title: string | null; tabId?: number }): void
-    function getTitle(details: { tabId?: number }): Promise<string>
+        function setTitle(details: {title: string|null; tabId?: number}):
+            void function getTitle(details: { tabId?: number }): Promise<string>
 
-    interface IconViaPath {
-        path: string | { [size: number]: string }
-        tabId?: number
-    }
+                interface IconViaPath{
+                  path : string | {[size: number] : string}
+                  tabId?: number
+                }
 
-    interface IconViaImageData {
-        imageData: ImageDataType | { [size: number]: ImageDataType }
-        tabId?: number
-    }
+        interface IconViaImageData{
+          imageData : ImageDataType | {[size: number] : ImageDataType}
+          tabId?: number
+        }
 
-    interface IconReset {
-        imageData?: {} | null
-        path?: {} | null
+        interface IconReset{imageData?: {} | null
+        path?: {}|null
         tabId?: number
     }
 
     function setIcon(details: IconViaPath | IconViaImageData | IconReset): Promise<void>
-    function setPopup(details: { popup: string | null; tabId?: number }): void
+    function setPopup(details: {
+  popup: string|null;
+  tabId?: number }): void
     function getPopup(details: { tabId?: number }): Promise<string>
     function openPopup(): Promise<void>
-    function setBadgeText(details: { text: string | null; tabId?: number }): void
+    function setBadgeText(details: {
+  text: string|null;
+  tabId?: number }): void
     function getBadgeText(details: { tabId?: number }): Promise<string>
-    function setBadgeBackgroundColor(details: { color: string | ColorArray | null; tabId?: number }): void
+    function setBadgeBackgroundColor(details: {
+  color: string|ColorArray|null;
+  tabId?: number }): void
     function getBadgeBackgroundColor(details: { tabId?: number }): Promise<ColorArray>
 
     interface SetBadgeTextColorDetails {
-        /**
-         * The color, specified as one of:
-         * - a string: any CSS color value, for example "red", "#FF0000", or "rgb(255,0,0)". If the string is not a valid color, the returned promise will be rejected and the text color won't be altered.
-         * - a `browserAction.ColorArray` object.
-         * - `null`. If a tabId is specified, it removes the tab-specific badge text color so that the tab inherits the global badge text color. Otherwise it reverts the global badge text color to the default value.
-         */
-        color: string | ColorArray | null
+  /**
+   * The color, specified as one of:
+   * - a string: any CSS color value, for example "red", "#FF0000", or
+   * "rgb(255,0,0)". If the string is not a valid color, the returned promise
+   * will be rejected and the text color won't be altered.
+   * - a `browserAction.ColorArray` object.
+   * - `null`. If a tabId is specified, it removes the tab-specific badge text
+   * color so that the tab inherits the global badge text color. Otherwise it
+   * reverts the global badge text color to the default value.
+   */
+  color: string|ColorArray|null
     }
     function setBadgeTextColor(details: SetBadgeTextColorDetails & { tabId?: number }): void
     // a union type would allow specifying both, which is not allowed.
     // eslint-disable-next-line @typescript-eslint/unified-signatures
-    function setBadgeTextColor(details: SetBadgeTextColorDetails & { windowId?: number }): void
+    function setBadgeTextColor(details: SetBadgeTextColorDetails & {
+  windowId?: number }): void
 
     function getBadgeTextColor(details: { tabId?: string }): Promise<ColorArray>
     // a union type would allow specifying both, which is not allowed.
     // eslint-disable-next-line @typescript-eslint/unified-signatures
-    function getBadgeTextColor(details: { windowId?: string }): Promise<ColorArray>
+    function getBadgeTextColor(details: {
+  windowId?: string }): Promise<ColorArray>
 
     function enable(tabId?: number): void
     function disable(tabId?: number): void
@@ -185,39 +190,45 @@ declare namespace browser.browserAction {
 }
 
 declare namespace browser.browsingData {
-    interface DataTypeSet {
-        cache?: boolean
-        cookies?: boolean
-        downloads?: boolean
-        fileSystems?: boolean
-        formData?: boolean
-        history?: boolean
-        indexedDB?: boolean
-        localStorage?: boolean
-        passwords?: boolean
-        pluginData?: boolean
-        serverBoundCertificates?: boolean
-        serviceWorkers?: boolean
-    }
+  interface DataTypeSet {
+    cache?: boolean
+    cookies?: boolean
+    downloads?: boolean
+    fileSystems?: boolean
+    formData?: boolean
+    history?: boolean
+    indexedDB?: boolean
+    localStorage?: boolean
+    passwords?: boolean
+    pluginData?: boolean
+    serverBoundCertificates?: boolean
+    serviceWorkers?: boolean
+  }
 
-    interface DataRemovalOptions {
-        since?: number
-        originTypes?: { unprotectedWeb: boolean }
-    }
+  interface DataRemovalOptions {
+    since?: number
+    originTypes?: {unprotectedWeb: boolean}
+  }
 
-    function remove(removalOptions: DataRemovalOptions, dataTypes: DataTypeSet): Promise<void>
-    function removeCache(removalOptions?: DataRemovalOptions): Promise<void>
-    function removeCookies(removalOptions: DataRemovalOptions): Promise<void>
-    function removeDownloads(removalOptions: DataRemovalOptions): Promise<void>
-    function removeFormData(removalOptions: DataRemovalOptions): Promise<void>
-    function removeHistory(removalOptions: DataRemovalOptions): Promise<void>
-    function removePasswords(removalOptions: DataRemovalOptions): Promise<void>
-    function removePluginData(removalOptions: DataRemovalOptions): Promise<void>
-    function settings(): Promise<{
-        options: DataRemovalOptions
-        dataToRemove: DataTypeSet
-        dataRemovalPermitted: DataTypeSet
-    }>
+  function remove(removalOptions: DataRemovalOptions, dataTypes: DataTypeSet):
+      Promise<void>function removeCache(removalOptions?: DataRemovalOptions):
+          Promise<void>function removeCookies(
+              removalOptions: DataRemovalOptions): Promise<void>
+              function removeDownloads(removalOptions: DataRemovalOptions):
+                  Promise<void>function removeFormData(
+                      removalOptions: DataRemovalOptions):
+                      Promise<void>function removeHistory(
+                          removalOptions: DataRemovalOptions):
+                          Promise<void>function removePasswords(
+                              removalOptions: DataRemovalOptions):
+                              Promise<void>function removePluginData(
+                                  removalOptions: DataRemovalOptions):
+                                  Promise<void>
+                                      function settings(): Promise<{
+                                        options: DataRemovalOptions
+                                        dataToRemove: DataTypeSet
+                                        dataRemovalPermitted: DataTypeSet
+                                      }>
 }
 
 declare namespace browser.commands {
@@ -233,104 +244,95 @@ declare namespace browser.commands {
 }
 
 declare namespace browser.menus {
-    type ContextType =
-        | 'all'
-        | 'audio'
-        | 'bookmarks'
-        | 'browser_action'
-        | 'editable'
-        | 'frame'
-        | 'image'
-        // | "launcher" unsupported
-        | 'link'
-        | 'page'
-        | 'page_action'
-        | 'password'
-        | 'selection'
-        | 'tab'
-        | 'tools_menu'
-        | 'video'
+  type ContextType =
+      |'all'|'audio'|'bookmarks'|'browser_action'|'editable'|'frame'|'image'
+      // | "launcher" unsupported
+      |'link'|'page'|'page_action'|'password'|'selection'|'tab'|'tools_menu'|
+      'video'
 
-    type ItemType = 'normal' | 'checkbox' | 'radio' | 'separator'
+  type ItemType = 'normal'|'checkbox'|'radio'|'separator'
 
-    interface OnClickData {
-        bookmarkId?: string
-        checked?: boolean
-        editable: boolean
-        frameId?: number
-        frameUrl?: string
-        linkText?: string
-        linkUrl?: string
-        mediaType?: string
-        menuItemId: number | string
-        modifiers: string[]
-        pageUrl?: string
-        parentMenuItemId?: number | string
-        selectionText?: string
-        srcUrl?: string
-        targetElementId?: number
-        wasChecked?: boolean
-    }
+      interface OnClickData {
+    bookmarkId?: string
+    checked?: boolean
+    editable: boolean
+    frameId?: number
+    frameUrl?: string
+    linkText?: string
+    linkUrl?: string
+    mediaType?: string
+    menuItemId: number|string
+    modifiers: string[]
+    pageUrl?: string
+    parentMenuItemId?: number|string
+    selectionText?: string
+    srcUrl?: string
+    targetElementId?: number
+    wasChecked?: boolean
+  }
 
-    const ACTION_MENU_TOP_LEVEL_LIMIT: number
+  const ACTION_MENU_TOP_LEVEL_LIMIT: number
 
     function create(
         createProperties: {
             checked?: boolean
-            command?: '_execute_browser_action' | '_execute_page_action' | '_execute_sidebar_action'
-            contexts?: ContextType[]
-            documentUrlPatterns?: string[]
-            enabled?: boolean
-            icons?: object
-            id?: string
-            onclick?: (info: OnClickData, tab: tabs.Tab) => void
-            parentId?: number | string
-            targetUrlPatterns?: string[]
-            title?: string
-            type?: ItemType
+    command?: '_execute_browser_action'|'_execute_page_action'|
+        '_execute_sidebar_action'
+    contexts?: ContextType[]
+    documentUrlPatterns?: string[]
+    enabled?: boolean
+    icons?: object
+    id?: string
+    onclick?: (info: OnClickData, tab: tabs.Tab) =>
+        void parentId?: number|string
+    targetUrlPatterns?: string[]
+    title?: string
+    type?: ItemType
             visible?: boolean
         },
         callback?: () => void
     ): number | string
 
-    function getTargetElement(targetElementId: number): object | null
+            function getTargetElement(targetElementId: number): object|null
 
-    function refresh(): Promise<void>
+            function refresh(): Promise<void>
 
-    function remove(menuItemId: number | string): Promise<void>
+                function remove(menuItemId: number|string): Promise<void>
 
-    function removeAll(): Promise<void>
+                    function removeAll(): Promise<void>
 
-    function update(
-        id: number | string,
-        updateProperties: {
-            checked?: boolean
-            command?: '_execute_browser_action' | '_execute_page_action' | '_execute_sidebar_action'
-            contexts?: ContextType[]
-            documentUrlPatterns?: string[]
-            enabled?: boolean
-            onclick?: (info: OnClickData, tab: tabs.Tab) => void
-            parentId?: number | string
-            targetUrlPatterns?: string[]
-            title?: string
-            type?: ItemType
-            visible?: boolean
-        }
-    ): Promise<void>
+                        function update(id: number|string, updateProperties:
+                                        {
+                                          checked?: boolean
+                                          command?: '_execute_browser_action'|
+                                              '_execute_page_action'|
+                                              '_execute_sidebar_action'
+                                          contexts?: ContextType[]
+                                          documentUrlPatterns?: string[]
+                                          enabled?: boolean
+                                          onclick?: (info: OnClickData,
+                                                     tab: tabs.Tab) =>
+                                              void parentId?: number|string
+                                          targetUrlPatterns?: string[]
+                                          title?: string
+                                          type?: ItemType
+                                          visible?: boolean
+                                        }): Promise<void>
 
-    const onClicked: CallbackEventEmitter<(info: OnClickData, tab: tabs.Tab) => void>
+                const onClicked: CallbackEventEmitter<(info: OnClickData,
+                                                       tab: tabs.Tab) => void>
 
-    const onHidden: CallbackEventEmitter<() => void>
+                const onHidden: CallbackEventEmitter<() => void>
 
-    const onShown: CallbackEventEmitter<(info: OnClickData, tab: tabs.Tab) => void>
+                const onShown: CallbackEventEmitter<(info: OnClickData,
+                                                     tab: tabs.Tab) => void>
 }
 
 declare namespace browser.contextualIdentities {
     type IdentityColor = 'blue' | 'turquoise' | 'green' | 'yellow' | 'orange' | 'red' | 'pink' | 'purple'
-    type IdentityIcon = 'fingerprint' | 'briefcase' | 'dollar' | 'cart' | 'circle'
+        type IdentityIcon = 'fingerprint'|'briefcase'|'dollar'|'cart'|'circle'
 
-    interface ContextualIdentity {
-        cookieStoreId: string
+            interface ContextualIdentity{cookieStoreId : string
         color: IdentityColor
         icon: IdentityIcon
         name: string
@@ -338,12 +340,13 @@ declare namespace browser.contextualIdentities {
 
     function create(details: { name: string; color: IdentityColor; icon: IdentityIcon }): Promise<ContextualIdentity>
     function get(cookieStoreId: string): Promise<ContextualIdentity | null>
-    function query(details: { name?: string }): Promise<ContextualIdentity[]>
+    function query(details: {
+  name?: string }): Promise<ContextualIdentity[]>
     function update(
         cookieStoreId: string,
         details: {
             name: string
-            color: IdentityColor
+        color: IdentityColor
             icon: IdentityIcon
         }
     ): Promise<ContextualIdentity>
@@ -351,66 +354,67 @@ declare namespace browser.contextualIdentities {
 }
 
 declare namespace browser.cookies {
-    interface Cookie {
-        name: string
-        value: string
-        domain: string
-        hostOnly: boolean
-        path: string
-        secure: boolean
-        httpOnly: boolean
-        session: boolean
-        expirationDate?: number
-        storeId: string
-    }
+  interface Cookie {
+    name: string
+    value: string
+    domain: string
+    hostOnly: boolean
+    path: string
+    secure: boolean
+    httpOnly: boolean
+    session: boolean
+    expirationDate?: number
+    storeId: string
+  }
 
-    interface CookieStore {
-        id: string
-        tabIds: number[]
-    }
+  interface CookieStore {
+    id: string
+    tabIds: number[]
+  }
 
-    type OnChangedCause = 'evicted' | 'expired' | 'explicit' | 'expired_overwrite' | 'overwrite'
+  type OnChangedCause =
+      'evicted'|'expired'|'explicit'|'expired_overwrite'|'overwrite'
 
     function get(details: { url: string; name: string; storeId?: string }): Promise<Cookie | null>
     function getAll(details: {
         url?: string
-        name?: string
-        domain?: string
-        path?: string
-        secure?: boolean
-        session?: boolean
+    name?: string
+    domain?: string
+    path?: string
+    secure?: boolean
+    session?: boolean
         storeId?: string
     }): Promise<Cookie[]>
     function set(details: {
-        url: string
-        name?: string
-        domain?: string
-        path?: string
-        secure?: boolean
-        httpOnly?: boolean
-        expirationDate?: number
-        storeId?: string
+    url: string
+    name?: string
+    domain?: string
+    path?: string
+    secure?: boolean
+    httpOnly?: boolean
+    expirationDate?: number
+    storeId?: string
     }): Promise<Cookie>
     function remove(details: { url: string; name: string; storeId?: string }): Promise<Cookie | null>
     function getAllCookieStores(): Promise<CookieStore[]>
 
     const onChanged: EventEmitter<{
-        removed: boolean
-        cookie: Cookie
-        cause: OnChangedCause
+    removed: boolean
+    cookie: Cookie
+    cause: OnChangedCause
     }>
 }
 
 declare namespace browser.contentScripts {
     interface RegisteredContentScriptOptions {
         allFrames?: boolean
-        css?: ({ file: string } | { code: string })[]
-        excludeGlobs?: string[]
-        excludeMatches?: string[]
-        includeGlobs?: string[]
-        js?: ({ file: string } | { code: string })[]
-        matchAboutBlank?: boolean
-        matches: string[]
+            css?: ({file : string}|{code : string})[]
+            excludeGlobs?: string[]
+            excludeMatches?: string[]
+            includeGlobs?: string[]
+            js?: ({file : string}|{code : string})[]
+            matchAboutBlank?: boolean
+            matches: string[]
         runAt?: 'document_start' | 'document_end' | 'document_idle'
     }
 
@@ -426,13 +430,17 @@ declare namespace browser.devtools.inspectedWindow {
 
     function eval(
         expression: string
-    ): Promise<[any, { isException: boolean; value: string } | { isError: boolean; code: string }]>
+    ): Promise<[any, {
+  isException: boolean;
+  value: string } | {
+  isError: boolean;
+  code: string }]>
 
     function reload(reloadOptions?: { ignoreCache?: boolean; userAgent?: string; injectedScript?: string }): void
 }
 
 declare namespace browser.devtools.network {
-    const onNavigated: EventEmitter<string>
+  const onNavigated: EventEmitter<string>
 }
 
 declare namespace browser.devtools.panels {
@@ -445,63 +453,46 @@ declare namespace browser.devtools.panels {
 }
 
 declare namespace browser.downloads {
-    type FilenameConflictAction = 'uniquify' | 'overwrite' | 'prompt'
+  type FilenameConflictAction = 'uniquify'|'overwrite'|'prompt'
 
-    type InterruptReason =
-        | 'FILE_FAILED'
-        | 'FILE_ACCESS_DENIED'
-        | 'FILE_NO_SPACE'
-        | 'FILE_NAME_TOO_LONG'
-        | 'FILE_TOO_LARGE'
-        | 'FILE_VIRUS_INFECTED'
-        | 'FILE_TRANSIENT_ERROR'
-        | 'FILE_BLOCKED'
-        | 'FILE_SECURITY_CHECK_FAILED'
-        | 'FILE_TOO_SHORT'
-        | 'NETWORK_FAILED'
-        | 'NETWORK_TIMEOUT'
-        | 'NETWORK_DISCONNECTED'
-        | 'NETWORK_SERVER_DOWN'
-        | 'NETWORK_INVALID_REQUEST'
-        | 'SERVER_FAILED'
-        | 'SERVER_NO_RANGE'
-        | 'SERVER_BAD_CONTENT'
-        | 'SERVER_UNAUTHORIZED'
-        | 'SERVER_CERT_PROBLEM'
-        | 'SERVER_FORBIDDEN'
-        | 'USER_CANCELED'
-        | 'USER_SHUTDOWN'
-        | 'CRASH'
+  type InterruptReason =|'FILE_FAILED'|'FILE_ACCESS_DENIED'|'FILE_NO_SPACE'|
+      'FILE_NAME_TOO_LONG'|'FILE_TOO_LARGE'|'FILE_VIRUS_INFECTED'|
+      'FILE_TRANSIENT_ERROR'|'FILE_BLOCKED'|'FILE_SECURITY_CHECK_FAILED'|
+      'FILE_TOO_SHORT'|'NETWORK_FAILED'|'NETWORK_TIMEOUT'|
+      'NETWORK_DISCONNECTED'|'NETWORK_SERVER_DOWN'|'NETWORK_INVALID_REQUEST'|
+      'SERVER_FAILED'|'SERVER_NO_RANGE'|'SERVER_BAD_CONTENT'|
+      'SERVER_UNAUTHORIZED'|'SERVER_CERT_PROBLEM'|'SERVER_FORBIDDEN'|
+      'USER_CANCELED'|'USER_SHUTDOWN'|'CRASH'
 
-    type DangerType = 'file' | 'url' | 'content' | 'uncommon' | 'host' | 'unwanted' | 'safe' | 'accepted'
+  type DangerType =
+      'file'|'url'|'content'|'uncommon'|'host'|'unwanted'|'safe'|'accepted'
 
-    type State = 'in_progress' | 'interrupted' | 'complete'
+  type State = 'in_progress'|'interrupted'|'complete'
 
-    interface DownloadItem {
-        id: number
-        url: string
-        referrer: string
-        filename: string
-        incognito: boolean
-        danger: string
-        mime: string
-        startTime: string
-        endTime?: string
-        estimatedEndTime?: string
-        state: string
-        paused: boolean
-        canResume: boolean
-        error?: string
-        bytesReceived: number
-        totalBytes: number
-        fileSize: number
-        exists: boolean
-        byExtensionId?: string
-        byExtensionName?: string
-    }
+      interface DownloadItem {
+    id: number
+    url: string
+    referrer: string
+    filename: string
+    incognito: boolean
+    danger: string
+    mime: string
+    startTime: string
+    endTime?: string
+    estimatedEndTime?: string
+    state: string
+    paused: boolean
+    canResume: boolean
+    error?: string
+    bytesReceived: number
+    totalBytes: number
+    fileSize: number
+    exists: boolean
+    byExtensionId?: string
+    byExtensionName?: string
+  }
 
-    interface Delta<T> {
-        current?: T
+  interface Delta<T>{current?: T
         previous?: T
     }
 
@@ -583,60 +574,61 @@ declare namespace browser.downloads {
 }
 
 declare namespace browser.events {
-    interface UrlFilter {
-        hostContains?: string
-        hostEquals?: string
-        hostPrefix?: string
-        hostSuffix?: string
-        pathContains?: string
-        pathEquals?: string
-        pathPrefix?: string
-        pathSuffix?: string
-        queryContains?: string
-        queryEquals?: string
-        queryPrefix?: string
-        querySuffix?: string
-        urlContains?: string
-        urlEquals?: string
-        urlMatches?: string
-        originAndPathMatches?: string
-        urlPrefix?: string
-        urlSuffix?: string
-        schemes?: string[]
-        ports?: (number | number[])[]
-    }
-}
+          interface UrlFilter {
+            hostContains?: string
+            hostEquals?: string
+            hostPrefix?: string
+            hostSuffix?: string
+            pathContains?: string
+            pathEquals?: string
+            pathPrefix?: string
+            pathSuffix?: string
+            queryContains?: string
+            queryEquals?: string
+            queryPrefix?: string
+            querySuffix?: string
+            urlContains?: string
+            urlEquals?: string
+            urlMatches?: string
+            originAndPathMatches?: string
+            urlPrefix?: string
+            urlSuffix?: string
+            schemes?: string[]
+            ports?: (number|number[])[]
+          }
+        }
 
-declare namespace browser.extension {
-    type ViewType = 'tab' | 'notification' | 'popup'
+        declare namespace browser.extension{type ViewType =
+                                                'tab' | 'notification' | 'popup'
 
-    const lastError: string | null
-    const inIncognitoContext: boolean
+        const lastError: string|null
+        const inIncognitoContext: boolean
 
-    function getURL(path: string): string
-    function getViews(fetchProperties?: { type?: ViewType; windowId?: number }): Window[]
-    function getBackgroundPage(): Window
+        function getURL(path: string): string
+        function getViews(fetchProperties?: {
+          type?: ViewType;
+          windowId?: number
+        }): Window[] function getBackgroundPage(): Window
     function isAllowedIncognitoAccess(): Promise<boolean>
     function isAllowedFileSchemeAccess(): Promise<boolean>
     // unsupported: events as they are deprecated
 }
 
 declare namespace browser.extensionTypes {
-    type ImageFormat = 'jpeg' | 'png'
-    interface ImageDetails {
-        format: ImageFormat
-        quality: number
+    type ImageFormat = 'jpeg'|'png' interface ImageDetails {
+      format: ImageFormat
+      quality: number
     }
-    type RunAt = 'document_start' | 'document_end' | 'document_idle'
-    interface InjectDetails {
-        allFrames?: boolean
-        code?: string
-        file?: string
-        frameId?: number
-        matchAboutBlank?: boolean
-        runAt?: RunAt
+    type RunAt = 'document_start'|'document_end'|
+        'document_idle' interface InjectDetails {
+      allFrames?: boolean
+      code?: string
+      file?: string
+      frameId?: number
+      matchAboutBlank?: boolean
+      runAt?: RunAt
     }
-    type InjectDetailsCSS = InjectDetails & { cssOrigin?: 'user' | 'author' }
+    type InjectDetailsCSS = InjectDetails&{ cssOrigin?: 'user'|'author' }
 }
 
 declare namespace browser.history {
@@ -655,10 +647,10 @@ declare namespace browser.history {
 
     interface HistoryItem {
         id: string
-        url?: string
-        title?: string
-        lastVisitTime?: number
-        visitCount?: number
+    url?: string
+    title?: string
+    lastVisitTime?: number
+    visitCount?: number
         typedCount?: number
     }
 
@@ -672,12 +664,13 @@ declare namespace browser.history {
 
     function search(query: {
         text: string
-        startTime?: number | string | Date
-        endTime?: number | string | Date
+        startTime?: number|string|Date
+        endTime?: number|string|Date
         maxResults?: number
     }): Promise<HistoryItem[]>
 
-    function getVisits(details: { url: string }): Promise<VisitItem[]>
+    function getVisits(details: {
+    url: string }): Promise<VisitItem[]>
 
     function addUrl(details: {
         url: string
@@ -686,7 +679,8 @@ declare namespace browser.history {
         visitTime?: number | string | Date
     }): Promise<void>
 
-    function deleteUrl(details: { url: string }): Promise<void>
+    function deleteUrl(details: {
+    url: string }): Promise<void>
 
     function deleteRange(range: { startTime: number | string | Date; endTime: number | string | Date }): Promise<void>
 
@@ -695,29 +689,34 @@ declare namespace browser.history {
     const onVisited: EventEmitter<HistoryItem>
 
     // TODO: Ensure that urls is not `urls: [string]` instead
-    const onVisitRemoved: EventEmitter<{ allHistory: boolean; urls: string[] }>
+    const onVisitRemoved: EventEmitter<{
+    allHistory: boolean;
+    urls: string[] }>
 }
 
 declare namespace browser.i18n {
     type LanguageCode = string
 
-    function getAcceptLanguages(): Promise<LanguageCode[]>
+        function getAcceptLanguages(): Promise<LanguageCode[]>
 
-    function getMessage(messageName: string, substitutions?: string | string[]): string
+            function getMessage(messageName: string,
+                                substitutions?: string|string[]): string
 
-    function getUILanguage(): LanguageCode
+        function getUILanguage(): LanguageCode
 
     function detectLanguage(
         text: string
     ): Promise<{
-        isReliable: boolean
-        languages: { language: LanguageCode; percentage: number }[]
+    isReliable: boolean
+    languages: {language: LanguageCode; percentage : number}[]
     }>
 }
 
 declare namespace browser.identity {
     function getRedirectURL(): string
-    function launchWebAuthFlow(details: { url: string; interactive: boolean }): Promise<string>
+    function launchWebAuthFlow(details: {
+    url: string;
+    interactive: boolean }): Promise<string>
 }
 
 declare namespace browser.idle {
@@ -731,24 +730,24 @@ declare namespace browser.idle {
 
 declare namespace browser.management {
     interface ExtensionInfo {
-        description: string
-        // unsupported: disabledReason: string,
-        enabled: boolean
-        homepageUrl: string
-        hostPermissions: string[]
-        icons: { size: number; url: string }[]
-        id: string
-        installType: 'admin' | 'development' | 'normal' | 'sideload' | 'other'
-        mayDisable: boolean
-        name: string
-        // unsupported: offlineEnabled: boolean,
-        optionsUrl: string
-        permissions: string[]
-        shortName: string
-        // unsupported: type: string,
-        updateUrl: string
-        version: string
-        // unsupported: versionName: string,
+      description: string
+      // unsupported: disabledReason: string,
+      enabled: boolean
+      homepageUrl: string
+      hostPermissions: string[]
+      icons: {size: number; url : string}[]
+      id: string
+      installType: 'admin'|'development'|'normal'|'sideload'|'other'
+      mayDisable: boolean
+      name: string
+      // unsupported: offlineEnabled: boolean,
+      optionsUrl: string
+      permissions: string[]
+      shortName: string
+      // unsupported: type: string,
+      updateUrl: string
+      version: string
+      // unsupported: versionName: string,
     }
 
     function getSelf(): Promise<ExtensionInfo>
@@ -756,25 +755,27 @@ declare namespace browser.management {
 }
 
 declare namespace browser.notifications {
-    type TemplateType = 'basic' /* | "image" | "list" | "progress" */
+      type TemplateType = 'basic' /* | "image" | "list" | "progress" */
 
-    interface NotificationOptions {
+          interface NotificationOptions {
         type: TemplateType
         message: string
         title: string
         iconUrl?: string
-    }
+      }
 
-    function create(id: string | null, options: NotificationOptions): Promise<string>
-    function create(options: NotificationOptions): Promise<string>
+      function create(id: string|null, options: NotificationOptions):
+          Promise<string>function create(options: NotificationOptions):
+              Promise<string>
 
-    function clear(id: string): Promise<boolean>
+                  function clear(id: string): Promise<boolean>
 
-    function getAll(): Promise<{ [key: string]: NotificationOptions }>
+                      function getAll():
+                          Promise<{ [key: string]: NotificationOptions }>
 
-    const onClosed: EventEmitter<string>
+          const onClosed: EventEmitter<string>
 
-    const onClicked: EventEmitter<string>
+          const onClicked: EventEmitter<string>
 }
 
 declare namespace browser.omnibox {
@@ -793,23 +794,34 @@ declare namespace browser.omnibox {
 }
 
 declare namespace browser.pageAction {
-    type ImageDataType = ImageData
+      type ImageDataType = ImageData
 
-    function show(tabId: number): void
+      function show(tabId: number): void
 
-    function hide(tabId: number): void
+          function hide(tabId: number): void
 
-    function setTitle(details: { tabId: number; title: string }): void
+              function setTitle(details:
+                                {
+                                  tabId: number;
+                                  title: string
+                                }): void
 
-    function getTitle(details: { tabId: number }): Promise<string>
+                  function getTitle(details: {tabId: number}): Promise<string>
 
-    function setIcon(details: { tabId: number; path?: string | object; imageData?: ImageDataType }): Promise<void>
+                      function setIcon(details:
+                                       {
+                                         tabId: number;
+                                         path?: string|object;
+                                         imageData?: ImageDataType
+                                       }): Promise<void>
 
-    function setPopup(details: { tabId: number; popup: string }): void
+                          function setPopup(
+                              details: {tabId: number; popup : string}): void
 
-    function getPopup(details: { tabId: number }): Promise<string>
+                              function getPopup(details: { tabId: number }):
+                                  Promise<string>
 
-    const onClicked: EventEmitter<tabs.Tab>
+          const onClicked: EventEmitter<tabs.Tab>
 }
 
 declare namespace browser.permissions {
@@ -868,68 +880,70 @@ declare namespace browser.permissions {
      */
     const onAdded: EventEmitter<Permissions> | undefined
 
-    /**
-     * Not supported yet in Firefox:
-     * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/permissions/onAdded#Browser_compatibility
-     */
+        /**
+         * Not supported yet in Firefox:
+         * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/permissions/onAdded#Browser_compatibility
+         */
     const onRemoved: EventEmitter<Permissions> | undefined
 }
 
 declare namespace browser.runtime {
-    const lastError: string | null
-    const id: string
+      const lastError: string|null
+      const id: string
 
-    interface Port {
+          interface Port {
         /**
-         * The port's name, defined in the runtime.connect() or tabs.connect() call that created it.
-         * If this port is connected to a native application, its name is the name of the native application.
+         * The port's name, defined in the runtime.connect() or tabs.connect()
+         * call that created it. If this port is connected to a native
+         * application, its name is the name of the native application.
          */
         name: string
-        disconnect(): void
-        error: Error | null
-        onDisconnect: EventEmitter<this>
-        onMessage: EventEmitter<any>
-        postMessage(message: any): void
-    }
-    interface PortWithSender extends Port {
+        disconnect(): void error: Error|null
+        onDisconnect: EventEmitter<this>onMessage:
+            EventEmitter<any>postMessage(message: any): void
+      }
+      interface PortWithSender extends Port {
         /**
          * Contains information about the sender of the message.
-         * This property will only be present on ports passed to onConnect/onConnectExternal listeners.
+         * This property will only be present on ports passed to
+         * onConnect/onConnectExternal listeners.
          */
         sender: MessageSender
-    }
+      }
 
-    interface MessageSender {
+      interface MessageSender {
         tab?: tabs.Tab
         frameId?: number
         id?: string
         url?: string
         tlsChannelId?: string
-    }
+      }
 
-    type PlatformOs = 'mac' | 'win' | 'android' | 'cros' | 'linux' | 'openbsd'
-    type PlatformArch = 'arm' | 'x86-32' | 'x86-64'
-    type PlatformNaclArch = 'arm' | 'x86-32' | 'x86-64'
+      type PlatformOs = 'mac'|'win'|'android'|'cros'|'linux'|'openbsd'
+      type PlatformArch = 'arm'|'x86-32'|'x86-64'
+      type PlatformNaclArch = 'arm'|'x86-32'|'x86-64'
 
-    interface PlatformInfo {
+          interface PlatformInfo {
         os: PlatformOs
         arch: PlatformArch
-    }
+      }
 
-    // type RequestUpdateCheckStatus = "throttled" | "no_update" | "update_available";
-    type OnInstalledReason = 'install' | 'update' | 'chrome_update' | 'shared_module_update'
-    type OnRestartRequiredReason = 'app_update' | 'os_update' | 'periodic'
+      // type RequestUpdateCheckStatus = "throttled" | "no_update" |
+      // "update_available";
+      type OnInstalledReason =
+          'install'|'update'|'chrome_update'|'shared_module_update'
+      type OnRestartRequiredReason = 'app_update'|'os_update'|'periodic'
 
-    interface FirefoxSpecificProperties {
+          interface FirefoxSpecificProperties {
         id?: string
         strict_min_version?: string
         strict_max_version?: string
         update_url?: string
-    }
+      }
 
-    type IconPath = { [urlName: string]: string } | string
+      type IconPath = {[urlName: string]: string}|string
 
-    interface Manifest {
+          interface Manifest {
         // Required
         manifest_version: 2
         name: string
@@ -945,9 +959,8 @@ declare namespace browser.runtime {
         short_name?: string
 
         // WebExtensionManifest
-        background?: {
-            page: string
-            script: string[]
+        background?: {page: string
+        script: string[]
             persistent?: boolean
         }
         content_scripts?: {
@@ -961,38 +974,32 @@ declare namespace browser.runtime {
             match_about_blank?: boolean
             run_at?: 'document_start' | 'document_end' | 'document_idle'
         }[]
-        content_security_policy?: string
-        developer?: {
-            name?: string
+            content_security_policy?: string
+            developer?: {name?: string
             url?: string
         }
         icons?: {
             [imgSize: string]: string
         }
         incognito?: 'spanning' | 'split' | 'not_allowed'
-        optional_permissions?: permissions.Permission[]
-        options_ui?: {
-            page: string
+            optional_permissions?: permissions.Permission[]
+            options_ui?: {page: string
             browser_style?: boolean
             chrome_style?: boolean
             open_in_tab?: boolean
         }
         permissions?: permissions.Permission[]
-        web_accessible_resources?: string[]
+            web_accessible_resources?: string[]
 
-        // WebExtensionLangpackManifest
-        languages: {
-            [langCode: string]: {
-                chrome_resources: {
-                    [resName: string]: string | { [urlName: string]: string }
-                }
+            // WebExtensionLangpackManifest
+            languages: {
+              [langCode: string]: {
+                chrome_resources:
+                    {[resName: string]: string|{ [urlName: string]: string }}
                 version: string
-            }
-        }
-        langpack_id?: string
-        sources?: {
-            [srcName: string]: {
-                base_path: string
+              }
+            } langpack_id?: string
+            sources?: {[srcName: string]: {base_path: string
                 paths?: string[]
             }
         }
@@ -1000,41 +1007,37 @@ declare namespace browser.runtime {
         // Extracted from components
         browser_action?: {
             default_title?: string
-            default_icon?: IconPath
-            theme_icons?: {
-                light: string
+                default_icon?: IconPath
+                theme_icons?: {light: string
                 dark: string
                 size: number
             }[]
-            default_popup?: string
-            browser_style?: boolean
+                default_popup?: string
+                browser_style?: boolean
             default_area?: 'navbar' | 'menupanel' | 'tabstrip' | 'personaltoolbar'
         }
         commands?: {
             [keyName: string]: {
                 suggested_key?: {
                     default?: string
-                    mac?: string
-                    linux?: string
-                    windows?: string
-                    chromeos?: string
-                    android?: string
+            mac?: string
+            linux?: string
+            windows?: string
+            chromeos?: string
+            android?: string
                     ios?: string
                 }
                 description?: string
             }
         }
         default_locale?: i18n.LanguageCode
-        devtools_page?: string
-        omnibox?: {
-            keyword: string
-        }
-        page_action?: {
-            default_title?: string
-            default_icon?: IconPath
-            default_popup?: string
-            browser_style?: boolean
-            show_matches?: string[]
+                    devtools_page?: string
+                    omnibox?: {keyword: string} page_action
+                        ?: {default_title?: string
+                    default_icon?: IconPath
+                    default_popup?: string
+                    browser_style?: boolean
+                    show_matches?: string[]
             hide_matches?: string[]
         }
         sidebar_action?: {
@@ -1052,8 +1055,7 @@ declare namespace browser.runtime {
             gecko?: FirefoxSpecificProperties
         }
         experiment_apis?: any
-        protocol_handlers?: {
-            name: string
+            protocol_handlers?: {name: string
             protocol: string
             uriTemplate: string
         }
@@ -1061,25 +1063,23 @@ declare namespace browser.runtime {
         // Opera specific
         minimum_opera_version?: string
 
-        // Chrome specific
-        action?: any
-        automation?: any
-        background_page?: any
-        chrome_settings_overrides?: {
-            homepage?: string
-            search_provider?: {
-                name: string
-                search_url: string
-                keyword?: string
-                favicon_url?: string
-                suggest_url?: string
-                instant_url?: string
-                is_default?: string
-                image_url?: string
-                search_url_post_params?: string
-                instant_url_post_params?: string
-                image_url_post_params?: string
-                alternate_urls?: string[]
+            // Chrome specific
+            action?: any
+            automation?: any
+            background_page?: any
+            chrome_settings_overrides?: {homepage?: string
+            search_provider?: {name: string
+            search_url: string
+            keyword?: string
+            favicon_url?: string
+            suggest_url?: string
+            instant_url?: string
+            is_default?: string
+            image_url?: string
+            search_url_post_params?: string
+            instant_url_post_params?: string
+            image_url_post_params?: string
+            alternate_urls?: string[]
                 prepopulated_id?: number
             }
         }
@@ -1091,19 +1091,16 @@ declare namespace browser.runtime {
         }
         chrome_url_overrides?: {
             newtab?: string
-            bookmarks?: string
+                bookmarks?: string
             history?: string
         }
         content_capabilities?: any
-        converted_from_user_script?: any
-        current_locale?: any
-        declarative_net_request?: any
-        event_rules?: any[]
-        export?: {
-            whitelist?: string[]
-        }
-        externally_connectable?: {
-            ids?: string[]
+            converted_from_user_script?: any
+            current_locale?: any
+            declarative_net_request?: any
+            event_rules?: any[] export
+                ?: {whitelist?: string[]} externally_connectable
+                ?: {ids?: string[]
             matches?: string[]
             accepts_tls_channel_id?: boolean
         }
@@ -1112,8 +1109,8 @@ declare namespace browser.runtime {
             default_title: string
             file_filters: string[]
         }[]
-        file_system_provider_capabilities?: {
-            source: 'file' | 'device' | 'network'
+            file_system_provider_capabilities
+                ?: {source: 'file'|'device'|'network'
             configurable?: boolean
             multiple_mounts?: boolean
             watchable?: boolean
@@ -1122,95 +1119,91 @@ declare namespace browser.runtime {
             id: string
             minimum_version?: string
         }[]
-        input_components?: any
-        key?: string
-        minimum_chrome_version?: string
-        nacl_modules?: {
-            path: string
+            input_components?: any
+            key?: string
+            minimum_chrome_version?: string
+            nacl_modules?: {path: string
             mime_type: string
         }[]
-        oauth2?: any
-        offline_enabled?: boolean
-        options_page?: string
-        platforms?: any
-        requirements?: any
-        sandbox?: {
-            pages: string[]
+            oauth2?: any
+            offline_enabled?: boolean
+            options_page?: string
+            platforms?: any
+            requirements?: any
+            sandbox?: {pages: string[]
             content_security_policy?: string
         }[]
-        signature?: any
-        spellcheck?: any
-        storage?: {
-            managed_schema: string
-        }
-        system_indicator?: any
-        tts_engine?: {
-            voice: {
-                voice_name: string
-                lang?: string
-                gender?: 'male' | 'female'
+            signature?: any
+            spellcheck?: any
+            storage?: {managed_schema: string} system_indicator?: any
+            tts_engine?: {voice: {voice_name: string
+            lang?: string
+            gender?: 'male'|'female'
                 event_types: ('start' | 'word' | 'sentence' | 'marker' | 'end' | 'error')[]
             }[]
         }
         update_url?: string
-        version_name?: string
-    }
+                version_name?: string
+      }
 
-    /**
-     * Only defined in the background page
-     */
-    const getBackgroundPage: (() => Promise<Window>) | undefined
+      /**
+       * Only defined in the background page
+       */
+      const getBackgroundPage: (() => Promise<Window>)|undefined
 
-    function openOptionsPage(): Promise<void>
-    function getManifest(): Manifest
+      function openOptionsPage(): Promise<void>function getManifest(): Manifest
 
-    function getURL(path: string): string
-    function setUninstallURL(url: string): Promise<void>
-    function reload(): void
-    // Will not exist: https://bugzilla.mozilla.org/show_bug.cgi?id=1314922
-    // function RequestUpdateCheck(): Promise<RequestUpdateCheckStatus>;
+      function getURL(path: string): string
+      function setUninstallURL(url: string): Promise<void>function reload():
+          void
+              // Will not exist:
+              // https://bugzilla.mozilla.org/show_bug.cgi?id=1314922 function
+              // RequestUpdateCheck(): Promise<RequestUpdateCheckStatus>;
 
-    interface ConnectInfo {
-        name?: string
-        includeTlsChannelId?: boolean
-    }
-    /**
-     * @param connectInfo Details of the connection
-     */
-    function connect(connectInfo?: ConnectInfo): Port
-    /**
-     * @param extensionId The ID of the extension to connect to. If the target has set an ID explicitly using the applications key in manifest.json, then extensionId should have that value. Otherwise it should have the ID that was generated for the target.
-     * @param connectInfo Details of the connection
-     */
-    function connect(extensionId?: string, connectInfo?: ConnectInfo): Port
+                  interface ConnectInfo {
+                    name?: string
+                    includeTlsChannelId?: boolean
+                  }
+      /**
+       * @param connectInfo Details of the connection
+       */
+      function connect(connectInfo?: ConnectInfo): Port
+      /**
+       * @param extensionId The ID of the extension to connect to. If the target
+       *     has set an ID explicitly using the applications key in
+       *     manifest.json, then extensionId should have that value. Otherwise
+       *     it should have the ID that was generated for the target.
+       * @param connectInfo Details of the connection
+       */
+      function connect(extensionId?: string, connectInfo?: ConnectInfo): Port
 
-    function connectNative(application: string): Port
+      function connectNative(application: string): Port
 
-    function sendMessage(
-        message: any,
-        options?: { includeTlsChannelId?: boolean; toProxyScript?: boolean }
-    ): Promise<any>
-    function sendMessage(
-        extensionId: string,
-        message: any,
-        options?: { includeTlsChannelId?: boolean; toProxyScript?: boolean }
-    ): Promise<any>
+      function sendMessage(
+          message: any, options?:
+          {
+            includeTlsChannelId?: boolean;
+            toProxyScript?: boolean
+          }): Promise<any>function sendMessage(extensionId: string,
+                                               message: any, options?: {
+                                                 includeTlsChannelId?: boolean;
+                                                 toProxyScript?: boolean
+                                               }): Promise<any>
 
-    function sendNativeMessage(application: string, message: object): Promise<object | void>
-    function getPlatformInfo(): Promise<PlatformInfo>
-    function getBrowserInfo(): Promise<{
-        name: string
-        vendor: string
-        version: string
-        buildID: string
-    }>
-    // Unsupported: https://bugzilla.mozilla.org/show_bug.cgi?id=1339407
-    // function getPackageDirectoryEntry(): Promise<any>;
+              function sendNativeMessage(application: string, message: object):
+                  Promise<object|void>function getPlatformInfo():
+                      Promise<PlatformInfo>function getBrowserInfo(): Promise<{
+                        name: string
+                        vendor: string
+                        version: string
+                        buildID: string
+                      }>
+          // Unsupported: https://bugzilla.mozilla.org/show_bug.cgi?id=1339407
+          // function getPackageDirectoryEntry(): Promise<any>;
 
-    const onStartup: EventEmitter<void>
-    const onInstalled: EventEmitter<{
-        reason: OnInstalledReason
-        previousVersion?: string
+          const onStartup: EventEmitter<void>const onInstalled: EventEmitter <
+          {reason : OnInstalledReason
+      previousVersion?: string
         id?: string
     }>
     // Unsupported
@@ -1236,9 +1229,9 @@ declare namespace browser.sessions {
     }
 
     interface Session {
-        lastModified: number
-        tab: tabs.Tab
-        window: windows.Window
+      lastModified: number
+      tab: tabs.Tab
+      window: windows.Window
     }
 
     const MAX_SESSION_RESULTS: number
@@ -1263,25 +1256,32 @@ declare namespace browser.sessions {
 }
 
 declare namespace browser.sidebarAction {
-    type ImageDataType = ImageData
+      type ImageDataType = ImageData
 
-    function setPanel(details: { panel: string; tabId?: number }): void
+      function setPanel(details: {panel: string; tabId?: number}): void
 
-    function getPanel(details: { tabId?: number }): Promise<string>
+          function
+          getPanel(details: {tabId?: number}): Promise<string>
 
-    function setTitle(details: { title: string; tabId?: number }): void
+              function setTitle(details:
+                                {
+                                  title: string;
+                                  tabId?: number
+                                }): void
 
-    function getTitle(details: { tabId?: number }): Promise<string>
+                  function
+                  getTitle(details: {tabId?: number}):
+                      Promise<string>
 
-    interface IconViaPath {
-        path: string | { [index: number]: string }
-        tabId?: number
-    }
+                          interface IconViaPath {
+                            path: string|{[index: number] : string} tabId
+                                ?: number
+                          }
 
-    interface IconViaImageData {
-        imageData: ImageDataType | { [index: number]: ImageDataType }
-        tabId?: number
-    }
+      interface IconViaImageData {
+        imageData: ImageDataType|{[index: number] : ImageDataType} tabId
+            ?: number
+      }
 
     function setIcon(details: IconViaPath | IconViaImageData): Promise<void>
 
@@ -1291,59 +1291,71 @@ declare namespace browser.sidebarAction {
 }
 
 declare namespace browser.storage {
-    /**
-     * Example for type-safe usage:
-     *
-     * ```ts
-     * interface MyStorageItems {
-     *  foo: number
-     * }
-     *
-     * (browser.storage.sync as browser.storage.StorageArea<MyStorageItems>).get('foo')
-     * ```
-     */
-    interface StorageArea<T extends object = any> {
-        get(): Promise<Partial<T>>
-        get<K extends keyof T>(keys: K[] | K): Promise<{ [k in K]?: T[k] }>
-
         /**
-         * Stores one or more items in the storage area, or update existing items.
+         * Example for type-safe usage:
          *
-         * When you store or update a value using this API, the storage.onChanged event will fire.
+         * ```ts
+         * interface MyStorageItems {
+         *  foo: number
+         * }
          *
-         * @param items An object containing one or more key/value pairs to be stored in storage. If an item already exists, its value will be updated.
-         * Values may be primitive types (such as numbers, booleans, and strings) or Array types.
-         * It's generally not possible to store other types, such as Function, Date, RegExp, Set, Map, ArrayBuffer and so on. Some of these unsupported types will restore as an empty object, and some cause set() to throw an error. The exact behavior here is browser-specific.
-         * If a value is `undefined`, it will not be changed.
-         * If a value is `null`, it will be set to `null`.
+         * (browser.storage.sync as
+         * browser.storage.StorageArea<MyStorageItems>).get('foo')
+         * ```
          */
-        set(items: Partial<T>): Promise<void>
-        remove(keys: keyof T | (keyof T)[]): Promise<void>
-        clear(): Promise<void>
+        interface StorageArea<T extends object = any>{
+          get() : Promise<Partial<T>>get<K extends keyof T>(keys: K[]|K) :
+              Promise<{[k in K]?: T[k]}>
 
-        // unsupported: getBytesInUse: (keys: string|string[]|null) => Promise<number>,
-    }
+                  /**
+                   * Stores one or more items in the storage area, or update
+                   * existing items.
+                   *
+                   * When you store or update a value using this API, the
+                   * storage.onChanged event will fire.
+                   *
+                   * @param items An object containing one or more key/value
+                   *     pairs to be stored in storage. If an item already
+                   *     exists, its value will be updated.
+                   * Values may be primitive types (such as numbers, booleans,
+                   * and strings) or Array types. It's generally not possible to
+                   * store other types, such as Function, Date, RegExp, Set,
+                   * Map, ArrayBuffer and so on. Some of these unsupported types
+                   * will restore as an empty object, and some cause set() to
+                   * throw an error. The exact behavior here is
+                   * browser-specific. If a value is `undefined`, it will not be
+                   * changed. If a value is `null`, it will be set to `null`.
+                   */
+                      set(items: Partial<T>) :
+                          Promise<void>remove(keys: keyof T|(keyof T)[]) :
+                              Promise<void>clear() : Promise<void>
 
-    interface StorageChange<T> {
-        oldValue?: T
-        newValue?: T
-    }
+          // unsupported: getBytesInUse: (keys: string|string[]|null) =>
+          // Promise<number>,
+        }
 
-    const sync: StorageArea
-    const local: StorageArea
-    const managed: StorageArea
+        interface StorageChange<T> {
+          oldValue?: T
+          newValue?: T
+        }
 
-    type ChangeDict<T> = { [K in keyof T]?: StorageChange<T[K]> }
-    type AreaName = 'sync' | 'local' | 'managed'
+        const sync: StorageArea
+        const local: StorageArea
+        const managed: StorageArea
 
-    const onChanged: CallbackEventEmitter<(changes: ChangeDict<any>, areaName: AreaName) => void>
+        type ChangeDict<T> =
+            {[K in keyof T]?: StorageChange<T[K]>} type AreaName =
+                'sync'|'local'|'managed'
+
+        const onChanged: CallbackEventEmitter<(changes: ChangeDict<any>,
+                                               areaName: AreaName) => void>
 }
 
 declare namespace browser.tabs {
     type MutedInfoReason = 'capture' | 'extension' | 'user'
     interface MutedInfo {
         muted: boolean
-        extensionId?: string
+    extensionId?: string
         reason: MutedInfoReason
     }
     // TODO: Specify PageSettings properly.
@@ -1377,18 +1389,19 @@ declare namespace browser.tabs {
     }
 
     type TabStatus = 'loading' | 'complete'
-    type WindowType = 'normal' | 'popup' | 'panel' | 'devtools'
-    type ZoomSettingsMode = 'automatic' | 'disabled' | 'manual'
-    type ZoomSettingsScope = 'per-origin' | 'per-tab'
-    interface ZoomSettings {
-        defaultZoomFactor?: number
-        mode?: ZoomSettingsMode
-        scope?: ZoomSettingsScope
-    }
+        type WindowType = 'normal'|'popup'|'panel'|'devtools'
+        type ZoomSettingsMode = 'automatic'|'disabled'|'manual'
+        type ZoomSettingsScope =
+            'per-origin'|'per-tab' interface ZoomSettings {
+              defaultZoomFactor?: number
+              mode?: ZoomSettingsMode
+              scope?: ZoomSettingsScope
+            }
 
-    const TAB_ID_NONE: number
+        const TAB_ID_NONE: number
 
-    function connect(tabId: number, connectInfo?: { name?: string; frameId?: number }): runtime.Port
+        function connect(tabId: number, connectInfo
+                         ?: {name?: string; frameId?: number}): runtime.Port
     function create(createProperties: {
         active?: boolean
         cookieStoreId?: string
@@ -1420,8 +1433,8 @@ declare namespace browser.tabs {
     function move(
         tabIds: number | number[],
         moveProperties: {
-            windowId?: number
-            index: number
+        windowId?: number
+        index: number
         }
     ): Promise<Tab | Tab[]>
     function print(): Promise<void>
@@ -1441,7 +1454,7 @@ declare namespace browser.tabs {
         pinned?: boolean
         status?: TabStatus
         title?: string
-        url?: string | string[]
+        url?: string|string[]
         windowId?: number
         windowType?: WindowType
     }): Promise<Tab[]>
@@ -1453,7 +1466,8 @@ declare namespace browser.tabs {
     function sendMessage<T = any, U = object>(
         tabId: number,
         message: T,
-        options?: { frameId?: number }
+        options?: {
+        frameId?: number }
     ): Promise<U | void>
     // deprecated: function sendRequest(): x;
     function setZoom(tabId: number | undefined, zoomFactor: number): Promise<void>
@@ -1476,7 +1490,9 @@ declare namespace browser.tabs {
     function update(tabId: number | undefined, updateProperties: UpdateProperties): Promise<Tab>
     function update(updateProperties: UpdateProperties): Promise<Tab>
 
-    const onActivated: EventEmitter<{ tabId: number; windowId: number }>
+    const onActivated: EventEmitter<{
+        tabId: number;
+        windowId: number }>
     const onAttached: CallbackEventEmitter<(
         tabId: number,
         attachInfo: {
@@ -1525,8 +1541,8 @@ declare namespace browser.tabs {
     ) => void>
     const onZoomChanged: EventEmitter<{
         tabId: number
-        oldZoomFactor: number
-        newZoomFactor: number
+            oldZoomFactor: number
+            newZoomFactor: number
         zoomSettings: ZoomSettings
     }>
 }
@@ -1540,17 +1556,18 @@ declare namespace browser.topSites {
 }
 
 declare namespace browser.webNavigation {
-    type TransitionType = 'link' | 'auto_subframe' | 'form_submit' | 'reload'
-    // unsupported: | "typed" | "auto_bookmark" | "manual_subframe"
-    //              | "generated" | "start_page" | "keyword"
-    //              | "keyword_generated";
+        type TransitionType = 'link'|'auto_subframe'|'form_submit'|'reload'
+        // unsupported: | "typed" | "auto_bookmark" | "manual_subframe"
+        //              | "generated" | "start_page" | "keyword"
+        //              | "keyword_generated";
 
-    type TransitionQualifier = 'client_redirect' | 'server_redirect' | 'forward_back'
-    // unsupported: "from_address_bar";
+        type TransitionQualifier =
+            'client_redirect'|'server_redirect'|'forward_back'
+        // unsupported: "from_address_bar";
 
     function getFrame(details: {
         tabId: number
-        processId: number
+    processId: number
         frameId: number
     }): Promise<{ errorOccured: boolean; url: string; parentFrameId: number }>
 
@@ -1558,11 +1575,11 @@ declare namespace browser.webNavigation {
         tabId: number
     }): Promise<
         {
-            errorOccured: boolean
-            processId: number
-            frameId: number
-            parentFrameId: number
-            url: string
+          errorOccured: boolean
+          processId: number
+          frameId: number
+          parentFrameId: number
+          url: string
         }[]
     >
 
@@ -1606,8 +1623,7 @@ declare namespace browser.webNavigation {
 
     const onCommitted: TransitionNavListener
 
-    const onCreatedNavigationTarget: NavListener<{
-        sourceFrameId: number
+        const onCreatedNavigationTarget: NavListener < {sourceFrameId : number
         // Unsupported: sourceProcessId: number,
         sourceTabId: number
         tabId: number
@@ -1618,11 +1634,11 @@ declare namespace browser.webNavigation {
 
     const onDOMContentLoaded: DefaultNavListener
 
-    const onCompleted: DefaultNavListener
+        const onCompleted: DefaultNavListener
 
-    const onErrorOccurred: DefaultNavListener // error field unsupported
+        const onErrorOccurred: DefaultNavListener // error field unsupported
 
-    const onReferenceFragmentUpdated: TransitionNavListener
+        const onReferenceFragmentUpdated: TransitionNavListener
 
     const onHistoryStateUpdated: TransitionNavListener
 }
@@ -1651,8 +1667,8 @@ declare namespace browser.webRequest {
 
     interface RequestFilter {
         urls: string[]
-        types?: ResourceType[]
-        tabId?: number
+    types?: ResourceType[]
+    tabId?: number
         windowId?: number
     }
 
@@ -1680,54 +1696,61 @@ declare namespace browser.webRequest {
     }
 
     type HttpHeaders = (
-        | { name: string; binaryValue: number[]; value?: string }
-        | { name: string; value: string; binaryValue?: number[] }
+        | {
+          name: string;
+          binaryValue: number[];
+          value?: string }
+        | {
+          name: string;
+          value: string;
+          binaryValue?: number[] }
     )[]
 
     interface BlockingResponse {
-        cancel?: boolean
-        redirectUrl?: string
-        requestHeaders?: HttpHeaders
-        responseHeaders?: HttpHeaders
-        authCredentials?: { username: string; password: string }
+          cancel?: boolean
+          redirectUrl?: string
+          requestHeaders?: HttpHeaders
+          responseHeaders?: HttpHeaders
+          authCredentials?: {username: string; password : string}
     }
 
     interface UploadData {
-        bytes?: ArrayBuffer
-        file?: string
+          bytes?: ArrayBuffer
+          file?: string
     }
 
     const MAX_HANDLER_BEHAVIOR_CHANGED_CALLS_PER_10_MINUTES: number
 
-    function handlerBehaviorChanged(): Promise<void>
+        function handlerBehaviorChanged():
+                Promise<void>
 
-    // TODO: Enforce the return result of the addListener call in the contract
-    //       Use an intersection type for all the default properties
-    interface ReqListener<T, U> {
-        addListener: (
-            callback: (arg: T) => void,
-            filter: RequestFilter,
-            extraInfoSpec?: U[]
-        ) => BlockingResponse | Promise<BlockingResponse>
-        removeListener: (callback: (arg: T) => void) => void
-        hasListener: (callback: (arg: T) => void) => boolean
-    }
+                    // TODO: Enforce the return result of the addListener call
+                    // in the contract
+                    //       Use an intersection type for all the default
+                    //       properties
+                        interface ReqListener<T, U> {
+                          addListener: (callback: (arg: T) => void,
+                                        filter: RequestFilter,
+                                        extraInfoSpec?: U[]) =>
+                              BlockingResponse |
+                              Promise<BlockingResponse>removeListener:
+                                  (callback: (arg: T) => void) =>
+                                  void hasListener:
+                                      (callback: (arg: T) => void) => boolean
+                        }
 
-    const onBeforeRequest: ReqListener<
-        {
-            requestId: string
-            url: string
-            method: string
-            frameId: number
-            parentFrameId: number
-            requestBody?: {
-                error?: string
+            const onBeforeRequest: ReqListener < {requestId : string
+        url: string
+        method: string
+        frameId: number
+        parentFrameId: number
+        requestBody?: {error?: string
                 formData?: { [key: string]: string[] }
                 raw?: UploadData[]
             }
             tabId: number
-            type: ResourceType
-            timeStamp: number
+                type: ResourceType
+                timeStamp: number
             originUrl: string
         },
         'blocking' | 'requestBody'
@@ -1795,8 +1818,7 @@ declare namespace browser.webRequest {
             timeStamp: number
             scheme: string
             realm?: string
-            challenger: { host: string; port: number }
-            isProxy: boolean
+            challenger: {host: string; port : number} isProxy: boolean
             responseHeaders?: HttpHeaders
             statusLine: string
             statusCode: number
@@ -1887,30 +1909,31 @@ declare namespace browser.webRequest {
 }
 
 declare namespace browser.windows {
-    type WindowType = 'normal' | 'popup' | 'panel' | 'devtools'
+          type WindowType = 'normal'|'popup'|'panel'|'devtools'
 
-    type WindowState = 'normal' | 'minimized' | 'maximized' | 'fullscreen' | 'docked'
+          type WindowState =
+              'normal'|'minimized'|'maximized'|'fullscreen'|'docked'
 
-    interface Window {
-        id?: number
-        focused: boolean
-        top?: number
-        left?: number
-        width?: number
-        height?: number
-        tabs?: tabs.Tab[]
-        incognito: boolean
-        type?: WindowType
-        state?: WindowState
-        alwaysOnTop: boolean
-        sessionId?: string
-    }
+              interface Window {
+            id?: number
+            focused: boolean
+            top?: number
+            left?: number
+            width?: number
+            height?: number
+            tabs?: tabs.Tab[]
+            incognito: boolean
+            type?: WindowType
+            state?: WindowState
+            alwaysOnTop: boolean
+            sessionId?: string
+          }
 
-    type CreateType = 'normal' | 'popup' | 'panel' | 'detached_panel'
+          type CreateType = 'normal'|'popup'|'panel'|'detached_panel'
 
-    const WINDOW_ID_NONE: number
+          const WINDOW_ID_NONE: number
 
-    const WINDOW_ID_CURRENT: number
+          const WINDOW_ID_CURRENT: number
 
     function get(
         windowId: number,
@@ -1922,24 +1945,26 @@ declare namespace browser.windows {
 
     function getCurrent(getInfo?: { populate?: boolean; windowTypes?: WindowType[] }): Promise<Window>
 
-    function getLastFocused(getInfo?: { populate?: boolean; windowTypes?: WindowType[] }): Promise<Window>
+    function getLastFocused(getInfo?: {
+            populate?: boolean;
+            windowTypes?: WindowType[] }): Promise<Window>
 
     function getAll(getInfo?: { populate?: boolean; windowTypes?: WindowType[] }): Promise<Window[]>
 
     // TODO: url and tabId should be exclusive
     function create(createData?: {
-        allowScriptsToClose?: boolean
-        url?: string | string[]
-        tabId?: number
-        left?: number
-        top?: number
-        width?: number
-        height?: number
-        // unsupported: focused?: boolean,
-        incognito?: boolean
-        titlePreface?: string
-        type?: CreateType
-        state?: WindowState
+            allowScriptsToClose?: boolean
+            url?: string|string[]
+            tabId?: number
+            left?: number
+            top?: number
+            width?: number
+            height?: number
+            // unsupported: focused?: boolean,
+            incognito?: boolean
+            titlePreface?: string
+            type?: CreateType
+            state?: WindowState
     }): Promise<Window>
 
     function update(
@@ -1965,51 +1990,40 @@ declare namespace browser.windows {
 }
 
 declare namespace browser.theme {
-    interface Theme {
-        images: ThemeImages
-        colors: ThemeColors
-        properties?: ThemeProperties
-    }
+            interface Theme {
+              images: ThemeImages
+              colors: ThemeColors
+              properties?: ThemeProperties
+            }
 
-    interface ThemeImages {
-        headerURL: string
-        theme_frame?: string
-        additional_backgrounds?: string[]
-    }
+            interface ThemeImages {
+              headerURL: string
+              theme_frame?: string
+              additional_backgrounds?: string[]
+            }
 
-    interface ThemeColors {
-        accentcolor: string
-        textcolor: string
-        frame?: [number, number, number]
-        tab_text?: [number, number, number]
-        toolbar?: string
-        toolbar_text?: string
-        toolbar_field?: string
-        toolbar_field_text?: string
-    }
+            interface ThemeColors {
+              accentcolor: string
+              textcolor: string
+              frame?: [ number, number, number ]
+              tab_text?: [ number, number, number ]
+              toolbar?: string
+              toolbar_text?: string
+              toolbar_field?: string
+              toolbar_field_text?: string
+            }
 
-    interface ThemeProperties {
-        additional_backgrounds_alignment: Alignment[]
-        additional_backgrounds_tiling: Tiling[]
-    }
+            interface ThemeProperties {
+              additional_backgrounds_alignment: Alignment[]
+              additional_backgrounds_tiling: Tiling[]
+            }
 
-    type Alignment =
-        | 'bottom'
-        | 'center'
-        | 'left'
-        | 'right'
-        | 'top'
-        | 'center bottom'
-        | 'center center'
-        | 'center top'
-        | 'left bottom'
-        | 'left center'
-        | 'left top'
-        | 'right bottom'
-        | 'right center'
-        | 'right top'
+            type Alignment =
+                |'bottom'|'center'|'left'|'right'|'top'|'center bottom'|
+                'center center'|'center top'|'left bottom'|'left center'|
+                'left top'|'right bottom'|'right center'|'right top'
 
-    type Tiling = 'no-repeat' | 'repeat' | 'repeat-x' | 'repeat-y'
+            type Tiling = 'no-repeat'|'repeat'|'repeat-x'|'repeat-y'
 
     function getCurrent(windowId?: number): Promise<Theme>
     function update(theme: Theme): Promise<void>

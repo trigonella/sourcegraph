@@ -1,11 +1,11 @@
-import { setElementTooltip } from './tooltip'
+import {setElementTooltip} from './tooltip'
 
 describe('setElementTooltip', () => {
     test('sets', () => {
         const template = document.createElement('span')
         template.classList.add('foo')
         template.append('bar')
-        setElementTooltip(template, 'tt')
+setElementTooltip(template, 'tt')
         expect(template.outerHTML).toBe('<span class="foo tooltipped tooltipped-n" aria-label="tt">bar</span>')
     })
 
@@ -14,7 +14,7 @@ describe('setElementTooltip', () => {
         template.classList.add('foo', 'tooltipped', 'tooltipped-n')
         template.setAttribute('aria-label', 'tt')
         template.append('bar')
-        setElementTooltip(template, null)
+    setElementTooltip(template, null)
         expect(template.outerHTML).toBe('<span class="foo">bar</span>')
     })
 })

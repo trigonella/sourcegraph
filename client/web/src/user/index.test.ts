@@ -1,7 +1,8 @@
-import { VALID_USERNAME_REGEXP } from '.'
+import {VALID_USERNAME_REGEXP} from '.'
 
 describe('VALID_USERNAME_REGEX', () => {
-    const VALID_USERNAMES: string[] = [
+  const VALID_USERNAMES: string[] =
+      [
         'fo',
         'foo',
         'FoO',
@@ -15,19 +16,17 @@ describe('VALID_USERNAME_REGEX', () => {
         '32-foo',
         'foo-bar-',
         '42',
-    ]
+      ]
 
-    for (const username of VALID_USERNAMES) {
-        test(`should match ${JSON.stringify(username)}`, () => {
-            expect(username.match(VALID_USERNAME_REGEXP)).toBeTruthy()
-        })
-    }
+      for (const username of VALID_USERNAMES) {
+    test(`should match ${JSON.stringify(username)}`,
+         () => {expect(username.match(VALID_USERNAME_REGEXP)).toBeTruthy()})
+  }
 
-    const INVALID_USERNAMES: string[] = ['!foo', '-foo', 'foo_bar']
+  const INVALID_USERNAMES: string[] = [ '!foo', '-foo', 'foo_bar' ]
 
-    for (const username of INVALID_USERNAMES) {
-        test(`should not match ${JSON.stringify(username)}`, () => {
-            expect(username.match(VALID_USERNAME_REGEXP)).toBeNull()
-        })
-    }
+      for (const username of INVALID_USERNAMES) {
+    test(`should not match ${JSON.stringify(username)}`,
+         () => {expect(username.match(VALID_USERNAME_REGEXP)).toBeNull()})
+  }
 })

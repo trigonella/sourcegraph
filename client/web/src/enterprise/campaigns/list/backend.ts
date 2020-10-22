@@ -1,15 +1,16 @@
-import { map } from 'rxjs/operators'
-import { dataOrThrowErrors, gql } from '../../../../../shared/src/graphql/graphql'
-import { Observable } from 'rxjs'
+import {Observable} from 'rxjs'
+import {map} from 'rxjs/operators'
+
+import {dataOrThrowErrors, gql} from '../../../../../shared/src/graphql/graphql'
+import {requestGraphQL} from '../../../backend/graphql'
 import {
-    CampaignsVariables,
-    CampaignsResult,
-    CampaignsByUserResult,
-    CampaignsByUserVariables,
-    CampaignsByOrgResult,
-    CampaignsByOrgVariables,
+  CampaignsByOrgResult,
+  CampaignsByOrgVariables,
+  CampaignsByUserResult,
+  CampaignsByUserVariables,
+  CampaignsResult,
+  CampaignsVariables,
 } from '../../../graphql-operations'
-import { requestGraphQL } from '../../../backend/graphql'
 
 const ListCampaignFragment = gql`
     fragment ListCampaign on Campaign {
@@ -68,11 +69,11 @@ export const queryCampaigns = ({
     )
 
 export const queryCampaignsByUser = ({
-    userID,
-    first,
-    after,
-    state,
-    viewerCanAdminister,
+  userID,
+  first,
+  after,
+  state,
+  viewerCanAdminister,
 }: CampaignsByUserVariables): Observable<CampaignsResult['campaigns']> =>
     requestGraphQL<CampaignsByUserResult, CampaignsByUserVariables>(
         gql`
@@ -107,26 +108,24 @@ export const queryCampaignsByUser = ({
 
             ${ListCampaignFragment}
         `,
-        { first, after, state, viewerCanAdminister, userID }
-    ).pipe(
-        map(dataOrThrowErrors),
-        map(data => {
-            if (!data.node) {
-                throw new Error('User not found')
-            }
-            if (data.node.__typename !== 'User') {
-                throw new Error(`Requested node is a ${data.node.__typename}, not a User`)
-            }
-            return data.node.campaigns
-        })
-    )
+        {first, after, state, viewerCanAdminister, userID})
+        .pipe(map(dataOrThrowErrors), map(data => {
+                if (!data.node) {
+                  throw new Error('User not found')
+                }
+                if (data.node.__typename !== 'User') {
+                  throw new Error(
+                      `Requested node is a ${data.node.__typename}, not a User`)
+                }
+                return data.node.campaigns
+              }))
 
 export const queryCampaignsByOrg = ({
-    orgID,
-    first,
-    after,
-    state,
-    viewerCanAdminister,
+  orgID,
+  first,
+  after,
+  state,
+  viewerCanAdminister,
 }: CampaignsByOrgVariables): Observable<CampaignsResult['campaigns']> =>
     requestGraphQL<CampaignsByOrgResult, CampaignsByOrgVariables>(
         gql`
@@ -161,16 +160,14 @@ export const queryCampaignsByOrg = ({
 
             ${ListCampaignFragment}
         `,
-        { first, after, state, viewerCanAdminister, orgID }
-    ).pipe(
-        map(dataOrThrowErrors),
-        map(data => {
-            if (!data.node) {
-                throw new Error('Org not found')
-            }
-            if (data.node.__typename !== 'Org') {
-                throw new Error(`Requested node is a ${data.node.__typename}, not an Org`)
-            }
-            return data.node.campaigns
-        })
-    )
+        {first, after, state, viewerCanAdminister, orgID})
+        .pipe(map(dataOrThrowErrors), map(data => {
+                if (!data.node) {
+                  throw new Error('Org not found')
+                }
+                if (data.node.__typename !== 'Org') {
+                  throw new Error(
+                      `Requested node is a ${data.node.__typename}, not an Org`)
+                }
+                return data.node.campaigns
+              }))

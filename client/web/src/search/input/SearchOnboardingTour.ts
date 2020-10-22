@@ -1,10 +1,11 @@
 /**
  * This file contains utility functions for the search onboarding tour.
  */
+import {isEqual} from 'lodash'
 import Shepherd from 'shepherd.js'
-import { eventLogger } from '../../tracking/eventLogger'
-import { isEqual } from 'lodash'
-import { LANGUAGES } from '../../../../shared/src/search/parser/filters'
+
+import {LANGUAGES} from '../../../../shared/src/search/parser/filters'
+import {eventLogger} from '../../tracking/eventLogger'
 
 export const HAS_CANCELLED_TOUR_KEY = 'has-cancelled-onboarding-tour'
 export const HAS_SEEN_TOUR_KEY = 'has-seen-onboarding-tour'
@@ -34,32 +35,33 @@ export const defaultTourOptions: Shepherd.Tour.TourOptions = {
  */
 export function generateStepTooltip(options: {
     tour: Shepherd.Tour
-    dangerousTitleHtml: string
-    stepNumber: number
-    totalStepCount: number
-    description?: string
+dangerousTitleHtml: string
+stepNumber: number
+totalStepCount: number
+description?: string
     additionalContent?: HTMLElement
 }): HTMLElement {
-    const element = document.createElement('div')
-    element.className = `d-flex flex-column test-tour-step-${options.stepNumber}`
-    const titleElement = document.createElement('h4')
-    titleElement.innerHTML = options.dangerousTitleHtml
-    titleElement.className = 'font-weight-bold'
-    element.append(titleElement)
-    if (options.description) {
-        const descriptionElement = document.createElement('p')
-        descriptionElement.textContent = options.description
-        descriptionElement.className = 'tour-card__description mb-0'
-        element.append(descriptionElement)
-    }
-    if (options.additionalContent) {
-        const additionalContentContainer = document.createElement('div')
-        additionalContentContainer.append(options.additionalContent)
-        element.append(options.additionalContent)
-    }
-    const bottomRow = generateBottomRow(options.tour, options.stepNumber, options.totalStepCount)
-    element.append(bottomRow)
-    return element
+  const element = document.createElement('div')
+  element.className = `d-flex flex-column test-tour-step-${options.stepNumber}`
+  const titleElement = document.createElement('h4')
+  titleElement.innerHTML = options.dangerousTitleHtml
+  titleElement.className = 'font-weight-bold'
+  element.append(titleElement)
+  if (options.description) {
+    const descriptionElement = document.createElement('p')
+    descriptionElement.textContent = options.description
+    descriptionElement.className = 'tour-card__description mb-0'
+    element.append(descriptionElement)
+  }
+  if (options.additionalContent) {
+    const additionalContentContainer = document.createElement('div')
+    additionalContentContainer.append(options.additionalContent)
+    element.append(options.additionalContent)
+  }
+  const bottomRow = generateBottomRow(options.tour, options.stepNumber,
+                                      options.totalStepCount)
+  element.append(bottomRow)
+  return element
 }
 
 /**
@@ -69,25 +71,25 @@ export function generateStepTooltip(options: {
  * @param stepNumber the step number.
  */
 export function generateBottomRow(tour: Shepherd.Tour, stepNumber: number, totalStepCount: number): HTMLElement {
-    const closeTourButton = document.createElement('button')
-    closeTourButton.className = 'btn btn-link p-0'
-    closeTourButton.textContent = 'Close tour'
+  const closeTourButton = document.createElement('button')
+  closeTourButton.className = 'btn btn-link p-0'
+  closeTourButton.textContent = 'Close tour'
     closeTourButton.addEventListener('click', () => {
         tour.cancel()
-        localStorage.setItem(HAS_CANCELLED_TOUR_KEY, 'true')
+    localStorage.setItem(HAS_CANCELLED_TOUR_KEY, 'true')
         eventLogger.log('CloseOnboardingTourClicked', { stage: stepNumber })
     })
 
-    const bottomRow = document.createElement('div')
-    bottomRow.className = 'd-flex justify-content-between mt-2'
+        const bottomRow = document.createElement('div')
+        bottomRow.className = 'd-flex justify-content-between mt-2'
 
-    const stepNumberLabel = document.createElement('span')
-    stepNumberLabel.className = 'font-weight-light font-italic'
-    stepNumberLabel.textContent = `${stepNumber} of ${totalStepCount}`
-    bottomRow.append(stepNumberLabel)
+        const stepNumberLabel = document.createElement('span')
+        stepNumberLabel.className = 'font-weight-light font-italic'
+        stepNumberLabel.textContent = `${stepNumber} of ${totalStepCount}`
+        bottomRow.append(stepNumberLabel)
 
-    bottomRow.append(closeTourButton)
-    return bottomRow
+        bottomRow.append(closeTourButton)
+        return bottomRow
 }
 
 /**
@@ -101,39 +103,39 @@ export function createStep1Tooltip(
     languageButtonHandler: () => void,
     repositoryButtonHandler: () => void
 ): HTMLElement {
-    const list = document.createElement('ul')
-    list.className = 'my-4 list-dashed'
-    const languageListItem = document.createElement('li')
-    languageListItem.className = 'p-0 mb-2'
+  const list = document.createElement('ul')
+  list.className = 'my-4 list-dashed'
+  const languageListItem = document.createElement('li')
+  languageListItem.className = 'p-0 mb-2'
 
-    const languageButton = document.createElement('button')
-    languageButton.className = 'btn btn-link p-0 pl-1 test-tour-language-button'
-    languageButton.textContent = 'Search a language'
-    languageListItem.append(languageButton)
+  const languageButton = document.createElement('button')
+  languageButton.className = 'btn btn-link p-0 pl-1 test-tour-language-button'
+  languageButton.textContent = 'Search a language'
+  languageListItem.append(languageButton)
     languageButton.addEventListener('click', () => {
         languageButtonHandler()
         eventLogger.log('OnboardingTourLanguageOptionClicked')
     })
-    const repositoryListItem = document.createElement('li')
-    repositoryListItem.className = 'p-0 mb-2 test-tour-repo-button'
-    const repositoryButton = document.createElement('button')
-    repositoryButton.className = 'btn btn-link p-0 pl-1'
-    repositoryButton.textContent = 'Search a repository'
+        const repositoryListItem = document.createElement('li')
+        repositoryListItem.className = 'p-0 mb-2 test-tour-repo-button'
+        const repositoryButton = document.createElement('button')
+        repositoryButton.className = 'btn btn-link p-0 pl-1'
+        repositoryButton.textContent = 'Search a repository'
     repositoryButton.addEventListener('click', () => {
         repositoryButtonHandler()
         eventLogger.log('OnboardingTourRepositoryOptionClicked')
     })
-    repositoryListItem.append(repositoryButton)
-    list.append(languageListItem)
-    list.append(repositoryListItem)
-    return generateStepTooltip({
-        tour,
-        dangerousTitleHtml: 'Code search tour',
-        stepNumber: 1,
-        totalStepCount: 5,
-        description: 'How would you like to begin?',
-        additionalContent: list,
-    })
+        repositoryListItem.append(repositoryButton)
+        list.append(languageListItem)
+        list.append(repositoryListItem)
+        return generateStepTooltip({
+          tour,
+          dangerousTitleHtml : 'Code search tour',
+          stepNumber : 1,
+          totalStepCount : 5,
+          description : 'How would you like to begin?',
+          additionalContent : list,
+        })
 }
 
 /**
@@ -142,13 +144,13 @@ export function createStep1Tooltip(
  * @param tour the tour instance
  */
 export function createAddCodeStepTooltip(tour: Shepherd.Tour): HTMLElement {
-    return generateStepTooltip({
-        tour,
-        dangerousTitleHtml: 'Add code to your search',
-        stepNumber: 3,
-        totalStepCount: 5,
-        description: 'Type the name of a function, variable or other code.',
-    })
+  return generateStepTooltip({
+    tour,
+    dangerousTitleHtml : 'Add code to your search',
+    stepNumber : 3,
+    totalStepCount : 5,
+    description : 'Type the name of a function, variable or other code.',
+  })
 }
 
 /**
@@ -160,13 +162,13 @@ export function createAddCodeStepTooltip(tour: Shepherd.Tour): HTMLElement {
  * @param exampleCallback the callback to be run when clicking the example query.
  */
 export function createAddCodeStepWithLanguageExampleTooltip(tour: Shepherd.Tour): HTMLElement {
-    return generateStepTooltip({
-        tour,
-        dangerousTitleHtml: 'Add code to your search',
-        stepNumber: 3,
-        totalStepCount: 5,
-        description: 'Type the name of a function, variable or other code.',
-    })
+  return generateStepTooltip({
+    tour,
+    dangerousTitleHtml : 'Add code to your search',
+    stepNumber : 3,
+    totalStepCount : 5,
+    description : 'Type the name of a function, variable or other code.',
+  })
 }
 
 /**
@@ -176,27 +178,37 @@ export function createAddCodeStepWithLanguageExampleTooltip(tour: Shepherd.Tour)
  */
 export const isValidLangQuery = (query: string): boolean => LANGUAGES.map(lang => `lang:${lang}`).includes(query)
 
-export const isCurrentTourStep = (step: string, tour?: Shepherd.Tour): boolean | undefined =>
-    tour && isEqual(tour.getCurrentStep(), tour.getById(step))
+    export const isCurrentTourStep =
+        (step: string, tour?: Shepherd.Tour): boolean|undefined =>
+            tour && isEqual(tour.getCurrentStep(), tour.getById(step))
 
-export const advanceLangStep = (query: string, tour: Shepherd.Tour | undefined): void => {
-    if (query !== 'lang:' && isValidLangQuery(query.trim()) && tour?.getById('filter-lang').isOpen()) {
-        tour?.show('add-query-term')
-    }
-}
+    export const advanceLangStep =
+        (query: string, tour: Shepherd.Tour|undefined):
+            void => {
+              if (query !== 'lang:' && isValidLangQuery(query.trim()) &&
+                  tour?.getById('filter-lang').isOpen()) {
+                tour?.show('add-query-term')
+              }
+            }
 
-export const advanceRepoStep = (query: string, tour: Shepherd.Tour | undefined): void => {
-    if (tour?.getById('filter-repository').isOpen() && query !== 'repo:') {
-        tour?.show('add-query-term')
-    }
-}
+    export const advanceRepoStep =
+        (query: string, tour: Shepherd.Tour|undefined):
+            void => {
+              if (tour?.getById('filter-repository').isOpen() &&
+                  query !== 'repo:') {
+                tour?.show('add-query-term')
+              }
+            }
 
-export const runAdvanceLangOrRepoStep = (query: string, tour: Shepherd.Tour | undefined): void => {
-    if (tour) {
-        if (query !== 'lang:' && isValidLangQuery(query.trim()) && tour.getById('filter-lang').isOpen()) {
-            advanceLangStep(query, tour)
-        } else if (tour.getById('filter-repository').isOpen() && query !== 'repo:') {
-            advanceRepoStep(query, tour)
+    export const runAdvanceLangOrRepoStep =
+        (query: string, tour: Shepherd.Tour|undefined): void => {
+          if (tour) {
+            if (query !== 'lang:' && isValidLangQuery(query.trim()) &&
+                tour.getById('filter-lang').isOpen()) {
+              advanceLangStep(query, tour)
+            } else if (tour.getById('filter-repository').isOpen() &&
+                       query !== 'repo:') {
+              advanceRepoStep(query, tour)
+            }
+          }
         }
-    }
-}

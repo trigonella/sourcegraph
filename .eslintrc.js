@@ -1,81 +1,83 @@
 // @ts-check
 
 const config = {
-  extends: '@sourcegraph/eslint-config',
-  env: {
-    browser: true,
-    node: true,
-    es6: true,
+  extends : '@sourcegraph/eslint-config',
+  env : {
+    browser : true,
+    node : true,
+    es6 : true,
   },
-  parserOptions: {
-    ecmaVersion: 2018,
-    sourceType: 'module',
-    ecmaFeatures: {
-      jsx: true,
+  parserOptions : {
+    ecmaVersion : 2018,
+    sourceType : 'module',
+    ecmaFeatures : {
+      jsx : true,
     },
-    project: __dirname + '/tsconfig.json',
+    project : __dirname + '/tsconfig.json',
   },
-  settings: {
-    react: {
-      version: 'detect',
+  settings : {
+    react : {
+      version : 'detect',
     },
-    linkComponents: [
+    linkComponents : [
       {
-        name: 'LinkOrSpan',
-        linkAttribute: 'to',
+        name : 'LinkOrSpan',
+        linkAttribute : 'to',
       },
       {
-        name: 'Link',
-        linkAttribute: 'to',
+        name : 'Link',
+        linkAttribute : 'to',
       },
     ],
   },
-  rules: {
+  rules : {
     // Rules that are specific to this repo
-    // All other rules should go into https://github.com/sourcegraph/eslint-config
-    'no-restricted-imports': [
+    // All other rules should go into
+    // https://github.com/sourcegraph/eslint-config
+    'no-restricted-imports' : [
       'error',
       {
-        paths: [
+        paths : [
           'highlight.js',
           'marked',
           'rxjs/ajax',
           {
-            name: 'rxjs',
-            importNames: ['animationFrameScheduler'],
-            message: 'Code using animationFrameScheduler breaks in Firefox when using Sentry.',
+            name : 'rxjs',
+            importNames : [ 'animationFrameScheduler' ],
+            message :
+                'Code using animationFrameScheduler breaks in Firefox when using Sentry.',
           },
         ],
       },
     ],
-    'react/forbid-elements': [
+    'react/forbid-elements' : [
       'error',
       {
-        forbid: [
+        forbid : [
           {
-            element: 'form',
-            message:
-              'Use the Form component in src/components/Form.tsx instead of the native HTML form element to get proper form validation feedback',
+            element : 'form',
+            message :
+                'Use the Form component in src/components/Form.tsx instead of the native HTML form element to get proper form validation feedback',
           },
         ],
       },
     ],
-    'react/jsx-no-target-blank': ['error', { allowReferrer: true }],
+    'react/jsx-no-target-blank' : [ 'error', {allowReferrer : true} ],
   },
-  overrides: [
+  overrides : [
     {
-      files: ['*.d.ts'],
-      rules: {
-        'no-restricted-imports': 'off',
+      files : [ '*.d.ts' ],
+      rules : {
+        'no-restricted-imports' : 'off',
       },
     },
     {
-      files: '*.story.tsx',
-      rules: {
-        'react/forbid-dom-props': 'off',
+      files : '*.story.tsx',
+      rules : {
+        'react/forbid-dom-props' : 'off',
       },
     },
   ],
 }
 
-module.exports = config
+               module.exports = config

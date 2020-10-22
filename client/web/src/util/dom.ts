@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs'
+import {Observable} from 'rxjs'
 
 /**
  * An Observable wrapper around ResizeObserver
@@ -8,6 +8,6 @@ export const observeResize = (target: HTMLElement): Observable<void> =>
         const resizeObserver = new ResizeObserver(() => {
             observer.next()
         })
-        resizeObserver.observe(target)
+resizeObserver.observe(target)
         return () => resizeObserver.disconnect()
     })

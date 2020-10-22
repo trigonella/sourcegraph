@@ -1,25 +1,29 @@
-import { describe, before, test } from 'mocha'
-import { TestResourceManager } from './util/TestResourceManager'
-import { GraphQLClient } from './util/GraphQlClient'
-import { Driver } from '../../../shared/src/testing/driver'
-import { getConfig } from '../../../shared/src/testing/config'
-import { getTestTools } from './util/init'
+import {before, describe, test} from 'mocha'
+
+import {getConfig} from '../../../shared/src/testing/config'
+import {Driver} from '../../../shared/src/testing/driver'
 import {
-    ensureLoggedInOrCreateTestUser,
-    login,
-    loginToOkta,
-    loginToGitHub,
-    loginToGitLab,
-    createAuthProvider,
-} from './util/helpers'
-import { setUserSiteAdmin, getUser } from './util/api'
+  afterEachSaveScreenshotIfFailed
+} from '../../../shared/src/testing/screenshotReporter'
 import {
-    GitHubAuthProvider,
-    GitLabAuthProvider,
-    SAMLAuthProvider,
-    OpenIDConnectAuthProvider,
+  GitHubAuthProvider,
+  GitLabAuthProvider,
+  OpenIDConnectAuthProvider,
+  SAMLAuthProvider,
 } from '../schema/site.schema'
-import { afterEachSaveScreenshotIfFailed } from '../../../shared/src/testing/screenshotReporter'
+
+import {getUser, setUserSiteAdmin} from './util/api'
+import {GraphQLClient} from './util/GraphQlClient'
+import {
+  createAuthProvider,
+  ensureLoggedInOrCreateTestUser,
+  login,
+  loginToGitHub,
+  loginToGitLab,
+  loginToOkta,
+} from './util/helpers'
+import {getTestTools} from './util/init'
+import {TestResourceManager} from './util/TestResourceManager'
 
 const oktaUserAmy = 'beyang+sg-e2e-regression-test-amy@sourcegraph.com'
 
@@ -58,117 +62,106 @@ async function testLogin(
 
 describe('Auth regression test suite', () => {
     const testUsername = 'test-auth'
-    const config = getConfig(
-        'sudoToken',
-        'sudoUsername',
-        'headless',
-        'slowMo',
-        'keepBrowser',
-        'gitHubToken',
-        'sourcegraphBaseUrl',
-        'noCleanup',
-        'testUserPassword',
-        'logBrowserConsole',
-        'gitHubClientID',
-        'gitHubClientSecret',
-        'gitHubUserAmyPassword',
-        'gitLabClientID',
-        'gitLabClientSecret',
-        'gitLabUserAmyPassword',
-        'oktaUserAmyPassword',
-        'oktaMetadataUrl'
-    )
+        const config = getConfig(
+            'sudoToken', 'sudoUsername', 'headless', 'slowMo', 'keepBrowser',
+            'gitHubToken', 'sourcegraphBaseUrl', 'noCleanup',
+            'testUserPassword', 'logBrowserConsole', 'gitHubClientID',
+            'gitHubClientSecret', 'gitHubUserAmyPassword', 'gitLabClientID',
+            'gitLabClientSecret', 'gitLabUserAmyPassword',
+            'oktaUserAmyPassword', 'oktaMetadataUrl')
 
-    let driver: Driver
-    let gqlClient: GraphQLClient
-    let resourceManager: TestResourceManager
-    before(async () => {
-        ;({ driver, gqlClient, resourceManager } = await getTestTools(config))
-        resourceManager.add(
-            'User',
-            testUsername,
-            await ensureLoggedInOrCreateTestUser(driver, gqlClient, {
-                username: testUsername,
-                deleteIfExists: true,
+        let driver: Driver
+        let gqlClient: GraphQLClient
+        let resourceManager: TestResourceManager
+        before(async () => {
+          ;
+          ({driver, gqlClient, resourceManager} = await getTestTools(config))
+          resourceManager.add(
+              'User', testUsername,
+              await ensureLoggedInOrCreateTestUser(driver, gqlClient, {
+                username : testUsername,
+                deleteIfExists : true,
                 ...config,
-            })
-        )
-        const user = await getUser(gqlClient, testUsername)
-        if (!user) {
+              }))
+          const user = await getUser(gqlClient, testUsername)
+          if (!user) {
             throw new Error(`test user ${testUsername} does not exist`)
-        }
-        await setUserSiteAdmin(gqlClient, user.id, true)
-    })
+          }
+          await setUserSiteAdmin(gqlClient, user.id, true)
+        })
 
-    afterEachSaveScreenshotIfFailed(() => driver.page)
+        afterEachSaveScreenshotIfFailed(() => driver.page)
 
-    after(async function () {
-        this.timeout(10 * 1000)
-        if (!config.noCleanup) {
+        after(async function() {
+          this.timeout(10 * 1000)
+          if (!config.noCleanup) {
             await resourceManager.destroyAll()
-        }
-        if (driver) {
+          }
+          if (driver) {
             await driver.close()
-        }
-    })
-
-    test('Sign in via GitHub', async function () {
-        this.timeout(20 * 1000)
-        await testLogin(driver, gqlClient, resourceManager, {
-            ...config,
-            authProvider: {
-                type: 'github',
-                displayName: '[TEST] GitHub.com',
-                clientID: config.gitHubClientID,
-                clientSecret: config.gitHubClientSecret,
-                allowSignup: true,
-            },
-            loginToAuthProvider: () =>
-                loginToGitHub(driver, 'sg-e2e-regression-test-amy', config.gitHubUserAmyPassword),
+          }
         })
-    })
 
-    test('Sign in with GitLab', async function () {
-        this.timeout(20 * 1000)
-        await testLogin(driver, gqlClient, resourceManager, {
-            ...config,
-            authProvider: {
-                type: 'gitlab',
-                displayName: '[TEST] GitLab.com',
-                clientID: config.gitLabClientID,
-                clientSecret: config.gitLabClientSecret,
-            },
-            loginToAuthProvider: () =>
-                loginToGitLab(driver, 'sg-e2e-regression-test-amy', config.gitLabUserAmyPassword),
+        test('Sign in via GitHub', async function() {
+          this.timeout(20 * 1000)
+              await testLogin(driver, gqlClient, resourceManager, {
+                ...config,
+                authProvider : {
+                  type : 'github',
+                  displayName : '[TEST] GitHub.com',
+                  clientID : config.gitHubClientID,
+                  clientSecret : config.gitHubClientSecret,
+                  allowSignup : true,
+                },
+                loginToAuthProvider : () =>
+                    loginToGitHub(driver, 'sg-e2e-regression-test-amy',
+                                  config.gitHubUserAmyPassword),
+              })
         })
-    })
 
-    test('Sign in with Okta SAML', async function () {
-        this.timeout(20 * 1000)
-        await testLogin(driver, gqlClient, resourceManager, {
-            ...config,
-            authProvider: {
-                type: 'saml',
-                displayName: '[TEST] Okta SAML',
-                identityProviderMetadataURL: config.oktaMetadataUrl,
-            },
-            loginToAuthProvider: () => loginToOkta(driver, oktaUserAmy, config.oktaUserAmyPassword),
+        test('Sign in with GitLab', async function() {
+          this.timeout(20 * 1000)
+              await testLogin(driver, gqlClient, resourceManager, {
+                ...config,
+                authProvider : {
+                  type : 'gitlab',
+                  displayName : '[TEST] GitLab.com',
+                  clientID : config.gitLabClientID,
+                  clientSecret : config.gitLabClientSecret,
+                },
+                loginToAuthProvider : () =>
+                    loginToGitLab(driver, 'sg-e2e-regression-test-amy',
+                                  config.gitLabUserAmyPassword),
+              })
         })
-    })
+
+        test('Sign in with Okta SAML', async function() {
+          this.timeout(
+              20 * 1000) await testLogin(driver, gqlClient, resourceManager, {
+            ...config,
+            authProvider : {
+              type : 'saml',
+              displayName : '[TEST] Okta SAML',
+              identityProviderMetadataURL : config.oktaMetadataUrl,
+            },
+            loginToAuthProvider : () =>
+                loginToOkta(driver, oktaUserAmy, config.oktaUserAmyPassword),
+          })
+        })
 
     test('Sign in with Okta OpenID Connect', async function () {
-        this.timeout(20 * 1000)
-        await testLogin(driver, gqlClient, resourceManager, {
-            ...config,
-            authProvider: {
-                type: 'openidconnect',
-                displayName: '[TEST] Okta OpenID Connect',
-                issuer: 'https://dev-433675.oktapreview.com',
-                clientID: '0oao8w32qpPNB8tnU0h7',
-                clientSecret: 'pHCg8h8Dr0yaBzBEqBGM4NWjXSAzLqp8OtcYGUqA',
-                requireEmailDomain: 'sourcegraph.com',
-            },
-            loginToAuthProvider: () => loginToOkta(driver, oktaUserAmy, config.oktaUserAmyPassword),
-        })
+  this.timeout(20 * 1000) await testLogin(driver, gqlClient, resourceManager, {
+    ...config,
+    authProvider : {
+      type : 'openidconnect',
+      displayName : '[TEST] Okta OpenID Connect',
+      issuer : 'https://dev-433675.oktapreview.com',
+      clientID : '0oao8w32qpPNB8tnU0h7',
+      clientSecret : 'pHCg8h8Dr0yaBzBEqBGM4NWjXSAzLqp8OtcYGUqA',
+      requireEmailDomain : 'sourcegraph.com',
+    },
+    loginToAuthProvider : () =>
+        loginToOkta(driver, oktaUserAmy, config.oktaUserAmyPassword),
+  })
     })
 })
