@@ -1,4 +1,4 @@
-import * as React from 'react'
+import * as React from "react";
 
 /**
  * An element in the repo header breadcrumb (e.g., "Foo" in "myrepo > Foo" or "myrepo > myrev > Foo").
@@ -11,6 +11,8 @@ import * as React from 'react'
  *     }
  * />
  */
-export const RepoHeaderBreadcrumbNavItem: React.FunctionComponent<{ children: React.ReactFragment }> = ({
-    children,
-}) => <span className="repo-header-breadcrumb-nav-item">{children}</span>
+export const RepoHeaderBreadcrumbNavItem: React.FunctionComponent<{
+  children: React.ReactFragment;
+}> = ({ children }) => (
+  <span className="repo-header-breadcrumb-nav-item">{children}</span>
+);

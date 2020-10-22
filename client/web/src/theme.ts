@@ -3,9 +3,9 @@
  * These values are stored in local storage.
  */
 export enum ThemePreference {
-  Light = 'light',
-  Dark = 'dark',
-  System = 'system',
+  Light = "light",
+  Dark = "dark",
+  System = "system"
 }
 
 /**
@@ -13,6 +13,6 @@ export enum ThemePreference {
  * the theme preferences.
  */
 export interface ThemePreferenceProps {
-  themePreference: ThemePreference
-  onThemePreferenceChange: (theme: ThemePreference) => void
+  themePreference: ThemePreference;
+  onThemePreferenceChange: (theme: ThemePreference) => void;
 }

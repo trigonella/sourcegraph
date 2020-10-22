@@ -1,6 +1,6 @@
-import * as H from 'history'
-import {useEffect, useState} from 'react'
-import {tryCatch} from '../../../shared/src/util/errors'
+import * as H from "history";
+import { useEffect, useState } from "react";
+import { tryCatch } from "../../../shared/src/util/errors";
 
 /**
  * A React hook that scrolls the viewport to the element identified in the
@@ -20,23 +20,22 @@ export const useScrollToLocationHash = (location: H.Location): void => {
   // derived from asynchronously fetched data and not be present on the first
   // render. But once we've found and scrolled to an element for the location
   // hash, don't keep trying to scroll to that element on each render.
-  const [scrolledTo, setScrolledTo] = useState<string>()
+  const [scrolledTo, setScrolledTo] = useState<string>();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (location.hash) {
-      const idOrName = location.hash.slice(1)
+      const idOrName = location.hash.slice(1);
       if (idOrName !== scrolledTo) {
         const element =
-            tryCatch(() => document.querySelector(`#${idOrName}`)) ||
-            document.getElementsByName(idOrName).item(0)
+          tryCatch(() => document.querySelector(`#${idOrName}`)) ||
+          document.getElementsByName(idOrName).item(0);
         if (element) {
-          element.scrollIntoView()
-          setScrolledTo(idOrName)
-        }
-        else {
-          setScrolledTo(undefined)
+          element.scrollIntoView();
+          setScrolledTo(idOrName);
+        } else {
+          setScrolledTo(undefined);
         }
       }
     }
-  })
-}
+  });
+};

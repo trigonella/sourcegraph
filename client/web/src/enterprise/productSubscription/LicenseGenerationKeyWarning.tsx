@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 
 /**
  * Displays a warning in debug mode (which is on for local dev) that generated license keys aren't
@@ -9,12 +9,14 @@ import React from 'react'
  * the right license generation private key), but it's not worth the complexity to make this alert
  * precise.
  */
-export const LicenseGenerationKeyWarning: React.FunctionComponent<{ className?: string }> = ({ className = '' }) =>
-    window.context?.debug ? (
-        <div className={`alert alert-warning ${className}`}>
-            License keys generated in dev mode are <strong>NOT VALID</strong>.{' '}
-            <a href="https://sourcegraph.com/site-admin/dotcom/product/subscriptions">
-                Use Sourcegraph.com to generate valid license keys.
-            </a>
-        </div>
-    ) : null
+export const LicenseGenerationKeyWarning: React.FunctionComponent<{
+  className?: string;
+}> = ({ className = "" }) =>
+  window.context?.debug ? (
+    <div className={`alert alert-warning ${className}`}>
+      License keys generated in dev mode are <strong>NOT VALID</strong>.{" "}
+      <a href="https://sourcegraph.com/site-admin/dotcom/product/subscriptions">
+        Use Sourcegraph.com to generate valid license keys.
+      </a>
+    </div>
+  ) : null;

@@ -1,5 +1,6 @@
-import {NavItemWithIconDescriptor} from '../util/contributions'
+import { NavItemWithIconDescriptor } from "../util/contributions";
 
-export const namespaceAreaHeaderNavItems:
-    readonly Pick<NavItemWithIconDescriptor,
-                  Exclude<keyof NavItemWithIconDescriptor, 'condition'>>[] = []
+export const namespaceAreaHeaderNavItems: readonly Pick<
+  NavItemWithIconDescriptor,
+  Exclude<keyof NavItemWithIconDescriptor, "condition">
+>[] = [];

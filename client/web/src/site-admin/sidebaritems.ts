@@ -1,108 +1,111 @@
-import ServerIcon from 'mdi-react/ServerIcon'
-import SettingsIcon from 'mdi-react/SettingsIcon'
-import SourceRepositoryIcon from 'mdi-react/SourceRepositoryIcon'
-import UsersIcon from 'mdi-react/UsersIcon'
+import ServerIcon from "mdi-react/ServerIcon";
+import SettingsIcon from "mdi-react/SettingsIcon";
+import SourceRepositoryIcon from "mdi-react/SourceRepositoryIcon";
+import UsersIcon from "mdi-react/UsersIcon";
 
-import {SiteAdminSideBarGroup, SiteAdminSideBarGroups} from './SiteAdminSidebar'
+import {
+  SiteAdminSideBarGroup,
+  SiteAdminSideBarGroups
+} from "./SiteAdminSidebar";
 
 export const overviewGroup: SiteAdminSideBarGroup = {
-  header : {
-    label : 'Site admin',
-    icon : ServerIcon,
+  header: {
+    label: "Site admin",
+    icon: ServerIcon
   },
-  items : [
+  items: [
     {
-      label : 'Overview',
-      to : '/site-admin',
-      exact : true,
+      label: "Overview",
+      to: "/site-admin",
+      exact: true
     },
     {
-      label : 'Usage stats',
-      to : '/site-admin/usage-statistics',
+      label: "Usage stats",
+      to: "/site-admin/usage-statistics"
     },
     {
-      label : 'Feedback survey',
-      to : '/site-admin/surveys',
-    },
-  ],
-}
+      label: "Feedback survey",
+      to: "/site-admin/surveys"
+    }
+  ]
+};
 
 const configurationGroup: SiteAdminSideBarGroup = {
-  header : {
-    label : 'Configuration',
-    icon : SettingsIcon,
+  header: {
+    label: "Configuration",
+    icon: SettingsIcon
   },
-  items : [
+  items: [
     {
-      label : 'Site configuration',
-      to : '/site-admin/configuration',
+      label: "Site configuration",
+      to: "/site-admin/configuration"
     },
     {
-      label : 'Global settings',
-      to : '/site-admin/global-settings',
-    },
-  ],
-}
+      label: "Global settings",
+      to: "/site-admin/global-settings"
+    }
+  ]
+};
 
 export const repositoriesGroup: SiteAdminSideBarGroup = {
-  header : {
-    label : 'Repositories',
-    icon : SourceRepositoryIcon,
+  header: {
+    label: "Repositories",
+    icon: SourceRepositoryIcon
   },
-  items : [
+  items: [
     {
-      label : 'Manage repositories',
-      to : '/site-admin/external-services',
+      label: "Manage repositories",
+      to: "/site-admin/external-services"
     },
     {
-      label : 'Repository status',
-      to : '/site-admin/repositories',
-    },
-  ],
-}
+      label: "Repository status",
+      to: "/site-admin/repositories"
+    }
+  ]
+};
 
 export const usersGroup: SiteAdminSideBarGroup = {
-  header : {
-    label : 'Users & auth',
-    icon : UsersIcon,
+  header: {
+    label: "Users & auth",
+    icon: UsersIcon
   },
-  items : [
+  items: [
     {
-      label : 'Users',
-      to : '/site-admin/users',
+      label: "Users",
+      to: "/site-admin/users"
     },
     {
-      label : 'Organizations',
-      to : '/site-admin/organizations',
+      label: "Organizations",
+      to: "/site-admin/organizations"
     },
     {
-      label : 'Access tokens',
-      to : '/site-admin/tokens',
-    },
-  ],
-}
+      label: "Access tokens",
+      to: "/site-admin/tokens"
+    }
+  ]
+};
 
 export const otherGroup: SiteAdminSideBarGroup = {
-  items : [
+  items: [
     {
-      label : 'Updates',
-      to : '/site-admin/updates',
+      label: "Updates",
+      to: "/site-admin/updates"
     },
     {
-      label : 'Pings',
-      to : '/site-admin/pings',
+      label: "Pings",
+      to: "/site-admin/pings"
     },
     {
-      label : 'Report a bug',
-      to : '/site-admin/report-bug',
-    },
-  ],
-}
+      label: "Report a bug",
+      to: "/site-admin/report-bug"
+    }
+  ]
+};
 
 export const siteAdminSidebarGroups: SiteAdminSideBarGroups = [
   overviewGroup,
   configurationGroup,
   repositoriesGroup,
   usersGroup,
-  otherGroup,
-]
+  otherGroup
+];

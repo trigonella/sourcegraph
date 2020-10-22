@@ -1,9 +1,9 @@
 .repositories-panel {
-    &__search-value {
-        color: $white;
+  &__search-value {
+    color: $white;
 
-        .theme-light & {
-            color: $gray-19;
-        }
+    .theme-light & {
+      color: $gray-19;
     }
+  }
 }

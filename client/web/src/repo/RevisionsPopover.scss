@@ -1,24 +1,24 @@
-@import '../components/ConnectionPopover';
+@import "../components/ConnectionPopover";
 
 .revisions-popover {
-    width: 35rem;
+  width: 35rem;
 
-    &-git-commit-node {
-        &__link {
-            display: flex;
-        }
-        &__message {
-            flex: 1 1;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            overflow: hidden;
-            padding: 0 0.5rem;
-        }
-        &__link:not(:hover) &__message {
-            color: var(--body-color);
-        }
-        &__oid {
-            margin-bottom: -0.125rem;
-        }
+  &-git-commit-node {
+    &__link {
+      display: flex;
     }
+    &__message {
+      flex: 1 1;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      padding: 0 0.5rem;
+    }
+    &__link:not(:hover) &__message {
+      color: var(--body-color);
+    }
+    &__oid {
+      margin-bottom: -0.125rem;
+    }
+  }
 }

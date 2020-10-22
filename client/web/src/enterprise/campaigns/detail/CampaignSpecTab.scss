@@ -1,7 +1,7 @@
 .campaign-spec-tab {
-    &__header-col {
-        @include media-breakpoint-down(sm) {
-            flex-basis: 100%;
-        }
+  &__header-col {
+    @include media-breakpoint-down(sm) {
+      flex-basis: 100%;
     }
+  }
 }

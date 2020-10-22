@@ -1,11 +1,11 @@
 .add-filter-row {
-    display: flex;
+  display: flex;
 
-    &__button {
-        &:not(:first-child) {
-            margin-left: 0.25rem;
-        }
+  &__button {
+    &:not(:first-child) {
+      margin-left: 0.25rem;
     }
+  }
 }
 
-@import './AddFilterDropdown';
+@import "./AddFilterDropdown";

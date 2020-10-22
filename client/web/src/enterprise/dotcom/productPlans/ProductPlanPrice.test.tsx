@@ -1,47 +1,47 @@
-import React from 'react'
-import renderer from 'react-test-renderer'
-import { ProductPlanPrice } from './ProductPlanPrice'
+import React from "react";
+import renderer from "react-test-renderer";
+import { ProductPlanPrice } from "./ProductPlanPrice";
 
-describe('ProductPlanPrice', () => {
-    test('free, no max', () => {
-        expect(
-            renderer
-                .create(
-                    <ProductPlanPrice
-                        plan={{
-                            minQuantity: null,
-                            maxQuantity: null,
-                            tiersMode: '',
-                            pricePerUserPerYear: 0,
-                            planTiers: [],
-                        }}
-                    />
-                )
-                .toJSON()
-        ).toMatchInlineSnapshot(`
+describe("ProductPlanPrice", () => {
+  test("free, no max", () => {
+    expect(
+      renderer
+        .create(
+          <ProductPlanPrice
+            plan={{
+              minQuantity: null,
+              maxQuantity: null,
+              tiersMode: "",
+              pricePerUserPerYear: 0,
+              planTiers: []
+            }}
+          />
+        )
+        .toJSON()
+    ).toMatchInlineSnapshot(`
             Array [
               "$0/month",
               " ",
             ]
-        `)
-    })
+        `);
+  });
 
-    test('max', () => {
-        expect(
-            renderer
-                .create(
-                    <ProductPlanPrice
-                        plan={{
-                            minQuantity: 50,
-                            maxQuantity: 100,
-                            tiersMode: '',
-                            pricePerUserPerYear: 0,
-                            planTiers: [],
-                        }}
-                    />
-                )
-                .toJSON()
-        ).toMatchInlineSnapshot(`
+  test("max", () => {
+    expect(
+      renderer
+        .create(
+          <ProductPlanPrice
+            plan={{
+              minQuantity: 50,
+              maxQuantity: 100,
+              tiersMode: "",
+              pricePerUserPerYear: 0,
+              planTiers: []
+            }}
+          />
+        )
+        .toJSON()
+    ).toMatchInlineSnapshot(`
             Array [
               "$0/month",
               " ",
@@ -51,29 +51,29 @@ describe('ProductPlanPrice', () => {
               "users",
               ")",
             ]
-        `)
-    })
+        `);
+  });
 
-    test('priced', () => {
-        expect(
-            renderer
-                .create(
-                    <ProductPlanPrice
-                        plan={{
-                            minQuantity: null,
-                            maxQuantity: null,
-                            tiersMode: '',
-                            pricePerUserPerYear: 100,
-                            planTiers: [],
-                        }}
-                    />
-                )
-                .toJSON()
-        ).toMatchInlineSnapshot(`
+  test("priced", () => {
+    expect(
+      renderer
+        .create(
+          <ProductPlanPrice
+            plan={{
+              minQuantity: null,
+              maxQuantity: null,
+              tiersMode: "",
+              pricePerUserPerYear: 100,
+              planTiers: []
+            }}
+          />
+        )
+        .toJSON()
+    ).toMatchInlineSnapshot(`
             Array [
               "$0.08",
               "/user/month (paid yearly)",
             ]
-        `)
-    })
-})
+        `);
+  });
+});

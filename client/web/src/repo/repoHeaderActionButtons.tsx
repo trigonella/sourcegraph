@@ -1,3 +1,3 @@
-import { RepoHeaderActionButton } from './RepoHeader'
+import { RepoHeaderActionButton } from "./RepoHeader";
 
-export const repoHeaderActionButtons: readonly RepoHeaderActionButton[] = []
+export const repoHeaderActionButtons: readonly RepoHeaderActionButton[] = [];

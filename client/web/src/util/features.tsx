@@ -7,14 +7,16 @@
  * Whether the application should show the user marketing elements (links, etc.)
  * that are intended for Sourcegraph.com.
  */
-export const showDotComMarketing = window.context?.sourcegraphDotComMode
+export const showDotComMarketing = window.context?.sourcegraphDotComMode;
 
 /**
  * Whether the signup form should show terms and privacy policy links.
  */
-export const signupTerms = window.context?.sourcegraphDotComMode
+export const signupTerms = window.context?.sourcegraphDotComMode;
 
 /**
  * Whether the signup form should show the Enterprise trial checkbox
  */
-export const enterpriseTrial = window.context ? !window.context.sourcegraphDotComMode : false
+export const enterpriseTrial = window.context
+  ? !window.context.sourcegraphDotComMode
+  : false;

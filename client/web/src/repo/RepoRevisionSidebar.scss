@@ -1,36 +1,36 @@
-@import './RepoRevisionSidebarSymbols';
+@import "./RepoRevisionSidebarSymbols";
 
 .repo-revision-sidebar {
-    flex: 1 1 auto;
-    min-height: 0;
+  flex: 1 1 auto;
+  min-height: 0;
 
-    overflow-x: auto;
+  overflow-x: auto;
+
+  display: flex;
+  flex-direction: column;
+  position: relative;
+
+  border-right: 1px solid var(--border-color);
+  width: 100%; // necessary to prevent border-right from shrinking as width narrows
+
+  &:not(&--open) {
+    width: 0;
+  }
+
+  &-toggle {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-right: -1.25rem;
+    z-index: 1;
+
+    .icon {
+      width: 1.125rem;
+      height: 1.125rem;
+    }
 
     display: flex;
-    flex-direction: column;
-    position: relative;
+    justify-content: center;
 
-    border-right: 1px solid var(--border-color);
-    width: 100%; // necessary to prevent border-right from shrinking as width narrows
-
-    &:not(&--open) {
-        width: 0;
-    }
-
-    &-toggle {
-        width: 1.25rem;
-        height: 1.25rem;
-        margin-right: -1.25rem;
-        z-index: 1;
-
-        .icon {
-            width: 1.125rem;
-            height: 1.125rem;
-        }
-
-        display: flex;
-        justify-content: center;
-
-        border-radius: 0 0 0.25rem;
-    }
+    border-radius: 0 0 0.25rem;
+  }
 }

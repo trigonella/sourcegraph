@@ -1,11 +1,11 @@
-import {Config} from '../../../../shared/src/testing/config'
+import { Config } from "../../../../shared/src/testing/config";
 import {
   createDriverForTest,
   Driver
-} from '../../../../shared/src/testing/driver'
+} from "../../../../shared/src/testing/driver";
 
-import {createGraphQLClient, GraphQLClient} from './GraphQlClient'
-import {TestResourceManager} from './TestResourceManager'
+import { createGraphQLClient, GraphQLClient } from "./GraphQlClient";
+import { TestResourceManager } from "./TestResourceManager";
 
 /**
  * Returns tools for regression tests. The GraphQL client is authenticated with
@@ -14,33 +14,49 @@ import {TestResourceManager} from './TestResourceManager'
  * resources created during the test.
  */
 export async function getTestTools(
-    config: Pick<Config,|'sourcegraphBaseUrl'|'logBrowserConsole'|'slowMo'|
-                 'headless'|'sudoToken'|'sudoUsername'|'keepBrowser'>):
-        Promise < {gqlClient : GraphQLClient
-driver: Driver
-    resourceManager: TestResourceManager
+  config: Pick<
+    Config,
+    | "sourcegraphBaseUrl"
+    | "logBrowserConsole"
+    | "slowMo"
+    | "headless"
+    | "sudoToken"
+    | "sudoUsername"
+    | "keepBrowser"
+  >
+): Promise<{
+  gqlClient: GraphQLClient;
+  driver: Driver;
+  resourceManager: TestResourceManager;
 }> {
-      const driver = await createAndInitializeDriver(config)
-      const gqlClient = createGraphQLClient({
-        baseUrl : config.sourcegraphBaseUrl,
-        token : config.sudoToken,
-        sudoUsername : config.sudoUsername,
-      })
-      const resourceManager = new TestResourceManager()
+  const driver = await createAndInitializeDriver(config);
+  const gqlClient = createGraphQLClient({
+    baseUrl: config.sourcegraphBaseUrl,
+    token: config.sudoToken,
+    sudoUsername: config.sudoUsername
+  });
+  const resourceManager = new TestResourceManager();
 
-      return { driver, gqlClient, resourceManager, }
-    }
+  return { driver, gqlClient, resourceManager };
+}
 
-    /**
-     * Returns a Puppeteer driver with a 5s command timeout. It is important
-     * that none of the Jest test timeouts is under 5s. Otherwise, the timeout
-     * error will be a cryptic Jest timeout error, instead of an error pointing
-     * to the timed-out Puppeteer command.
-     */
-    export async function createAndInitializeDriver(
-        config: Pick<Config, 'sourcegraphBaseUrl'|'logBrowserConsole'|'slowMo'|
-                     'headless'|'keepBrowser'>): Promise<Driver> {
-      const driver = await createDriverForTest(config)
-      driver.page.setDefaultNavigationTimeout(5 * 1000) // 5s navigation timeout
-      return driver
-    }
+/**
+ * Returns a Puppeteer driver with a 5s command timeout. It is important
+ * that none of the Jest test timeouts is under 5s. Otherwise, the timeout
+ * error will be a cryptic Jest timeout error, instead of an error pointing
+ * to the timed-out Puppeteer command.
+ */
+export async function createAndInitializeDriver(
+  config: Pick<
+    Config,
+    | "sourcegraphBaseUrl"
+    | "logBrowserConsole"
+    | "slowMo"
+    | "headless"
+    | "keepBrowser"
+  >
+): Promise<Driver> {
+  const driver = await createDriverForTest(config);
+  driver.page.setDefaultNavigationTimeout(5 * 1000); // 5s navigation timeout
+  return driver;
+}

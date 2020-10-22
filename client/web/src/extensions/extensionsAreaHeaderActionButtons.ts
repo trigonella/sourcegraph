@@ -1,4 +1,3 @@
-import {ExtensionsAreaHeaderActionButton} from './ExtensionsAreaHeader'
+import { ExtensionsAreaHeaderActionButton } from "./ExtensionsAreaHeader";
 
-export const extensionsAreaHeaderActionButtons:
-    readonly ExtensionsAreaHeaderActionButton[] = []
+export const extensionsAreaHeaderActionButtons: readonly ExtensionsAreaHeaderActionButton[] = [];
