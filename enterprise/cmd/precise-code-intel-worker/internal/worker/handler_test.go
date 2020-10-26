@@ -154,7 +154,7 @@ func TestHandleError(t *testing.T) {
 	bundleManagerClient.GetUploadFunc.SetDefaultHook(copyTestDump)
 
 	// Set a different tip commit
-	mockStore.MarkRepositoryAsDirtyFunc.SetDefaultReturn(fmt.Errorf("uh-oh!"))
+	mockStore.MarkRepositoryAsDirtyFunc.SetDefaultReturn(fmt.Errorf("uh-oh"))
 
 	handler := &handler{
 		bundleManagerClient: bundleManagerClient,

@@ -442,7 +442,7 @@ func (s *ObservedStore) Transact(ctx context.Context) (Store, error) {
 
 // Done calls into the inner store and registers the observed results.
 func (s *ObservedStore) Done(e error) error {
-	var observedErr error = nil
+	var observedErr error
 	_, endObservation := s.doneOperation.With(context.Background(), &observedErr, observation.Args{})
 	defer endObservation(1, observation.Args{})
 

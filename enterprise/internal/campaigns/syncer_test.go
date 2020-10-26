@@ -184,7 +184,7 @@ func TestPrioritizeChangesetsWithoutDiffStats(t *testing.T) {
 	}{
 		"ListChangesets error": {
 			listChangesets: func(ctx context.Context, opts ListChangesetsOpts) (campaigns.Changesets, int64, error) {
-				return nil, 0, errors.New("hello!")
+				return nil, 0, errors.New("hello")
 			},
 			wantError: true,
 		},

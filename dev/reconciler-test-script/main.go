@@ -132,7 +132,7 @@ func applySpecs(opts applyOpts) error {
 
 	res, err := sendRequest(q)
 	if err != nil {
-		return fmt.Errorf("failed to create campaign spec: %s\n", err)
+		return fmt.Errorf("failed to create campaign spec: %s", err)
 	}
 	campaignSpecID := res.Data.CreateCampaignSpec.ID
 	fmt.Printf("Done. ID: %s\n", campaignSpecID)
@@ -141,7 +141,7 @@ func applySpecs(opts applyOpts) error {
 	q = fmt.Sprintf(applyCampaignTmpl, campaignSpecID)
 	res, err = sendRequest(q)
 	if err != nil {
-		return fmt.Errorf("failed to apply campaign: %s\n", err)
+		return fmt.Errorf("failed to apply campaign: %s", err)
 	}
 	campaignID := res.Data.ApplyCampaign.ID
 	fmt.Printf("Done. Campaign ID: %s\n", campaignID)
@@ -224,7 +224,7 @@ func sendRequest(query string) (graphqlResponse, error) {
 			messages = append(messages, e.Message)
 		}
 		list := strings.Join(messages, "\n- ")
-		return res, fmt.Errorf("graphql errors:\n\t- %s\n", list)
+		return res, fmt.Errorf("graphql errors:\n\t- %s", list)
 	}
 
 	return res, nil
