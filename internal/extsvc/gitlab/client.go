@@ -30,7 +30,7 @@ var (
 	requestCounter = metrics.NewRequestMeter("gitlab", "Total number of requests sent to the GitLab API.")
 
 	// Whether debug logging is turned on
-	traceEnabled int32 = 0
+	traceEnabled int32
 )
 
 func init() {
